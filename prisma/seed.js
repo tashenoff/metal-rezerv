@@ -21,7 +21,7 @@ async function main() {
   // Создаем администратора
   const admin = await prisma.user.create({
     data: {
-      name: 'Аманжол Тулебаев',
+      name: 'Аманжол Тулебаев1',
       email: 'admin@example.com',
       password: hashedPasswordAdmin,
       role: 'ADMIN',
