@@ -11,37 +11,44 @@ import 'react-quill/dist/quill.snow.css'; // Импортируем стили �
 const CreateListing = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState(''); // Новое состояние для даты доставки
   const [message, setMessage] = useState('');
-  const [isClient, setIsClient] = useState(false); // Состояние для отслеживания клиентского рендера
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
-      router.push('/login'); // Перенаправление на страницу входа
+      router.push('/login');
     }
-    setIsClient(true); // Устанавливаем, что мы на клиенте
+    setIsClient(true);
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
 
-    const response = await fetch('/api/listings', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Передаем токен в заголовках
-      },
-      body: JSON.stringify({ title, content }),
-    });
+    try {
+      const response = await fetch('/api/listings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, content, deliveryDate }), // Передаем дату
+      });
 
-    if (response.ok) {
-      setMessage('Объявление успешно добавлено!');
-      setTitle('');
-      setContent('');
-    } else {
-      setMessage('Ошибка при добавлении объявления.');
+      if (response.ok) {
+        setMessage('Объявление успешно добавлено!');
+        setTitle('');
+        setContent('');
+        setDeliveryDate(''); // Сбрасываем поле даты
+      } else {
+        const errorData = await response.json();
+        setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
+      }
+    } catch (error) {
+      setMessage('Произошла ошибка при добавлении объявления.');
     }
   };
 
@@ -50,7 +57,7 @@ const CreateListing = () => {
       <Header />
       <div className="container mx-auto p-8">
         <h1 className="text-3xl font-bold mb-6">Создание объявления</h1>
-        {message && <p className="mt-4 text-green-500">{message}</p>}
+        {message && <p className="mt-4 text-red-500">{message}</p>}
         <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
@@ -69,7 +76,7 @@ const CreateListing = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="content">
               Содержимое:
             </label>
-            {isClient && ( // Условный рендеринг только для клиента
+            {isClient && (
               <ReactQuill
                 value={content}
                 onChange={setContent}
@@ -77,6 +84,19 @@ const CreateListing = () => {
                 className="shadow appearance-none border rounded w-full"
               />
             )}
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="deliveryDate">
+              Дата доставки:
+            </label>
+            <input
+              type="date"
+              id="deliveryDate"
+              value={deliveryDate}
+              onChange={(e) => setDeliveryDate(e.target.value)} // Обновляем состояние
+              required
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-500"
+            />
           </div>
           <button
             type="submit"

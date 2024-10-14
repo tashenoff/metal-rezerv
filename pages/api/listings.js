@@ -1,10 +1,9 @@
-// pages/api/listings.js
 import prisma from '../../prisma/client'; // Импортируй клиента Prisma
 import jwt from 'jsonwebtoken'; // Импортируем jsonwebtoken для работы с токенами
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { title, content } = req.body;
+    const { title, content, deliveryDate } = req.body; // Добавляем deliveryDate
     const token = req.headers.authorization?.split(' ')[1]; // Получаем токен
 
     if (!token) {
@@ -28,6 +27,7 @@ export default async function handler(req, res) {
         data: {
           title,
           content,
+          deliveryDate: deliveryDate ? new Date(deliveryDate) : new Date(), // Устанавливаем дату, если передана, или текущую дату
           author: {
             connect: { id: user.id }, // Подключаем пользователя к объявлению
           },
