@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import Header from '../../components/Header';
 import ResponsesList from '../../components/ResponsesList';
 import ResponseForm from '../../components/ResponseForm'; // Импортируем ResponseForm
+import Modal from '../../components/Modal'; // Импортируем Modal
 
 const ListingPage = () => {
     const [listing, setListing] = useState(null);
@@ -69,7 +70,7 @@ const ListingPage = () => {
         if (response.accepted === false) return 'Отклонён';
         if (response.accepted === null || response.accepted === undefined) return 'На рассмотрении';
     };
-    
+
     const handleResponseSubmit = async (message) => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -148,7 +149,7 @@ const ListingPage = () => {
             },
             body: JSON.stringify({ responseId }),
         });
-    
+
         if (response.ok) {
             setFeedback('Отклик отклонён!');
             // Вместо удаления, обновляем статус отклонённого отклика
@@ -162,6 +163,7 @@ const ListingPage = () => {
             setFeedback(`Ошибка при отклонении отклика: ${errorData.message}`);
         }
     };
+
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
@@ -174,12 +176,38 @@ const ListingPage = () => {
         <>
             <Header />
             <div className="container mx-auto">
-                <div className='w-1/2 py-10'>
+                <div className="w-1/2 py-10">
+
+                    {/* Проверка верификации компании */}
+                    {listing.author && listing.author.isCompanyVerified !== undefined ? (
+                        listing.author.isCompanyVerified ? (
+
+                            <div className='flex items-center'>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 mr-1 text-blue-500">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
+                                </svg>
+
+
+                                <p className="text-blue-500">Компания верифицирована</p>
+                            </div>
+                        ) : (
+                            <p className="text-gray-500">Компания не верифицирована</p>
+                        )
+                    ) : (
+                        <p className="text-gray-500">(Нет информации о верификации)</p>
+                    )}
+
+                    <p className="text-gray-600">Автор: {listing.author.name}</p>
                     <h1 className="text-2xl font-bold mb-4">{listing.title}</h1>
                     <p className="mb-2">{listing.content}</p>
+
                     <p className="text-gray-600">Дата публикации: {new Date(listing.publishedAt).toLocaleDateString()}</p>
                     <p className="text-gray-600">Срок поставки: {new Date(listing.deliveryDate).toLocaleDateString()}</p>
+                    <p className="text-gray-600">Срок закупки: {new Date(listing.purchaseDate).toLocaleDateString()}</p>
+
                 </div>
+
+
                 {/* Показываем отправленный отклик текущего пользователя */}
                 {role !== 'PUBLISHER' && hasResponded && (
                     <div className="mt-4 border p-3 rounded shadow">
@@ -214,17 +242,18 @@ const ListingPage = () => {
             </div>
 
             {/* Модальное окно для недостатка баллов */}
-            {isModalOpen && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="bg-white p-6 rounded shadow-lg">
-                        <h2 className="text-lg font-bold">Ошибка</h2>
-                        <p>{modalMessage}</p>
-                        <button onClick={handleCloseModal} className="mt-4 bg-blue-500 text-white py-2 px-4 rounded">
-                            Закрыть
-                        </button>
-                    </div>
-                </div>
-            )}
+            <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+                <h2 className="text-lg font-bold">Улучшите свои возможности</h2>
+                <p className="mt-2 text-gray-700">Купите баллы, чтобы получить доступ к эксклюзивным предложениям и улучшить свои шансы на успех!</p>
+                <p className="mt-4 text-sm text-gray-500">Каждая покупка приближает вас к новым возможностям и преимуществам.</p>
+                <a
+                    href="/purchase-points"
+                    className="inline-block mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                    Купите баллы
+                </a>
+
+            </Modal>
         </>
     );
 };

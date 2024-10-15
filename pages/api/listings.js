@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'; // Импортируем jsonwebtoken для р
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { title, content, deliveryDate } = req.body; // Добавляем deliveryDate
+    const { title, content, deliveryDate, purchaseDate } = req.body; // Добавляем deliveryDate
     const token = req.headers.authorization?.split(' ')[1]; // Получаем токен
 
     if (!token) {
@@ -28,6 +28,7 @@ export default async function handler(req, res) {
           title,
           content,
           deliveryDate: deliveryDate ? new Date(deliveryDate) : new Date(), // Устанавливаем дату, если передана, или текущую дату
+          purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(), // Устанавливаем дату, если передана, или текущую дату
           author: {
             connect: { id: user.id }, // Подключаем пользователя к объявлению
           },

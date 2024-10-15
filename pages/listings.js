@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
-import SearchListings from '../components/SearchListings'; // Импортируем компонент поиска
+// import SearchListings from '../components/SearchListings'; // Импортируем компонент поиска
 
 
 const Listings = () => {
@@ -38,9 +38,12 @@ const Listings = () => {
         <div>
             <Header />
             <div className='container mx-auto'>
-                <h1>Объявления</h1>
-                <SearchListings onSearchResults={handleSearchResults} /> {/* Передаём функцию для обработки результатов поиска */}
-                {searchMessage && <p>{searchMessage}</p>} {/* Выводим сообщение о поиске */}
+                <div className='p-5 flex items-center'>
+                    <h1 className='font-semibold'>Объявления</h1>
+                </div>
+
+                {/* <SearchListings onSearchResults={handleSearchResults} /> Передаём функцию для обработки результатов поиска */}
+                {/* {searchMessage && <p>{searchMessage}</p>} Выводим сообщение о поиске */}
                 {filteredResults.length === 0 ? (
                     <p>Нет опубликованных объявлений.</p>
                 ) : (

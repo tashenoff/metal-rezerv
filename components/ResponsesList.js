@@ -67,12 +67,21 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
             <ul className="space-y-4">
                 {responses.map((response) => (
                     <li key={response.id} className="p-4 bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
-                        <p className="font-semibold">
+                        {response.accepted && <span className="p-1 px-3 bg-green-600 rounded-full text-white text-sm font-semibold "> Принят</span>}
+                        <p className="font-semibold mt-2">
                             <strong>Сообщение:</strong> {response.message}
                         </p>
-                        <p className="text-sm text-gray-600">
-                            <strong>Пользователь: {response.responder ? response.responder.name : 'Неизвестный'}</strong>
-                        </p>
+                        <div className='flex'>
+
+
+                            <p className="text-sm text-gray-600">
+                                <strong>Пользователь: {response.responder ? response.responder.name : 'Неизвестный'}</strong>
+
+                            </p>
+
+
+
+                        </div>
                         <span
                             className="cursor-pointer text-blue-500 underline my-5"
                             onClick={() => handleResponderClick(response.responder)}
@@ -94,7 +103,7 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
                             >
                                 Отклонить
                             </button>
-                            {response.accepted && <span className="text-green-600 font-semibold"> (Принят)</span>}
+
                         </div>
 
                         {/* Показываем информацию о респонденте под откликом, если отклик принят */}

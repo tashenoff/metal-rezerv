@@ -181,6 +181,12 @@ const PublisherPage = () => {
                 <p className="text-sm text-gray-500">
                   Опубликовано: {new Date(listing.publishedAt).toLocaleDateString()}
                 </p>
+
+                <p className="text-sm text-gray-500">
+                  Опубликовано: {new Date(listing.purchaseDate).toLocaleDateString()}
+                </p>
+                
+
                 <p className="text-sm text-gray-500">
                   Статус: {listing.published ? 'Опубликовано' : 'Не опубликовано'}
                 </p>

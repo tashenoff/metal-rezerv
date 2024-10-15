@@ -50,9 +50,17 @@ const Header = () => {
 
 
                             {role !== 'PUBLISHER' && (
-                                <Link href="/responses" className="hover:underline">
-                                    Мои отклики
-                                </Link>
+                                <>
+                                    <Link href="/responses" className="hover:underline">
+                                        Мои отклики
+                                    </Link>
+                                    <Link href="/activity" className="hover:underline">
+                                        Активность
+                                    </Link>
+                                </>
+
+
+
                             )}
                             {role === 'PUBLISHER' && (
                                 <div className="flex space-x-4">
@@ -66,8 +74,8 @@ const Header = () => {
                             )}
 
                             <span className="text-sm">
-                                
-                            {`Привет, ${username}! `}
+
+                                {`Привет, ${username}! `}
                                 {role === 'RESPONDER' && `Баллы: ${points}`}</span>
                             <button onClick={handleLogout} className="bg-red-600 hover:bg-red-500 text-white font-semibold px-3 py-1 rounded">
                                 Выход
@@ -78,9 +86,7 @@ const Header = () => {
                             <Link href="/login" className="hover:underline">
                                 Вход
                             </Link>
-                            <Link href="/register" className="hover:underline">
-                                Регистрация
-                            </Link>
+
                         </>
                     )}
                 </nav>

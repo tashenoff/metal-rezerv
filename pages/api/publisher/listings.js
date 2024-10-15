@@ -24,6 +24,11 @@ export default async function handler(req, res) {
                 publishedAt: true,
                 published: true,
                 deliveryDate: true,
+                author: {
+                    select: {
+                        isCompanyVerified: true, // Получаем поле isCompanyVerified от автора (User)
+                    },
+                },
             },
         });
 

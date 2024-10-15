@@ -16,6 +16,7 @@ export default async function handler(req, res) {
             include: {
                 listing: { // Здесь мы включаем связанную модель Listing
                     select: {
+                        id: true,
                         title: true,
                         content: true,
                         published: true,
@@ -27,7 +28,7 @@ export default async function handler(req, res) {
                                 phoneNumber: true,
                                 email: true,
                                 companyBIN: true,
-                                
+
                             },
                         },
                     },

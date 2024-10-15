@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
-
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,9 +17,15 @@ export default function Login() {
     });
 
     if (res.ok) {
-      const { token } = await res.json();
+      const { token, role } = await res.json(); // Предполагается, что API возвращает роль пользователя
       localStorage.setItem('token', token); // Сохраняем токен в localStorage
-      router.push('/listings'); // Перенаправляем на страницу объявлений
+
+      // Перенаправляем в зависимости от роли
+      if (role === 'RESPONDER') {
+        router.push('/activity'); // Для респондента
+      } else {
+        router.push('/listings'); // Для публишера
+      }
     } else {
       const { message } = await res.json();
       alert(message);
