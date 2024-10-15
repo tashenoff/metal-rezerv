@@ -1,23 +1,54 @@
 // components/ResponsesList.js
 import React, { useEffect, useState } from 'react';
-import Modal from './Modal'; // Импортируем компонент модального окна
+import Modal from './Modal';
+import SkeletonLoader from './SkeletonLoader'; // Импортируем SkeletonLoader
 
 const ResponsesList = ({ responses, onAccept, onDecline }) => {
+    const [visibleResponses, setVisibleResponses] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [page, setPage] = useState(1);
     const [selectedResponder, setSelectedResponder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
     const [responseToAccept, setResponseToAccept] = useState(null);
     const [acceptedResponses, setAcceptedResponses] = useState(new Set());
-    const [acceptedResponseData, setAcceptedResponseData] = useState({}); // Состояние для принятого ответа
+    const [acceptedResponseData, setAcceptedResponseData] = useState({});
 
     useEffect(() => {
-        // Загружаем принятую информацию о респондентах из localStorage
         const storedAcceptedResponses = JSON.parse(localStorage.getItem('acceptedResponses')) || [];
         setAcceptedResponses(new Set(storedAcceptedResponses));
 
         const storedResponseData = JSON.parse(localStorage.getItem('acceptedResponseData')) || {};
         setAcceptedResponseData(storedResponseData);
-    }, []);
+
+        // Загружаем первые 5 откликов
+        setVisibleResponses(responses.slice(0, 5));
+    }, [responses]);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const bottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight;
+            // Проверяем, дошли ли до конца страницы и есть ли еще отклики для загрузки
+            if (bottom && !isLoading && visibleResponses.length < responses.length) {
+                loadMoreResponses();
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [visibleResponses, isLoading, responses]);
+
+    const loadMoreResponses = () => {
+        setIsLoading(true);
+        setTimeout(() => {
+            const nextResponses = responses.slice(visibleResponses.length, visibleResponses.length + 5);
+            // Проверяем, есть ли еще отклики для загрузки
+            if (nextResponses.length > 0) {
+                setVisibleResponses((prev) => [...prev, ...nextResponses]);
+            }
+            setIsLoading(false);
+        }, 1000);
+    };
 
     const handleResponderClick = (responder) => {
         setSelectedResponder(responder);
@@ -48,13 +79,12 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
             setAcceptedResponses(updatedAcceptedResponses);
             localStorage.setItem('acceptedResponses', JSON.stringify(Array.from(updatedAcceptedResponses)));
 
-            // Сохраняем данные о принятом ответе
             setAcceptedResponseData((prev) => {
                 const updatedResponseData = {
                     ...prev,
-                    [responseToAccept]: selectedResponder // Сохраняем респондента, связанного с ответом
+                    [responseToAccept]: selectedResponder
                 };
-                localStorage.setItem('acceptedResponseData', JSON.stringify(updatedResponseData)); // Сохраняем в localStorage
+                localStorage.setItem('acceptedResponseData', JSON.stringify(updatedResponseData));
                 return updatedResponseData;
             });
         }
@@ -65,22 +95,17 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
         <div className="mt-6">
             <h2 className="text-2xl font-bold mb-4">Отклики:</h2>
             <ul className="space-y-4">
-                {responses.map((response) => (
+                {visibleResponses.map((response) => (
                     <li key={response.id} className="p-4 bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
                         {response.accepted && <span className="p-1 px-3 bg-green-600 rounded-full text-white text-sm font-semibold "> Принят</span>}
                         <p className="font-semibold mt-2">
+                        <p className='py-2'>{response.createdAt}</p>
                             <strong>Сообщение:</strong> {response.message}
                         </p>
                         <div className='flex'>
-
-
                             <p className="text-sm text-gray-600">
                                 <strong>Пользователь: {response.responder ? response.responder.name : 'Неизвестный'}</strong>
-
                             </p>
-
-
-
                         </div>
                         <span
                             className="cursor-pointer text-blue-500 underline my-5"
@@ -103,10 +128,8 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
                             >
                                 Отклонить
                             </button>
-
                         </div>
 
-                        {/* Показываем информацию о респонденте под откликом, если отклик принят */}
                         {acceptedResponseData[response.id] && (
                             <div className="mt-4 p-2 border-t border-gray-300">
                                 <h4 className="font-semibold">Информация о респонденте:</h4>
@@ -119,6 +142,13 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
                         )}
                     </li>
                 ))}
+
+                {/* Отображение индикатора загрузки только при загрузке новых откликов */}
+                {isLoading && (
+                    <li className="p-4">
+                        <SkeletonLoader />
+                    </li>
+                )}
             </ul>
 
             {/* Используем компонент модального окна для отображения профиля респондента */}
