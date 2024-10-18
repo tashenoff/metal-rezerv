@@ -1,7 +1,7 @@
 // components/Modal.js
 import React from 'react';
 
-const Modal = ({ isOpen, onClose, children }) => {
+const Modal = ({ isOpen, onClose, children, modalMessage }) => {
     if (!isOpen) return null;
 
     return (
@@ -13,6 +13,8 @@ const Modal = ({ isOpen, onClose, children }) => {
                 >
                     X
                 </button>
+
+                {modalMessage}
                 {children}
             </div>
         </div>

@@ -199,7 +199,7 @@ const PublisherPage = () => {
                   {responseCountsByStatus[listing.id] && (
                     <div>
                       <p>Ожидающие отклики: {responseCountsByStatus[listing.id].pending || 0}</p>
-                      <p>Обработанные отклики: {responseCountsByStatus[listing.id].approved || 0}</p>
+                      <p>Обработанные отклики: {responseCountsByStatus[listing.id].processed || 0}</p>
                     </div>
                   )}
                 </div>

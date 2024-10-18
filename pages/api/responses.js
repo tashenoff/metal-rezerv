@@ -48,10 +48,6 @@ export default async function handler(req, res) {
                 return res.status(404).json({ message: 'Пользователь не найден.' });
             }
 
-            if (user.points === null || user.points <= 0) {
-                return res.status(400).json({ message: 'Недостаточно баллов для отклика.' });
-            }
-
             const listing = await prisma.listing.findUnique({
                 where: { id: parseInt(listingId) },
                 include: { author: true },
@@ -78,6 +74,15 @@ export default async function handler(req, res) {
                 return res.status(400).json({ message: 'Вы уже отправили отклик на это объявление.' });
             }
 
+            // Проверяем, верифицирована ли компания через поле isCompanyVerified
+            const isVerifiedCompany = listing.author.isCompanyVerified; // Используем поле `isCompanyVerified`
+            const responseCost = isVerifiedCompany ? 10 : 5; 
+
+            // Проверка на наличие достаточного количества баллов
+            if (user.points === null || user.points < responseCost) {
+                return res.status(400).json({ message: 'Недостаточно баллов для отклика.' });
+            }
+
             const response = await prisma.response.create({
                 data: {
                     responderId: userId,
@@ -88,9 +93,10 @@ export default async function handler(req, res) {
             });
             console.log('New response created:', response);
 
+            // Обновляем баллы пользователя только если они не уйдут в минус
             await prisma.user.update({
                 where: { id: userId },
-                data: { points: user.points - 1 },
+                data: { points: user.points - responseCost },
             });
 
             return res.status(201).json(response);
