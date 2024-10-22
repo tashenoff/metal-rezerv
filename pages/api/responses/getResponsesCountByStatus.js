@@ -9,6 +9,7 @@ export default async function handler(req, res) {
     try {
         const parsedListingId = parseInt(listingId, 10);
 
+        // Группировка по статусам
         const responseCounts = await prisma.response.groupBy({
             by: ['status'],
             where: {
@@ -22,13 +23,17 @@ export default async function handler(req, res) {
         // Преобразуем данные в удобный формат
         const counts = {
             processed: 0, // Обработанные отклики
-            rejected: 0,
-            pending: 0,
+            rejected: 0,  // Отклоненные
+            pending: 0,   // Ожидающие
         };
 
+        let totalCount = 0; // Общий счетчик откликов
+
+        // Подсчитываем отклики по статусам
         responseCounts.forEach((item) => {
-            if (item.status === 'approved') { // Исправлено на 'approved'
-                counts.processed = item._count.status; // Увеличиваем счетчик обработанных
+            totalCount += item._count.status; // Увеличиваем общий счетчик
+            if (item.status === 'approved') {
+                counts.processed = item._count.status;
             } else if (item.status === 'rejected') {
                 counts.rejected = item._count.status;
             } else if (item.status === 'pending') {
@@ -36,9 +41,10 @@ export default async function handler(req, res) {
             }
         });
 
-        res.status(200).json(counts);
+        // Возвращаем общий счетчик и распределение по статусам
+        res.status(200).json({ totalCount, counts });
     } catch (error) {
-        console.error('Ошибка при получении количества откликов по статусу:', error);
-        res.status(500).json({ message: 'Ошибка при получении количества откликов по статусу.' });
+        console.error('Ошибка при получении количества откликов:', error);
+        res.status(500).json({ message: 'Ошибка при получении количества откликов.' });
     }
 }

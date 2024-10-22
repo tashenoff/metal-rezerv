@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+
 const prisma = new PrismaClient();
 
 async function main() {
@@ -13,100 +14,104 @@ async function main() {
   await prisma.user.deleteMany({});
 
   // Хэшируем пароли
-  const publisherPassword = 'publisherPassword';
-  const responderPassword = 'responderPassword';
+  const hashedPasswordPublisher = await bcrypt.hash('publisherPassword', 10);
+  const hashedPasswordResponder = await bcrypt.hash('responderPassword', 10);
 
-  const hashedPasswordPublisher = await bcrypt.hash(publisherPassword, 10);
-  const hashedPasswordResponder = await bcrypt.hash(responderPassword, 10);
-
-  // Создаем 100 уникальных публишеров
-  const publishers = [];
-  for (let i = 0; i < 100; i++) {
-    const publisher = await prisma.user.create({
+  // Создаем 2 пользователей с ролью PUBLISHER
+  const publishers = await Promise.all([
+    prisma.user.create({
       data: {
-        name: `Publisher ${i + 1}`,
-        email: `publisher${i + 1}@example.com`,
+        name: 'Алия Султанова',
+        email: 'publisher1@example.com',
         password: hashedPasswordPublisher,
         role: 'PUBLISHER',
         points: null,
-        companyName: `Publisher Company ${i + 1}`,
-        companyBIN: `BIN${100000000 + i}`,
-        phoneNumber: `7771000${i.toString().padStart(4, '0')}`,
-        city: i % 2 === 0 ? 'Алматы' : 'Нур-Султан',
+        companyName: 'Publisher Company 1',
+        companyBIN: '222222222', // Преобразовано в строку
+        phoneNumber: '7777654321',
+        city: 'Алматы',
+        country: 'Казахстан',
         registrationDate: new Date(),
         isCompanyVerified: false,
       },
-    });
-    publishers.push(publisher);
-
-    // Выводим информацию о созданном публишере
-    console.log(`Публишер создан: email: publisher${i + 1}@example.com, password: ${publisherPassword}`);
-  }
-
-  // Создаем 100 уникальных респондентов
-  const responders = [];
-  for (let i = 0; i < 100; i++) {
-    const responder = await prisma.user.create({
+    }),
+    prisma.user.create({
       data: {
-        name: `Responder ${i + 1}`,
+        name: 'Дмитрий Иванов',
+        email: 'publisher2@example.com',
+        password: hashedPasswordPublisher,
+        role: 'PUBLISHER',
+        points: null,
+        companyName: 'Publisher Company 2',
+        companyBIN: '333333333', // Преобразовано в строку
+        phoneNumber: '7779876543',
+        city: 'Нур-Султан',
+        country: 'Казахстан',
+        registrationDate: new Date(),
+        isCompanyVerified: false,
+      },
+    }),
+  ]);
+
+  // Создаем 5 респондентов
+  const responders = await Promise.all(Array.from({ length: 5 }, (_, i) => 
+    prisma.user.create({
+      data: {
+        name: `Респондент ${i + 1}`,
         email: `responder${i + 1}@example.com`,
         password: hashedPasswordResponder,
         role: 'RESPONDER',
-        points: 5, // начальные баллы для респондентов
+        points: Math.floor(Math.random() * 20), // Случайные баллы
         companyName: `Responder Company ${i + 1}`,
-        companyBIN: `BIN${200000000 + i}`,
-        phoneNumber: `7772000${i.toString().padStart(4, '0')}`,
-        city: i % 2 === 0 ? 'Астана' : 'Шымкент',
+        companyBIN: `${(i + 5) * 111111111}`, // Преобразовано в строку
+        phoneNumber: `777${Math.floor(Math.random() * 10000000)}`, // Случайный номер
+        city: 'Город ' + (i + 1),
+        country: 'Казахстан',
         registrationDate: new Date(),
         isCompanyVerified: false,
       },
-    });
-    responders.push(responder);
+    })
+  ));
 
-    // Выводим информацию о созданном респонденте
-    console.log(`Респондент создан: email: responder${i + 1}@example.com, password: ${responderPassword}`);
-  }
+  // Устанавливаем expirationDate на 10 минут вперед
+  const expirationDate = new Date();
+  expirationDate.setMinutes(expirationDate.getMinutes() + 10);
 
-  // Создаем 100 уникальных объявлений от 100 публишеров
-  const listings = [];
-  for (let i = 0; i < 100; i++) {
-    const listing = await prisma.listing.create({
-      data: {
-        title: `Объявление ${i + 1}`,
-        content: `Описание объявления ${i + 1}. Требуется строительный материал.`,
-        published: true,
-        authorId: publishers[i].id, // Каждое объявление от уникального публишера
-        deliveryDate: new Date(),
-        publishedAt: new Date(),
-        purchaseDate: new Date('2024-10-01'),
-      },
-    });
-    listings.push(listing);
-  }
+  // Создаем одно объявление
+  const listing = await prisma.listing.create({
+    data: {
+      title: 'Требуется арматура для строительных работ',
+      content: `Нужна арматура диаметром от 10 до 32 мм. Рассмотрим предложения от поставщиков.
 
-  // Создаем по 10 откликов на каждое объявление от разных респондентов
-  for (let i = 0; i < 100; i++) {
-    const responses = [];
-    for (let j = 0; j < 10; j++) {
-      const message = `Отклик на объявление ${i + 1} от респондента ${j + 1}: Я могу предложить вам решение. Свяжитесь со мной.`;
+      Мы ищем надежных поставщиков, которые смогут обеспечить качественную арматуру в нужных количествах. 
 
-      responses.push({
-        responderId: responders[(i * 10 + j) % 100].id, // Уникальный респондент
-        message: message,
-        listingId: listings[i].id, // Все отклики привязаны к конкретному объявлению
-        status: 'pending',
-        createdAt: new Date(),
-        accepted: null,
-      });
-    }
-    
-    // Создаем 10 откликов для текущего объявления
-    await prisma.response.createMany({
-      data: responses,
-    });
-  }
+      Обратите внимание, что важным критерием является цена и сроки доставки. Если вы можете предложить конкурентные условия, пожалуйста, свяжитесь с нами.`,
+      published: true,
+      authorId: publishers[0].id,
+      deliveryDate: new Date(),
+      publishedAt: new Date(),
+      purchaseDate: new Date('2024-10-01'),
+      expirationDate: expirationDate,
+    },
+  });
 
-  console.log('100 уникальных объявлений и 1000 откликов созданы!');
+// Создаем 5 откликов на одно объявление
+const responses = await Promise.all(responders.map((responder) => {
+  let message = `Отклик от ${responder.name}: Я могу предложить вам решение. Свяжитесь со мной.`;
+  return prisma.response.create({
+    data: {
+      responderId: responder.id, // Используем конкретного респондента
+      message: message,
+      listingId: listing.id, // Используем только одно объявление
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+}));
+
+
+  console.log('Users, listings, and responses created!');
 }
 
 main()

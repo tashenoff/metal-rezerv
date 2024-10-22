@@ -12,6 +12,7 @@ export default async function handler(req, res) {
         const responses = await prisma.response.findMany({
             where: {
                 responderId: parsedResponderId,
+             
             },
             include: {
                 listing: { // Здесь мы включаем связанную модель Listing
@@ -20,6 +21,7 @@ export default async function handler(req, res) {
                         title: true,
                         content: true,
                         published: true,
+                        expirationDate: true,
                         responses: true,
                         author: { // Включаем информацию об авторе объявления
                             select: {
@@ -28,6 +30,7 @@ export default async function handler(req, res) {
                                 phoneNumber: true,
                                 email: true,
                                 companyBIN: true,
+                                country: true,
 
                             },
                         },

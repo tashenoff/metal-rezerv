@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Modal from './Modal';
 import SkeletonLoader from './SkeletonLoader'; // Импортируем SkeletonLoader
+import ResponseItem from './ResponseItem'; // Импортируем ResponseItem
+import TabbedNavigation from './TabbedNavigation'; // Импортируем TabbedNavigation
+import { getResponseCounts } from '../utils/getResponseCounts';
 
-const ResponsesList = ({ responses, onAccept, onDecline }) => {
+const ResponsesList = ({ responses, onAccept, onDecline, listingId }) => {
     const [visibleResponses, setVisibleResponses] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [page, setPage] = useState(1);
     const [selectedResponder, setSelectedResponder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
@@ -13,8 +15,10 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
     const [acceptedResponses, setAcceptedResponses] = useState(new Set());
     const [acceptedResponseData, setAcceptedResponseData] = useState({});
     const [expandedMessages, setExpandedMessages] = useState(new Set()); // Для отслеживания длинных сообщений
+    const [currentStatus, setCurrentStatus] = useState('pending'); // Текущий статус
+    const [isSorted, setIsSorted] = useState(false); // Добавляем новое состояние
+    const [responseCounts, setResponseCounts] = useState({});
 
-    const MESSAGE_LIMIT = 100; // Лимит символов для краткого отображения
 
     useEffect(() => {
         const storedAcceptedResponses = JSON.parse(localStorage.getItem('acceptedResponses')) || [];
@@ -23,9 +27,23 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
         const storedResponseData = JSON.parse(localStorage.getItem('acceptedResponseData')) || {};
         setAcceptedResponseData(storedResponseData);
 
-        // Загружаем первые 5 откликов
-        setVisibleResponses(responses.slice(0, 5));
-    }, [responses]);
+        // Загружаем отклики по текущему статусу
+        loadResponsesByStatus(currentStatus);
+        console.log('listingId:', listingId); // Проверьте значение здесь
+
+        const fetchCounts = async () => {
+            const counts = await getResponseCounts([{ id: listingId }]);
+            setResponseCounts(counts[listingId] || {});
+        };
+
+        fetchCounts();
+
+        console.log('Текущий статус:', currentStatus);
+
+
+    }, [responses, listingId]);
+
+
 
     useEffect(() => {
         const handleScroll = () => {
@@ -39,10 +57,26 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [visibleResponses, isLoading, responses]);
 
+    const loadResponsesByStatus = (status) => {
+        setIsLoading(true);
+
+        const filteredResponses = responses.filter(response => {
+            const responseStatus = response.status === 'processed' ? 'approved' : response.status; // Изменяем статус при фильтрации
+            return responseStatus === status;
+        });
+
+        console.log('Отфильтрованные отклики:', filteredResponses);
+        setVisibleResponses(filteredResponses.slice(0, 5));
+        setIsLoading(false);
+        setIsSorted(true);
+    };
+
+
     const loadMoreResponses = () => {
         setIsLoading(true);
         setTimeout(() => {
-            const nextResponses = responses.slice(visibleResponses.length, visibleResponses.length + 5);
+            const nextResponses = responses.filter(response => response.status === currentStatus)
+                .slice(visibleResponses.length, visibleResponses.length + 5);
             if (nextResponses.length > 0) {
                 setVisibleResponses((prev) => [...prev, ...nextResponses]);
             }
@@ -104,73 +138,35 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
         });
     };
 
+    console.log('Все отклики:', responses);
+
+
     return (
         <div className="mt-6">
             <h2 className="text-2xl font-bold mb-4">Отклики:</h2>
+
+            <TabbedNavigation
+                onTabChange={(status) => {
+                    setCurrentStatus(status);
+                    loadResponsesByStatus(status); // Загружаем отклики при смене вкладки
+                }}
+                responseCounts={responseCounts.counts} // Передаем количество откликов
+                isSorted={isSorted} // Передаем статус сортировки
+            />
+
             <ul className="space-y-4">
                 {visibleResponses.map((response) => (
-                    <li
+                    <ResponseItem
                         key={response.id}
-                        className={`flex flex-col p-4 max-w-xl ${acceptedResponses.has(response.id) ? 'self-end bg-green-100' : 'bg-blue-100'} rounded-lg shadow-sm`}
-                    >
-                        <div className={`${acceptedResponses.has(response.id) ? 'text-left' : 'text-left'}`}>
-                            {response.accepted && <span className="p-1 px-3 bg-green-600 rounded-full text-white text-sm font-semibold">Принят</span>}
-                            <p className="font-semibold mt-2">
-                                <p className='flex items-center'>
-                                    <strong className='underline cursor-pointer' onClick={() => handleResponderClick(response.responder)}>{response.responder ? response.responder.name : 'Неизвестный'}</strong>
-                                    <p className="py-2 ml-2">{response.createdAt}</p>
-                                </p>
-                                <strong>Сообщение:</strong> 
-                                {expandedMessages.has(response.id) ? (
-                                    <>
-                                        {response.message}
-                                        <button className="text-blue-500 ml-2" onClick={() => toggleMessageExpansion(response.id)}>Скрыть</button>
-                                    </>
-                                ) : (
-                                    <>
-                                        {response.message.length > MESSAGE_LIMIT ? (
-                                            <>
-                                                {response.message.slice(0, MESSAGE_LIMIT)}...
-                                                <button className="text-blue-500 ml-2" onClick={() => toggleMessageExpansion(response.id)}>Показать больше</button>
-                                            </>
-                                        ) : (
-                                            response.message
-                                        )}
-                                    </>
-                                )}
-                            </p>
-                        </div>
-
-                        <div className={`mt-2 flex space-x-2 ${acceptedResponses.has(response.id) ? 'justify-start' : 'justify-start'}`}>
-                            {!acceptedResponses.has(response.id) && (
-                                <>
-                                    <button
-                                        onClick={() => openConfirmation(response.id, response.responder)}
-                                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
-                                    >
-                                        Принять
-                                    </button>
-                                    <button
-                                        onClick={() => onDecline(response.id)}
-                                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
-                                    >
-                                        Отклонить
-                                    </button>
-                                </>
-                            )}
-                        </div>
-
-                        {acceptedResponseData[response.id] && (
-                            <div className="mt-4 p-2 border-t border-gray-300">
-                                <h4 className="font-semibold">Информация о респонденте:</h4>
-                                <p><strong>Имя:</strong> {acceptedResponseData[response.id].name}</p>
-                                <p><strong>Организация:</strong> {acceptedResponseData[response.id].companyName}</p>
-                                <p><strong>Дата Регистрации:</strong> {new Date(acceptedResponseData[response.id].registrationDate).toLocaleDateString()}</p>
-                                <p><strong>Контактный Email:</strong> {acceptedResponseData[response.id].email}</p>
-                                <p><strong>Телефон для связи:</strong> {acceptedResponseData[response.id].phoneNumber}</p>
-                            </div>
-                        )}
-                    </li>
+                        response={response}
+                        acceptedResponses={acceptedResponses}
+                        onAccept={openConfirmation}
+                        onDecline={onDecline}
+                        onResponderClick={handleResponderClick}
+                        expandedMessages={expandedMessages}
+                        toggleMessageExpansion={toggleMessageExpansion}
+                        acceptedResponseData={acceptedResponseData}
+                    />
                 ))}
 
                 {isLoading && (

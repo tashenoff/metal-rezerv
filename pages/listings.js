@@ -1,7 +1,8 @@
 // pages/listings.js
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Header from '../components/Header';
+import Headlines from '../components/headlines';
+import Layout from '../components/Layout';
 // import SearchListings from '../components/SearchListings'; // Импортируем компонент поиска
 
 
@@ -35,35 +36,37 @@ const Listings = () => {
     };
 
     return (
-        <div>
-            <Header />
-            <div className='container mx-auto'>
-                <div className='p-5 flex items-center'>
-                    <h1 className='font-semibold'>Объявления</h1>
-                </div>
+        <Layout>
+            <div>
 
-                {/* <SearchListings onSearchResults={handleSearchResults} /> Передаём функцию для обработки результатов поиска */}
-                {/* {searchMessage && <p>{searchMessage}</p>} Выводим сообщение о поиске */}
-                {filteredResults.length === 0 ? (
-                    <p>Нет опубликованных объявлений.</p>
-                ) : (
-                    <ul>
-                        {filteredResults.map((listing) => (
-                            <li className='p-5 bg-white border my-5' key={listing.id}>
-                                <Link href={`/listing/${listing.id}`}>
-                                    <p className='font-bold'>{listing.title}</p>
-                                    <p>{listing.content}</p>
-                                    <div className='my-5 border border-t border-opacity-25'>
-                                        <p>Дата публикации: {listing.publishedAt}</p>
-                                        <p>Срок поставки: {listing.deliveryDate}</p>
-                                    </div>
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                <div className='container mx-auto h-screen'>
+                    <div className='p-5 flex items-center'>
+                        <Headlines title="Каталог заявок" />
+                    </div>
+
+                    {/* <SearchListings onSearchResults={handleSearchResults} /> Передаём функцию для обработки результатов поиска */}
+                    {/* {searchMessage && <p>{searchMessage}</p>} Выводим сообщение о поиске */}
+                    {filteredResults.length === 0 ? (
+                        <p>Нет опубликованных объявлений.</p>
+                    ) : (
+                        <ul>
+                            {filteredResults.map((listing) => (
+                                <li className='p-5 bg-white border my-5' key={listing.id}>
+                                    <Link href={`/listing/${listing.id}`}>
+                                        <p className='font-bold'>{listing.title}</p>
+                                        <p>{listing.content}</p>
+                                        <div className='my-5 border border-t border-opacity-25'>
+                                            <p>Дата публикации: {listing.publishedAt}</p>
+                                            <p>Срок поставки: {listing.deliveryDate}</p>
+                                        </div>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
             </div>
-        </div>
+        </Layout>
     );
 };
 

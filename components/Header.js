@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import PointsDisplay from './PointsDisplay'; // Импорт компонента PointsDisplay
+import UsernameDisplay from './UsernameDisplay'; // Импорт компонента UsernameDisplay
 
 const Header = () => {
     const router = useRouter();
@@ -37,17 +39,15 @@ const Header = () => {
     };
 
     return (
-        <header className="bg-blue-600 text-white p-4">
+        <header className="border border-b border-gray-300 bg-white text-gray-800 p-4">
             <div className="container mx-auto flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Мое приложение</h1>
                 <nav className="flex items-center space-x-4">
                     {isLoggedIn ? (
                         <>
                             <Link href="/listings" className="hover:underline">
-                                Объявления
+                                Заявки
                             </Link>
-
-
 
                             {role !== 'PUBLISHER' && (
                                 <>
@@ -58,26 +58,25 @@ const Header = () => {
                                         Активность
                                     </Link>
                                 </>
-
-
-
                             )}
                             {role === 'PUBLISHER' && (
                                 <div className="flex space-x-4">
                                     <Link href="/create-listing" className="hover:underline">
-                                        Создать объявление
+                                        Создать Заявку
                                     </Link>
                                     <Link href="/publisher" className="hover:underline">
-                                        Мои объявления
+                                        Мои заявки
                                     </Link>
                                 </div>
                             )}
 
-                            <span className="text-sm">
+                            {/* Используем компонент UsernameDisplay для отображения имени */}
+                            <UsernameDisplay username={username} />
 
-                                {`Привет, ${username}! `}
-                                {role === 'RESPONDER' && `Баллы: ${points}`}</span>
-                            <button onClick={handleLogout} className="bg-red-600 hover:bg-red-500 text-white font-semibold px-3 py-1 rounded">
+                            {/* Используем компонент PointsDisplay для отображения баллов */}
+                            <PointsDisplay points={points} role={role} />
+
+                            <button onClick={handleLogout} className="bg-white hover:bg-gray-100 border border-gray-300 font-semibold px-3 py-1 rounded">
                                 Выход
                             </button>
                         </>
@@ -86,7 +85,6 @@ const Header = () => {
                             <Link href="/login" className="hover:underline">
                                 Вход
                             </Link>
-
                         </>
                     )}
                 </nav>

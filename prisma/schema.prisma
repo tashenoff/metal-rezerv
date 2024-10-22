@@ -20,6 +20,7 @@ model User {
   listings       Listing[] // Связь с объявлениями
   responses      Response[] // Отклики на объявления
   city           String?  // Город пользователя
+  country        String?  // Страна пользователя - новое поле
   registrationDate DateTime @default(now()) // Дата регистрации
   isCompanyVerified Boolean @default(false) // Подтверждена ли компания
 }
@@ -31,6 +32,7 @@ model Listing {
   published     Boolean  @default(false)
   deliveryDate  DateTime @default(now()) // Устанавливаем значение по умолчанию
   publishedAt   DateTime @default(now()) // Добавлено поле даты публикации
+  expirationDate DateTime? // Поле может быть null
   purchaseDate  DateTime? // Дата закупа для объявления
   author        User     @relation(fields: [authorId], references: [id])
   authorId      Int

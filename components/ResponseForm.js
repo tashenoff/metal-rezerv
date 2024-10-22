@@ -19,7 +19,7 @@ const ResponseForm = ({ onSubmit, feedback }) => {
                 onChange={(e) => setResponseMessage(e.target.value)}
                 required // Убедитесь, что поле не пустое
             />
-            <button type="submit" className="bg-blue-500 text-white p-2 rounded">
+            <button type="submit" className="bg-blue-500 w-full text-white p-2 rounded">
                 Отправить отклик
             </button>
             {feedback && <p className="text-red-500 mt-2">{feedback}</p>}
