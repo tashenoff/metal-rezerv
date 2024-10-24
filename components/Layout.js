@@ -6,7 +6,7 @@ import Header from './Header'; // Вы можете создать свой Head
 
 const Layout = ({ children, title = "My Next.js App" }) => {
   return (
-    <div className='bg-gray-200'>
+    <div data-theme="nord" className="flex flex-col min-h-screen">
       <Head>
         <title>{title}</title>
         <meta name="description" content="This is a Next.js app" />
@@ -15,10 +15,12 @@ const Layout = ({ children, title = "My Next.js App" }) => {
 
       <Header />
 
-      <main className="container mx-auto p-4">
+      {/* Основное содержимое с flex-grow, чтобы занимать оставшееся пространство */}
+      <main className="flex-grow container mx-auto p-4">
         {children}
       </main>
 
+      {/* Футер, который всегда будет прижат к низу */}
       {/* <Footer /> */}
     </div>
   );

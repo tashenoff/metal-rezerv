@@ -7,10 +7,17 @@ import Modal from '../../components/Modal'; // Импортируем Modal
 import UserResponses from '../../components/UserResponses';
 import AuthorInfo from '../../components/AuthorInfo';
 import Layout from '../../components/Layout';
+import Card from '../../components/Card';
+import DateDisplay from '../../components/DateDisplay'; // Импортируем компонент даты
+import { unpublishListing } from '../../utils/unpublishListing';
+import publishListing from '../../utils/PublishListing';
 
+import StatusDisplay from '../../components/StatusDisplay'; // Импортируйте ваш компонент
 
 const ListingPage = (responseCountsByStatus) => {
+    const [error, setError] = useState(null); // Добавляем состояние для ошибок
     const [listing, setListing] = useState(null);
+
     const [role, setRole] = useState(null); // Роль пользователя
     const [userId, setUserId] = useState(null); // Идентификатор пользователя
     const [responses, setResponses] = useState([]);
@@ -24,18 +31,29 @@ const ListingPage = (responseCountsByStatus) => {
     useEffect(() => {
         if (id) {
             const fetchListing = async () => {
-                const response = await fetch(`/api/listings/${id}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setListing(data);
-                } else {
+                try {
+                    const response = await fetch(`/api/listings/${id}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        setListing(data);
+                    } else {
+                        // Если произошла ошибка при загрузке объявления
+                        setModalContent({
+                            type: 'error',
+                            message: 'Ошибка при загрузке объявления.',
+                        });
+                        setIsModalOpen(true);
+                    }
+                } catch (err) {
+                    // Если произошла ошибка в процессе выполнения запроса
                     setModalContent({
                         type: 'error',
-                        message: 'Ошибка при загрузке объявления.',
+                        message: 'Ошибка при загрузке объявления: ' + err.message,
                     });
                     setIsModalOpen(true);
                 }
             };
+
 
             fetchListing();
 
@@ -72,6 +90,31 @@ const ListingPage = (responseCountsByStatus) => {
             fetchResponses();
         }
     }, [id]);
+
+    // Обработчик снятия с публикации
+    const onUnpublish = async (listingId) => {
+        console.log('Снимаем с публикации объявление с ID:', listingId); // Логирование
+        try {
+            const updatedListing = await unpublishListing(listingId); // Удаляем параметр setListings
+            setListing(updatedListing); // Обновляем состояние listing
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+
+
+    // Обработчик публикации
+    const publish = async (listingId) => {
+        console.log('Публикуем объявление с ID:', listingId); // Логирование
+        try {
+            const updatedListing = await publishListing(listingId); // Получаем обновленное объявление
+            setListing(updatedListing); // Обновляем состояние listing
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
 
     const getResponseStatus = (response) => {
         if (response.accepted === true) return 'Принят';
@@ -217,16 +260,22 @@ const ListingPage = (responseCountsByStatus) => {
         <>
             <Layout>
                 <div className="container mx-auto">
-                    <div className='grid grid-cols-12 gap-4 py-10 h-screen'>
+                    <div className='grid grid-cols-12 gap-4 py-10 '>
                         <div className='col-span-8 '>
-                            <div className=' bg-white p-5 rounded-lg'>
-                                <h1 className="text-2xl font-bold mb-4">{listing.title}</h1>
-                                <p className="mb-2">{listing.content}</p>
 
-                                <p className="text-gray-600">Дата публикации: {new Date(listing.publishedAt).toLocaleDateString()}</p>
-                                <p className="text-gray-600">Срок поставки: {new Date(listing.deliveryDate).toLocaleDateString()}</p>
-                                <p className="text-gray-600">Срок закупки: {new Date(listing.purchaseDate).toLocaleDateString()}</p>
-                            </div>
+                            <Card
+                                key={listing.id}
+                                title={listing.title}
+                                content={listing.content}
+                                link={`/listing/${listing.id}`}
+
+                            >
+                                <div className='flex'>
+                                    <DateDisplay label="Дата публикации" date={listing.publishedAt} />
+                                    <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
+                                    <DateDisplay label="Дата закупки" date={listing.purchaseDate} />
+                                </div>
+                            </Card>
 
                             {role !== 'PUBLISHER' && hasResponded && (
                                 <UserResponses responses={responses} userId={userId} getResponseStatus={getResponseStatus} />
@@ -273,29 +322,66 @@ const ListingPage = (responseCountsByStatus) => {
                         </div>
 
                         <div className='col-span-4'>
+                            <Card title={role !== 'PUBLISHER' && (<span>Информация о клиенте</span>)}>
+                                {role === 'PUBLISHER' && listing.authorId === userId && responses.length > 0 && (
 
+                                    <>
+                                        <div className='flex items-center justify-between'>
+                                            <span>Статус публикации</span>
+                                            <StatusDisplay response={{ published: listing.published }} isPublicationStatus={true} />
+                                        </div>
+                                        <div className='flex items-center justify-between mt-5'>
+                                            <span></span>
+                                            <DateDisplay label='Cрок публикации' date={listing.expirationDate} />
+                                        </div>
 
+                                        {listing.published ? (
+                                            <>
+                                                {/* Если объявление опубликовано, показываем кнопку для снятия с публикации */}
+                                                <button className='btn btn-warning mt-5' onClick={() => onUnpublish(listing.id)}>Снять с публикации</button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {isExpired ? (
+                                                    // Если срок истек, показываем кнопку для возобновления
+                                                    <button className='btn btn-primary mt-5' onClick={() => onRepublish(listing.id)}>Возобновить</button>
+                                                ) : (
+                                                    // Если объявление не опубликовано и срок не истек, показываем кнопку для публикации
+                                                    <button className='btn btn-success mt-5' onClick={() => publish(listing.id)}>Опубликовать</button>
+                                                )}
+                                            </>
+                                        )}
 
-                            <div className="bg-white rounded-lg shadow-sm p-4">
-                                {role !== 'PUBLISHER' && (
-                                    <AuthorInfo
-                                        author={listing.author}
-                                        responses={responses.find(response => response.responderId === userId) || {}} // Находим отклик текущего пользователя
-                                        expirationDate={listing.expirationDate}
-                                    />
+                                    </>
+
                                 )}
 
+
+                                {role !== 'PUBLISHER' && (
+                                    <>
+                                        <AuthorInfo
+                                            author={listing.author}
+                                            responses={responses.find(response => response.responderId === userId) || {}} // Находим отклик текущего пользователя
+                                            expirationDate={listing.expirationDate}
+                                        />
+
+                                        <DateDisplay date={listing.expirationDate} label="Дата истечения" isExpirationDate={true} />
+
+
+                                    </>
+                                )}
 
                                 {/* Кнопка для открытия формы отклика, если срок не истек */}
                                 {!isExpired && role !== 'PUBLISHER' && !hasResponded && (
                                     <button
-                                        className="bg-blue-500 mt-5 w-full text-white p-2 rounded"
+                                        className="btn btn-primary mt-5 w-full text-white p-2 rounded"
                                         onClick={handleOpenResponseForm}
                                     >
                                         Откликнуться
                                     </button>
                                 )}
-                            </div>
+
+                            </Card>
 
 
                         </div>

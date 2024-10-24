@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import ResponderInfo from './ResponderInfo'; // Импортируем ResponderInfo
 import Modal from './Modal'; // Импортируем модальное окно
+import Card from './Card'; // Импортируем Card
+import StatusDisplay from './StatusDisplay'; // Импортируем компонент StatusDisplay
+import DateDisplay from './DateDisplay'; // Импортируем компонент даты
 
 const ResponseItem = ({
     response,
@@ -8,12 +11,9 @@ const ResponseItem = ({
     onAccept,
     onDecline,
     onResponderClick,
-    expandedMessages,
-    toggleMessageExpansion,
     acceptedResponseData,
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false); // Состояние для управления открытием модального окна
-    const MESSAGE_LIMIT = 100;
 
     const handleShowContacts = () => {
         setIsModalOpen(true); // Открываем модальное окно
@@ -23,85 +23,55 @@ const ResponseItem = ({
         setIsModalOpen(false); // Закрываем модальное окно
     };
 
-    // Определяем цвет фона в зависимости от статуса отклика
-    const getBackgroundColor = () => {
-        if (response.accepted) {
-            return 'bg-green-100'; // Принятый
-        } else if (response.declined) {
-            return 'bg-red-100'; // Отклоненный
-        }
-        return 'bg-blue-100'; // Обычный
-    };
-
     console.log('acceptedResponses:', Array.from(acceptedResponses));
     console.log('response:', response);
 
     return (
-        <li
-            key={response.id}
-            className={`flex flex-col p-4 max-w-xl ${getBackgroundColor()} rounded-lg shadow-sm`}
+        <Card title={response.responder ? response.responder.name : 'Неизвестный'}
+        content= {response.message}
+        
         >
-            <div className={`${acceptedResponses.has(response.id) ? 'text-left' : 'text-left'}`}>
-                {response.accepted && <span className="p-1 px-3 bg-green-600 rounded-full text-white text-sm font-semibold">Принят</span>}
-                {response.declined && <span className="p-1 px-3 bg-red-600 rounded-full text-white text-sm font-semibold">Отклонен</span>}
-                <p className="font-semibold mt-2">
-                    <span className='flex items-center'>
-                        <strong className='underline cursor-pointer' onClick={() => onResponderClick(response.responder)}>
-                            {response.responder ? response.responder.name : 'Неизвестный'}
-                        </strong>
-                        <span className="py-2 ml-2">{response.createdAt}</span>
+            <div className={`flex flex-col py-4 rounded-lg shadow-sm`}>
+                <div className="flex flex-col items-start">
+
+                    <span className="py-2">
+                        {/* Используем компонент DateDisplay для отображения даты */}
+                        <DateDisplay label="Дата отклика" date={response.createdAt} />
                     </span>
-                    <strong>Сообщение:</strong>
-                    {expandedMessages.has(response.id) ? (
+
+                 
+                </div>
+
+
+
+                <div className={`mt-2 flex space-x-2`}>
+                    {!response.accepted && !response.declined && (
                         <>
-                            {response.message}
-                            <button className="text-blue-500 ml-2" onClick={() => toggleMessageExpansion(response.id)}>Скрыть</button>
-                        </>
-                    ) : (
-                        <>
-                            {response.message.length > MESSAGE_LIMIT ? (
-                                <>
-                                    {response.message.slice(0, MESSAGE_LIMIT)}...
-                                    <button className="text-blue-500 ml-2" onClick={() => toggleMessageExpansion(response.id)}>Показать больше</button>
-                                </>
-                            ) : (
-                                response.message
-                            )}
+                            <button
+                                onClick={() => onAccept(response.id, response.responder)}
+                                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
+                            >
+                                Принять
+                            </button>
+                            <button
+                                onClick={() => onDecline(response.id)}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
+                            >
+                                Отклонить
+                            </button>
                         </>
                     )}
-                </p>
-            </div>
 
-            <div className={`mt-2 flex space-x-2 ${acceptedResponses.has(response.id) ? 'justify-start' : 'justify-start'}`}>
-
-                {!response.accepted && !response.declined && (
-                    <>
+                    {/* Кнопка "Показать контакты" */}
+                    {response.accepted && acceptedResponseData[response.id] && (
                         <button
-                            onClick={() => onAccept(response.id, response.responder)}
-                            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
+                            onClick={handleShowContacts} // Открытие модального окна
+                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
                         >
-                            Принять
+                            Показать контакты
                         </button>
-                        <button
-                            onClick={() => onDecline(response.id)}
-                            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
-                        >
-                            Отклонить
-                        </button>
-                    </>
-                )}
-
-
-                {/* Кнопка "Показать контакты" */}
-                {response.accepted && acceptedResponseData[response.id] && (
-                    <button
-                        onClick={handleShowContacts} // Открытие модального окна
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
-                    >
-                        Показать контакты
-                    </button>
-                )}
-
+                    )}
+                </div>
             </div>
 
             {/* Модальное окно для отображения информации о респонденте */}
@@ -110,7 +80,7 @@ const ResponseItem = ({
                     <ResponderInfo responderData={acceptedResponseData[response.id]} />
                 </Modal>
             )}
-        </li>
+        </Card>
     );
 };
 

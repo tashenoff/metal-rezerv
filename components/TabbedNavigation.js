@@ -1,28 +1,38 @@
 import React, { useState } from 'react';
 
 const TabbedNavigation = ({ onTabChange, isSorted, responseCounts }) => {
-    const [activeTab, setActiveTab] = useState('pending'); // Измените на 'approved'
+    const [activeTab, setActiveTab] = useState('pending'); 
 
     const handleTabClick = (status) => {
         if (isSorted) {
             setActiveTab(status);
-            onTabChange(status); // Вызываем функцию для изменения вкладки
+            onTabChange(status); 
         }
     };
 
     return (
-        <div className="mb-4">
-            <ul className="flex space-x-4">
-                <li onClick={() => handleTabClick('pending')} className="cursor-pointer">
-                    Входящие ({responseCounts?.pending || 0})
-                </li>
-                <li onClick={() => handleTabClick('approved')} className="cursor-pointer"> {/* Измените на 'approved' */}
-                    Принятые отклики ({responseCounts?.processed || 0}) {/* Если это всё ещё processed, измените на responseCounts?.approved */}
-                </li>
-                <li onClick={() => handleTabClick('rejected')} className="cursor-pointer">
-                    Отклоненные ({responseCounts?.rejected || 0})
-                </li>
-            </ul>
+        <div className="tabs tabs-bordered mb-4" role="tablist">
+            <a
+                role="tab"
+                className={`tab ${activeTab === 'pending' ? 'tab-active' : ''}`}
+                onClick={() => handleTabClick('pending')}
+            >
+                Входящие ({responseCounts?.pending || 0})
+            </a>
+            <a
+                role="tab"
+                className={`tab ${activeTab === 'approved' ? 'tab-active' : ''}`}
+                onClick={() => handleTabClick('approved')}
+            >
+                Принятые отклики ({responseCounts?.processed || 0})
+            </a>
+            <a
+                role="tab"
+                className={`tab ${activeTab === 'rejected' ? 'tab-active' : ''}`}
+                onClick={() => handleTabClick('rejected')}
+            >
+                Отклоненные ({responseCounts?.rejected || 0})
+            </a>
         </div>
     );
 };

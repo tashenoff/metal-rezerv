@@ -166,7 +166,7 @@ const PublisherPage = () => {
 
   return (
     <Layout>
-    <div className='h-screen'>
+    <div className=''>
       <div className="container mx-auto">
         <div className="flex items-center my-4 justify-between">
           <h1>Ваши объявления</h1>

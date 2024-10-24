@@ -3,9 +3,17 @@ import React from 'react';
 
 const PointsDisplay = ({ points, role }) => {
     return (
-        <span className="text-sm">
-            {role === 'RESPONDER' && `Баланс: ${points} коинов`}
-        </span>
+        <div>
+            {role === 'RESPONDER' && (
+
+                <button className="btn">
+                    Баланс
+                    <div className="badge badge-secondary"> {points}</div>
+                </button>
+
+
+            )}
+        </div>
     );
 };
 

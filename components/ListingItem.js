@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ResponseCounts from './ResponseCounts';
 import Link from 'next/link';
 import Modal from './Modal'; // Импортируем компонент модального окна
+import StatusDisplay from './StatusDisplay'; // Импортируем StatusDisplay
 
 const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish, handleUnpublish, handleRepublish }) => {
     const [showModal, setShowModal] = useState(false); // Состояние для открытия/закрытия модального окна
@@ -46,9 +47,8 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
                 </p>
             )}
 
-            <p className="text-sm text-gray-500">
-                Статус: {listing.published ? 'Опубликовано' : 'Не опубликовано'}
-            </p>
+            {/* Используем компонент StatusDisplay для отображения статуса публикации */}
+            <StatusDisplay response={{ published: listing.published }} isPublicationStatus={true} />
 
             {/* Отображение количества откликов */}
             <ResponseCounts
@@ -77,9 +77,6 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
                         </button>
                     </>
                 )}
-
-
-
 
                 {/* Кнопка Возобновить, если объявление истекло */}
                 {isExpired && (

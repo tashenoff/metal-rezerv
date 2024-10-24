@@ -1,5 +1,5 @@
 // components/AuthorInfo.js
-const AuthorInfo = ({ author, responses, userId, expirationDate }) => {
+const AuthorInfo = ({ author, responses, userId }) => {
     return (
         <>
             {author && author.isCompanyVerified !== undefined ? (
@@ -30,33 +30,28 @@ const AuthorInfo = ({ author, responses, userId, expirationDate }) => {
 
             {/* Отображение информации об авторе, если отклик принят */}
             {responses && responses.accepted === true ? (
-                <p className="text-gray-600">
-                    <strong>Автор:</strong> {author.name}
+                <p className="text-gray-600 flex flex-col mt-5">
+                   <div className="w-full justify-between flex"> <strong className="mr-2">Автор:</strong> <span>{author.name}</span></div>
 
 
-                    <strong>Компания:</strong> {author.companyName}
-                    <strong>Телефон:</strong> {author.phoneNumber}
+                   <div className="w-full justify-between flex"><strong className="mr-2">Компания:</strong> {author.companyName}</div>
+                   <div className="w-full justify-between flex"> <strong className="mr-2">Телефон:</strong> {author.phoneNumber}</div>
 
-                    <strong>Email:</strong> {author.email}
+                   <div className="w-full justify-between flex"> <strong className="mr-2">Email:</strong> {author.email}</div>
                 </p>
 
             ) : (
                 <p className="text-gray-600">
-                    <strong>Автор:</strong> **
+                    <strong className="mr-2">Автор:</strong> **
                 </p>
             )}
 
-            <div className='flex py-1'>
-                <p className="text-gray-600">Страна: {author.country}</p>
-                <p className="text-gray-600 ml-2">Город: {author.city}</p>
+            <div className='flex py-1 flex-col'>
+                <p className="text-gray-600 w-full justify-between flex"><strong className="mr-2">Страна:</strong> {author.country}</p>
+                <p className="text-gray-600 w-full justify-between flex"><strong className="mr-2">Город:</strong>  {author.city}</p>
             </div>
 
-            <p className="text-gray-600">
-                Срок: {new Date(expirationDate).toLocaleDateString()}
-            </p>
-            {new Date(expirationDate) < new Date() && (
-                <p className="text-red-500 font-bold">Срок объявления истек!</p>
-            )}
+           
         </>
     );
 };

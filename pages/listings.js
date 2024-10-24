@@ -1,15 +1,15 @@
-// pages/listings.js
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Headlines from '../components/headlines';
-import Layout from '../components/Layout';
-// import SearchListings from '../components/SearchListings'; // Импортируем компонент поиска
 
+import Layout from '../components/Layout';
+import Card from '../components/Card';
+import DateDisplay from '../components/DateDisplay'; // Импортируем компонент даты
+import Dropdown from '../components/Dropdown'; // Импортируем компонент для выбора города
+import SearchBar from '../components/SearchBar'; // Импортируем компонент поиска
 
 const Listings = () => {
     const [listings, setListings] = useState([]);
     const [filteredResults, setFilteredResults] = useState([]);
-    const [searchMessage, setSearchMessage] = useState(''); // Состояние для сообщения о поиске
 
     useEffect(() => {
         const fetchListings = async () => {
@@ -24,43 +24,56 @@ const Listings = () => {
         fetchListings();
     }, []);
 
-    // Функция для обновления результатов поиска
-    const handleSearchResults = (results) => {
-        setFilteredResults(results); // Обновляем результаты поиска
-        // Устанавливаем сообщение в зависимости от результатов поиска
-        if (results.length === 0) {
-            setSearchMessage('Поиск не найден'); // Если нет результатов
-        } else {
-            setSearchMessage(`Результаты поиска: ${results.length}`); // Если найдены результаты
-        }
+    // Фильтрация объявлений на основе поискового запроса
+    const handleSearch = (term) => {
+        const filtered = listings.filter(listing =>
+            listing.title.toLowerCase().includes(term) ||
+            listing.content.toLowerCase().includes(term)
+        );
+        setFilteredResults(filtered);
     };
 
     return (
         <Layout>
             <div>
+                <div className='container mx-auto'>
+                    
+                    
+                    <div className='p-5 flex items-center justify-between'>
+                        {/* Поле для поиска объявлений */}
+                        <SearchBar onSearch={handleSearch} /> {/* Передаём функцию handleSearch в SearchBar */}
 
-                <div className='container mx-auto h-screen'>
-                    <div className='p-5 flex items-center'>
-                        <Headlines title="Каталог заявок" />
+                        {/* Выпадающий список для выбора города */}
+                        <Dropdown
+                            label="Выберите город"
+                            options={Array.from(new Set(listings.map(listing => listing.author.city)))} // Получаем уникальные города
+                            onSelect={(selectedCity) => {
+                                const filteredByCity = listings.filter(listing => listing.author.city === selectedCity);
+                                setFilteredResults(filteredByCity);
+                            }}
+                        />
                     </div>
 
-                    {/* <SearchListings onSearchResults={handleSearchResults} /> Передаём функцию для обработки результатов поиска */}
-                    {/* {searchMessage && <p>{searchMessage}</p>} Выводим сообщение о поиске */}
                     {filteredResults.length === 0 ? (
                         <p>Нет опубликованных объявлений.</p>
                     ) : (
                         <ul>
                             {filteredResults.map((listing) => (
-                                <li className='p-5 bg-white border my-5' key={listing.id}>
-                                    <Link href={`/listing/${listing.id}`}>
-                                        <p className='font-bold'>{listing.title}</p>
-                                        <p>{listing.content}</p>
-                                        <div className='my-5 border border-t border-opacity-25'>
-                                            <p>Дата публикации: {listing.publishedAt}</p>
-                                            <p>Срок поставки: {listing.deliveryDate}</p>
+                                <Card
+                                    key={listing.id}
+                                    title={listing.title}
+                                    content={listing.content}
+                                    link={`/listing/${listing.id}`}
+                                >
+                                    <div className='flex items-center w-full border-t border-gray-300 py-2'>
+                                        <div className='mr-5 flex'>
+                                            <DateDisplay label="Дата публикации" date={listing.publishedAt} />
                                         </div>
-                                    </Link>
-                                </li>
+                                        <div className='flex'>
+                                            <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
+                                        </div>
+                                    </div>
+                                </Card>
                             ))}
                         </ul>
                     )}
