@@ -17,256 +17,345 @@ async function main() {
   const hashedPasswordPublisher = await bcrypt.hash('publisherPassword', 10);
   const hashedPasswordResponder = await bcrypt.hash('responderPassword', 10);
 
-  // Создаем 4 пользователей с ролью PUBLISHER
-  const publishers = await Promise.all([
-    prisma.user.create({
-      data: {
-        name: 'Алия Султанова',
-        email: 'publisher1@example.com',
-        password: hashedPasswordPublisher,
-        role: 'PUBLISHER',
-        points: null,
-        companyName: 'Publisher Company 1',
-        companyBIN: '222222222',
-        phoneNumber: '7777654321',
-        city: 'Астана',
-        country: 'Казахстан',
-        registrationDate: new Date(),
-        isCompanyVerified: false,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        name: 'Дмитрий Иванов',
-        email: 'publisher2@example.com',
-        password: hashedPasswordPublisher,
-        role: 'PUBLISHER',
-        points: null,
-        companyName: 'Publisher Company 2',
-        companyBIN: '333333333',
-        phoneNumber: '7779876543',
-        city: 'Алматы',
-        country: 'Казахстан',
-        registrationDate: new Date(),
-        isCompanyVerified: false,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        name: 'Светлана Петрова',
-        email: 'publisher3@example.com',
-        password: hashedPasswordPublisher,
-        role: 'PUBLISHER',
-        points: null,
-        companyName: 'Publisher Company 3',
-        companyBIN: '444444444',
-        phoneNumber: '7776543210',
-        city: 'Шымкент',
-        country: 'Казахстан',
-        registrationDate: new Date(),
-        isCompanyVerified: false,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        name: 'Евгений Смирнов',
-        email: 'publisher4@example.com',
-        password: hashedPasswordPublisher,
-        role: 'PUBLISHER',
-        points: null,
-        companyName: 'Publisher Company 4',
-        companyBIN: '555555555',
-        phoneNumber: '7773216549',
-        city: 'Караганда',
-        country: 'Казахстан',
-        registrationDate: new Date(),
-        isCompanyVerified: false,
-      },
-    }),
-  ]);
+  // Создаем одного публишера
+  const publisher = await prisma.user.create({
+    data: {
+      name: 'Алия Султанова',
+      email: 'publisher@example.com',
+      password: hashedPasswordPublisher,
+      role: 'PUBLISHER',
+      points: null,
+      companyName: 'Publisher Company',
+      companyBIN: '222222222',
+      phoneNumber: '7777654321',
+      city: 'Астана',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
 
-  // Создаем 4 респондента
-  const responders = await Promise.all([
-    prisma.user.create({
-      data: {
-        name: 'Анастасия Кузнецова',
-        email: 'responder1@example.com',
-        password: hashedPasswordResponder,
-        role: 'RESPONDER',
-        points: 10,
-        companyName: 'Responder Company 1',
-        companyBIN: '666666666',
-        phoneNumber: '7771234567',
-        city: 'Астана',
-        country: 'Казахстан',
-        registrationDate: new Date(),
-        isCompanyVerified: false,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        name: 'Максим Орлов',
-        email: 'responder2@example.com',
-        password: hashedPasswordResponder,
-        role: 'RESPONDER',
-        points: 15,
-        companyName: 'Responder Company 2',
-        companyBIN: '777777777',
-        phoneNumber: '7772345678',
-        city: 'Алматы',
-        country: 'Казахстан',
-        registrationDate: new Date(),
-        isCompanyVerified: false,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        name: 'Ирина Николаева',
-        email: 'responder3@example.com',
-        password: hashedPasswordResponder,
-        role: 'RESPONDER',
-        points: 20,
-        companyName: 'Responder Company 3',
-        companyBIN: '888888888',
-        phoneNumber: '7773456789',
-        city: 'Шымкент',
-        country: 'Казахстан',
-        registrationDate: new Date(),
-        isCompanyVerified: false,
-      },
-    }),
-    prisma.user.create({
-      data: {
-        name: 'Владимир Федоров',
-        email: 'responder4@example.com',
-        password: hashedPasswordResponder,
-        role: 'RESPONDER',
-        points: 5,
-        companyName: 'Responder Company 4',
-        companyBIN: '999999999',
-        phoneNumber: '7774567890',
-        city: 'Караганда',
-        country: 'Казахстан',
-        registrationDate: new Date(),
-        isCompanyVerified: false,
-      },
-    }),
-  ]);
+  // Создаем одно объявление
+  const listing = await prisma.listing.create({
+    data: {
+      title: 'Требуется арматура для строительных работ в Астане',
+      content: `Нужна арматура диаметром от 10 до 32 мм. Рассмотрим предложения от поставщиков в Астане.
 
-  // Устанавливаем expirationDate на 10 минут вперед
-  const expirationDate = new Date();
-  expirationDate.setMinutes(expirationDate.getMinutes() + 10);
-
-  // Создаем объявления
-  const listings = await Promise.all([
-    prisma.listing.create({
-      data: {
-        title: 'Требуется арматура для строительных работ в Астане',
-        content: `Нужна арматура диаметром от 10 до 32 мм. Рассмотрим предложения от поставщиков в Астане.
-
-        Мы ищем надежных поставщиков, которые смогут обеспечить качественную арматуру в нужных количествах. 
+      Мы ищем надежных поставщиков, которые смогут обеспечить качественную арматуру в нужных количествах. 
         
-        Обратите внимание, что важным критерием является цена и сроки доставки. Если вы можете предложить конкурентные условия, пожалуйста, свяжитесь с нами.`,
-        published: true,
-        authorId: publishers[0].id,
-        deliveryDate: new Date(),
-        publishedAt: new Date(),
-        purchaseDate: new Date('2024-10-01'),
-        expirationDate: expirationDate,
-      },
-    }),
-    prisma.listing.create({
-      data: {
-        title: 'Предложение: Стальной прокат в Алматы',
-        content: `Ищем поставщиков стального проката в Алматы. 
-        Нам требуется качество и своевременная доставка.
+      Обратите внимание, что важным критерием является цена и сроки доставки.`,
+      published: true,
+      authorId: publisher.id,
+      deliveryDate: new Date(),
+      publishedAt: new Date(),
+      purchaseDate: new Date('2024-10-01'),
+      expirationDate: new Date(new Date().setMinutes(new Date().getMinutes() + 10)),
+    },
+  });
 
-        Если у вас есть предложение, пожалуйста, свяжитесь с нами!`,
-        published: true,
-        authorId: publishers[1].id,
-        deliveryDate: new Date(),
-        publishedAt: new Date(),
-        purchaseDate: new Date('2024-10-01'),
-        expirationDate: expirationDate,
-      },
-    }),
-    prisma.listing.create({
-      data: {
-        title: 'Заказ металлических конструкций в Шымкенте',
-        content: `Ищем надежного поставщика металлических конструкций. 
-        Пожалуйста, предложите свои условия и цены.
+  // Создаем десять респондентов
+  const responder1 = await prisma.user.create({
+    data: {
+      name: 'Респондент 1',
+      email: 'responder1@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 10,
+      companyName: 'Responder Company 1',
+      companyBIN: '666666666',
+      phoneNumber: '7771234567',
+      city: 'Астана',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
 
-        Мы работаем только с качественными материалами.`,
-        published: true,
-        authorId: publishers[2].id,
-        deliveryDate: new Date(),
-        publishedAt: new Date(),
-        purchaseDate: new Date('2024-10-01'),
-        expirationDate: expirationDate,
-      },
-    }),
-    prisma.listing.create({
-      data: {
-        title: 'Требуются металлические трубы в Караганде',
-        content: `В Караганде требуется поставка металлических труб. 
-        Ожидаем предложений с конкурентоспособными ценами.
+  const responder2 = await prisma.user.create({
+    data: {
+      name: 'Респондент 2',
+      email: 'responder2@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 15,
+      companyName: 'Responder Company 2',
+      companyBIN: '777777777',
+      phoneNumber: '7772345678',
+      city: 'Алматы',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
 
-        Пожалуйста, свяжитесь с нами.`,
-        published: true,
-        authorId: publishers[3].id,
-        deliveryDate: new Date(),
-        publishedAt: new Date(),
-        purchaseDate: new Date('2024-10-01'),
-        expirationDate: expirationDate,
-      },
-    }),
-  ]);
+  const responder3 = await prisma.user.create({
+    data: {
+      name: 'Респондент 3',
+      email: 'responder3@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 20,
+      companyName: 'Responder Company 3',
+      companyBIN: '888888888',
+      phoneNumber: '7773456789',
+      city: 'Шымкент',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
 
-  // Создаем отклики на объявления
-  await Promise.all([
-    prisma.response.create({
-      data: {
-        responderId: responders[0].id,
-        message: 'Я могу предложить вам качественную арматуру по лучшей цене. Свяжитесь со мной!',
-        listingId: listings[0].id,
-        status: 'pending',
-        createdAt: new Date(),
-        accepted: null,
-      },
-    }),
-    prisma.response.create({
-      data: {
-        responderId: responders[1].id,
-        message: 'У нас есть отличные предложения на стальной прокат. Ждем вашего звонка!',
-        listingId: listings[1].id,
-        status: 'pending',
-        createdAt: new Date(),
-        accepted: null,
-      },
-    }),
-    prisma.response.create({
-      data: {
-        responderId: responders[2].id,
-        message: 'Мы можем предложить качественные металлические конструкции. Свяжитесь с нами для подробностей!',
-        listingId: listings[2].id,
-        status: 'pending',
-        createdAt: new Date(),
-        accepted: null,
-      },
-    }),
-    prisma.response.create({
-      data: {
-        responderId: responders[3].id,
-        message: 'Предлагаем выгодные условия по поставке металлических труб. Ждем вашего ответа!',
-        listingId: listings[3].id,
-        status: 'pending',
-        createdAt: new Date(),
-        accepted: null,
-      },
-    }),
-  ]);
+  const responder4 = await prisma.user.create({
+    data: {
+      name: 'Респондент 4',
+      email: 'responder4@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 5,
+      companyName: 'Responder Company 4',
+      companyBIN: '999999999',
+      phoneNumber: '7774567890',
+      city: 'Караганда',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
 
-  console.log('Users, listings, and responses created!');
+  const responder5 = await prisma.user.create({
+    data: {
+      name: 'Респондент 5',
+      email: 'responder5@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 5,
+      companyName: 'Responder Company 5',
+      companyBIN: '123123123',
+      phoneNumber: '7775678901',
+      city: 'Актобе',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
+
+  const responder6 = await prisma.user.create({
+    data: {
+      name: 'Респондент 6',
+      email: 'responder6@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 5,
+      companyName: 'Responder Company 6',
+      companyBIN: '111111111',
+      phoneNumber: '7776789012',
+      city: 'Талдыкорган',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
+
+
+  const alex = await prisma.user.create({
+    data: {
+      name: 'Респондент 6',
+      email: 'alex@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 10,
+      companyName: 'Responder Company 6',
+      companyBIN: '111111111',
+      phoneNumber: '7776789012',
+      city: 'Талдыкорган',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
+
+  const responder7 = await prisma.user.create({
+    data: {
+      name: 'Респондент 7',
+      email: 'responder7@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 5,
+      companyName: 'Responder Company 7',
+      companyBIN: '222222222',
+      phoneNumber: '7777890123',
+      city: 'Павлодар',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
+
+  const responder8 = await prisma.user.create({
+    data: {
+      name: 'Респондент 8',
+      email: 'responder8@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 5,
+      companyName: 'Responder Company 8',
+      companyBIN: '333333333',
+      phoneNumber: '7778901234',
+      city: 'Усть-Каменогорск',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
+
+  const responder9 = await prisma.user.create({
+    data: {
+      name: 'Респондент 9',
+      email: 'responder9@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 5,
+      companyName: 'Responder Company 9',
+      companyBIN: '444444444',
+      phoneNumber: '7779012345',
+      city: 'Кокшетау',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
+
+  const responder10 = await prisma.user.create({
+    data: {
+      name: 'Респондент 10',
+      email: 'responder10@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 5,
+      companyName: 'Responder Company 10',
+      companyBIN: '555555555',
+      phoneNumber: '7770123456',
+      city: 'Костанай',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: false,
+    },
+  });
+
+  // Создаем 10 откликов
+  await prisma.response.create({
+    data: {
+      responderId: responder1.id,
+      message: 'Я могу предложить арматуру по выгодной цене.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  await prisma.response.create({
+    data: {
+      responderId: responder2.id,
+      message: 'Готов предложить высококачественную арматуру.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  await prisma.response.create({
+    data: {
+      responderId: responder3.id,
+      message: 'Арматура в наличии, быстрое исполнение заказа.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  await prisma.response.create({
+    data: {
+      responderId: responder4.id,
+      message: 'Высылаю предложение по арматуре.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  await prisma.response.create({
+    data: {
+      responderId: responder5.id,
+      message: 'Лучшие условия для поставки арматуры.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  await prisma.response.create({
+    data: {
+      responderId: responder6.id,
+      message: 'Можем быстро поставить арматуру нужных размеров.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  await prisma.response.create({
+    data: {
+      responderId: responder7.id,
+      message: 'Предложение по арматуре на лучших условиях.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  await prisma.response.create({
+    data: {
+      responderId: responder8.id,
+      message: 'Готов поставить арматуру по договоренности.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  await prisma.response.create({
+    data: {
+      responderId: responder9.id,
+      message: 'Предлагаю сотрудничество по поставке арматуры.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  await prisma.response.create({
+    data: {
+      responderId: responder10.id,
+      message: 'Можем обеспечить регулярные поставки арматуры.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  
+
+  console.log('Данные успешно добавлены');
 }
 
 main()

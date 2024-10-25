@@ -1,5 +1,6 @@
 import prisma from '../../prisma/client';
-import jwt from 'jsonwebtoken'; // Подключаем библиотеку для работы с JWT
+import jwt from 'jsonwebtoken';
+import { getResponseCost } from './responseCost'; // Импортируем функцию
 
 export default async function handler(req, res) {
     try {
@@ -22,19 +23,19 @@ export default async function handler(req, res) {
                 return res.status(401).json({ message: 'Необходим токен для авторизации.' });
             }
 
-            const token = authHeader.split(' ')[1]; // Извлекаем токен
+            const token = authHeader.split(' ')[1];
             console.log('Extracted token:', token);
 
             // Декодируем JWT-токен для получения userId
             let decodedToken;
             try {
-                decodedToken = jwt.verify(token, 'your_jwt_secret'); // Используйте ваш секретный ключ для верификации токена
+                decodedToken = jwt.verify(token, 'your_jwt_secret');
                 console.log('Decoded token:', decodedToken);
             } catch (error) {
                 return res.status(401).json({ message: 'Неверный токен.' });
             }
 
-            const userId = decodedToken.id; // Извлекаем userId из токена
+            const userId = decodedToken.id;
             console.log('User ID from token:', userId);
 
             if (!userId) {
@@ -74,9 +75,14 @@ export default async function handler(req, res) {
                 return res.status(400).json({ message: 'Вы уже отправили отклик на это объявление.' });
             }
 
-            // Проверяем, верифицирована ли компания через поле isCompanyVerified
-            const isVerifiedCompany = listing.author.isCompanyVerified; // Используем поле `isCompanyVerified`
-            const responseCost = isVerifiedCompany ? 10 : 5; 
+            // Подсчет количества откликов на объявление
+            const responseCount = await prisma.response.count({
+                where: { listingId: parseInt(listingId) },
+            });
+            console.log('Current response count for listing:', responseCount);
+
+            // Получаем стоимость отклика
+            const responseCost = getResponseCost(listingId, responseCount, listing.author.isCompanyVerified);
 
             // Проверка на наличие достаточного количества баллов
             if (user.points === null || user.points < responseCost) {

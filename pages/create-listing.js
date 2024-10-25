@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import Headlines from '../components/headlines';
 import Layout from '../components/Layout';
+import Card from '../components/Card';
 
 const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 import 'react-quill/dist/quill.snow.css';
@@ -85,86 +86,88 @@ const CreateListing = () => {
   return (
     <Layout>
       <div className="min-h-screen ">
-          <div className="container mx-auto p-8">
+        <div className="container mx-auto p-8">
           <Headlines title='Создание объявления' />
 
           {message && <p className="mt-4 text-red-500">{message}</p>}
-          <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
-                Заголовок:
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-500"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="content">
-                Содержимое:
-              </label>
-              {isClient && (
-                <ReactQuill
-                  value={content}
-                  onChange={setContent}
+         
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-2" htmlFor="title">
+                  Заголовок:
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   required
-                  className="shadow appearance-none border rounded w-full"
+                  className="shadow appearance-none border rounded w-full py-2 px-3  focus:outline-none focus:ring focus:ring-blue-500"
                 />
-              )}
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="deliveryDate">
-                Дата доставки:
-              </label>
-              <input
-                type="date"
-                id="deliveryDate"
-                value={deliveryDate}
-                onChange={(e) => setDeliveryDate(e.target.value)}
-                required
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-500"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="purchaseDate">
-                Дата закупа:
-              </label>
-              <input
-                type="date"
-                id="purchaseDate"
-                value={purchaseDate}
-                onChange={(e) => setPurchaseDate(e.target.value)}
-                required
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-500"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="publicationPeriod">
-                Период публикации:
-              </label>
-              <select
-                id="publicationPeriod"
-                value={publicationPeriod}
-                onChange={(e) => setPublicationPeriod(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-500"
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-2" htmlFor="content">
+                  Содержимое:
+                </label>
+                {isClient && (
+                  <ReactQuill
+                    value={content}
+                    onChange={setContent}
+                    required
+                    className="shadow appearance-none border rounded w-full"
+                  />
+                )}
+              </div>
+              <div className="mb-4">
+                <label className="block  text-sm font-bold mb-2" htmlFor="deliveryDate">
+                  Дата доставки:
+                </label>
+                <input
+                  type="date"
+                  id="deliveryDate"
+                  value={deliveryDate}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
+                  required
+                  className="shadow appearance-none border rounded w-full py-2 px-3  focus:outline-none focus:ring focus:ring-blue-500"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-bold mb-2" htmlFor="purchaseDate">
+                  Дата закупа:
+                </label>
+                <input
+                  type="date"
+                  id="purchaseDate"
+                  value={purchaseDate}
+                  onChange={(e) => setPurchaseDate(e.target.value)}
+                  required
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-500"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block  text-sm font-bold mb-2" htmlFor="publicationPeriod">
+                  Период публикации:
+                </label>
+                <select
+                  id="publicationPeriod"
+                  value={publicationPeriod}
+                  onChange={(e) => setPublicationPeriod(e.target.value)}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 focus:outline-none focus:ring focus:ring-blue-500"
+                >
+                  <option value="5m">5 минут</option>
+                  <option value="1d">1 день</option>
+                  <option value="2d">2 дня</option>
+                  <option value="3d">3 дня</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
               >
-                <option value="5m">5 минут</option>
-                <option value="1d">1 день</option>
-                <option value="2d">2 дня</option>
-                <option value="3d">3 дня</option>
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
-            >
-              Добавить объявление
-            </button>
-          </form>
+                Добавить объявление
+              </button>
+            </form>
+         
         </div>
       </div>
     </Layout>

@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 const Card = ({ title, content, link, children }) => {
     return (
-        <div className="card mb-5 bg-white w-full shadow-sm rounded-lg p-5">
+        <div className="card mb-5 bg-white dark:bg-base-200 w-full shadow-sm rounded-lg p-5">
             {link ? ( // Проверяем наличие ссылки
                 <Link href={link}>
                     <h1 className="card-title text-2xl font-bold mb-4">{title}</h1>

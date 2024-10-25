@@ -323,7 +323,7 @@ const ListingPage = (responseCountsByStatus) => {
 
                         <div className='col-span-4'>
                             <Card title={role !== 'PUBLISHER' && (<span>Информация о клиенте</span>)}>
-                                {role === 'PUBLISHER' && listing.authorId === userId && responses.length > 0 && (
+                                {role === 'PUBLISHER' && listing.authorId === userId && (
 
                                     <>
                                         <div className='flex items-center justify-between'>

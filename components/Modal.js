@@ -15,7 +15,7 @@ const Modal = ({ isOpen, onClose, children, modalMessage }) => {
                         ✕
                     </button>
                 </form>
-                <h3 className="text-lg font-bold">{modalMessage || 'Модальное окно'}</h3>
+                <h3 className="text-lg font-bold">{modalMessage}</h3>
                 <p className="py-4">{children}</p>
             </div>
         </dialog>

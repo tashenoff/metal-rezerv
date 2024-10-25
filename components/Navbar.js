@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import UsernameDisplay from './UsernameDisplay'; // Импорт компонента отображения имени
 import PointsDisplay from './PointsDisplay'; // Импорт компонента отображения баллов
+import ThemeToggle from './ThemeToggle';
 
 const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
   return (
-    <div className="navbar bg-white">
+    <div className="navbar dark:bg-base-200 bg-white">
       <div className="container mx-auto flex justify-between items-center">
         <div className="navbar-start">
           <h1 className="text-2xl font-bold">INEED</h1>
@@ -13,6 +14,7 @@ const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
           <nav className="flex items-center space-x-4">
             {isLoggedIn ? (
               <>
+               <ThemeToggle />
                 <Link href="/listings" className="link link-hover">
                   Заявки
                 </Link>
@@ -55,6 +57,10 @@ const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
                 <Link href="/login" className="btn btn-outline">
                   Вход
                 </Link>
+
+               
+
+
               </>
             )}
           </nav>

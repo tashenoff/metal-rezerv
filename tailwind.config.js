@@ -3,7 +3,10 @@ module.exports = {
 
 
   daisyui: {
-    themes: ["light",
+    base: true,
+    logs: true,
+    themes: [
+      "light",
       "dark",
       "cupcake",
       "bumblebee",
@@ -55,5 +58,6 @@ module.exports = {
       },
     },
   },
+  darkMode: ['class', '[data-theme="dark"]'],
   plugins: [require('daisyui')],
 };
