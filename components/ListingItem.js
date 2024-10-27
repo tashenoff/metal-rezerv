@@ -3,6 +3,7 @@ import ResponseCounts from './ResponseCounts';
 import Link from 'next/link';
 import Modal from './Modal'; // Импортируем компонент модального окна
 import StatusDisplay from './StatusDisplay'; // Импортируем StatusDisplay
+import Card from './Card';
 
 const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish, handleUnpublish, handleRepublish }) => {
     const [showModal, setShowModal] = useState(false); // Состояние для открытия/закрытия модального окна
@@ -29,11 +30,14 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
     };
 
     return (
-        <li key={listing.id} className="border border-gray-300 rounded-lg p-4 shadow-md bg-white">
-            <Link href={`/listing/${listing.id}`}>
-                <h2 className="text-xl font-bold">{listing.title}</h2>
-            </Link>
-            <p className="text-gray-700">{listing.content}</p>
+        <Card title={<Link href={`/listing/${listing.id}`}>
+            <h2 className="text-xl font-bold">{listing.title}</h2>
+        </Link>} key={listing.id} className="card dark:bg-base-200 rounded-lg p-4 shadow-md "
+        
+        content={ <p className="text-gray-700">{listing.content}</p>}
+                >
+
+           
             <p className="text-sm text-gray-500">
                 Опубликовано: {new Date(listing.publishedAt).toLocaleDateString()}
             </p>
@@ -116,7 +120,7 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
                     </button>
                 </div>
             </Modal>
-        </li>
+        </Card>
     );
 };
 
