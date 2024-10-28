@@ -2,7 +2,7 @@ import React from 'react';
 
 const StatusIcon = ({ status }) => {
     return (
-        <span className={`absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full ring-8 ring-white
+        <span className={`flex h-4 w-4 items-center justify-center rounded-full ring-8 ring-base-100 
             ${status === 'rejected' ? 'bg-red-200' :
                 status === 'pending' ? 'bg-orange-200' : 'bg-green-200'}`}>
             {status === 'rejected' ? (

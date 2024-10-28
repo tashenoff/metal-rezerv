@@ -2,10 +2,19 @@
 import React from 'react';
 
 const DateDisplay = ({ date, label }) => {
+    // Опции для форматирования даты
+    const options = { 
+        weekday: 'short', // сокращённое название дня недели
+        day: 'numeric',    // день месяца
+        month: 'short',    // сокращённое название месяца
+        year: 'numeric'    // год
+    };
+    
+    // Получаем дату с нужными параметрами
+    const formattedDate = new Date(date).toLocaleDateString('ru-RU', options);
+
     return (
-        <p className='flex w-full'>
-            <div>{label}</div>: {new Date(date).toLocaleDateString()}
-        </p>
+        <div>{label} {formattedDate}</div>
     );
 };
 

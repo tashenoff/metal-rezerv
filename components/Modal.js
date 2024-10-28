@@ -2,6 +2,7 @@
 import React from 'react';
 
 const Modal = ({ isOpen, onClose, children, modalMessage }) => {
+    
     return (
 
         <dialog id="my_modal_3" className={`modal ${isOpen ? 'modal-open' : ''}`}>

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import ActivityTimeline from '../components/ActivityTimeline/ActivityTimeline';
-import Headlines from '../components/Headlines';
+import ResponseSummary from '../components/ResponseSummary';
+import EffectivenessDisplay from '../components/EffectivenessDisplay';
 
 const UserActivityTimeline = () => {
     const [responses, setResponses] = useState([]);
@@ -41,14 +42,22 @@ const UserActivityTimeline = () => {
 
     return (
         <Layout>
-            <div className="min-h-screen ">
+            <div className=" ">
                 <div className="container mx-auto py-6 px-4">
-                    <Headlines title="Моя активность" />
 
                     {feedback && <p className="text-red-500 mb-4">{feedback}</p>}
+                    <div className='grid grid-cols-12 gap-4'>
 
-                    {/* Хронология активности */}
-                    <ActivityTimeline user={user} responses={responses} />
+                        <div className='col-span-8'>
+                            <ActivityTimeline user={user} responses={responses} />
+                        </div>
+                        <div className='col-span-4'>
+
+                            <ResponseSummary responses={responses} />
+                            <EffectivenessDisplay responses={responses} />
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </Layout>

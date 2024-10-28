@@ -11,7 +11,6 @@ import Card from '../../components/Card';
 import DateDisplay from '../../components/DateDisplay'; // Импортируем компонент даты
 import { unpublishListing } from '../../utils/unpublishListing';
 import publishListing from '../../utils/PublishListing';
-
 import StatusDisplay from '../../components/StatusDisplay'; // Импортируйте ваш компонент
 
 const ListingPage = (responseCountsByStatus) => {
@@ -184,19 +183,21 @@ const ListingPage = (responseCountsByStatus) => {
         });
 
         if (response.ok) {
-            setModalContent({
-                type: 'success',
-                message: 'Отклик принят!',
-            });
+            setResponses((prevResponses) =>
+                prevResponses.map((resp) =>
+                    resp.id === responseId ? { ...resp, accepted: true } : resp
+                )
+            );
         } else {
             const errorData = await response.json();
             setModalContent({
                 type: 'error',
                 message: `Ошибка при принятии отклика: ${errorData.message}`,
             });
+            setIsModalOpen(true); // Открываем модальное окно для ошибки
         }
-        setIsModalOpen(true); // Открываем модальное окно
     };
+
 
     const handleDeclineResponse = async (responseId) => {
         const token = localStorage.getItem('token');
@@ -270,15 +271,27 @@ const ListingPage = (responseCountsByStatus) => {
                                 link={`/listing/${listing.id}`}
 
                             >
-                                <div className='flex'>
-                                    <DateDisplay label="Дата публикации" date={listing.publishedAt} />
-                                    <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
-                                    <DateDisplay label="Дата закупки" date={listing.purchaseDate} />
+                                 <DateDisplay label="Дата публикации" date={listing.publishedAt} />
+                                <div className="grid grid-cols-3 gap-4 py-5">
+                                    
+                                    <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
+                                        <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
+                                    </div>
+                                    <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
+                                        <DateDisplay label="Дата закупки" date={listing.purchaseDate} />
+                                    </div>
+                                    <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
+                                        <DateDisplay date={listing.expirationDate} label="Актуально до" isExpirationDate={true} />
+                                    </div>
                                 </div>
+
+
                             </Card>
 
                             {role !== 'PUBLISHER' && hasResponded && (
-                                <UserResponses responses={responses} userId={userId} getResponseStatus={getResponseStatus} />
+                               <UserResponses responses={responses} userId={userId} />
+                               
+                                
                             )}
 
 
@@ -331,8 +344,8 @@ const ListingPage = (responseCountsByStatus) => {
                                             <StatusDisplay response={{ published: listing.published }} isPublicationStatus={true} />
                                         </div>
                                         <div className='flex items-center justify-between mt-5'>
-                                            <span></span>
-                                            <DateDisplay label='Cрок публикации' date={listing.expirationDate} />
+                                            
+                                            {/* <DateDisplay label='Cрок публикации' date={listing.expirationDate} /> */}
                                         </div>
 
                                         {listing.published ? (
@@ -365,7 +378,6 @@ const ListingPage = (responseCountsByStatus) => {
                                             expirationDate={listing.expirationDate}
                                         />
 
-                                        <DateDisplay date={listing.expirationDate} label="Дата истечения" isExpirationDate={true} />
 
 
                                     </>

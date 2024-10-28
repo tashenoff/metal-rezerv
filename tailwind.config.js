@@ -1,63 +1,36 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-
-
-  daisyui: {
-    base: true,
-    logs: true,
-    themes: [
-      "light",
-      "dark",
-      "cupcake",
-      "bumblebee",
-      "emerald",
-      "corporate",
-      "synthwave",
-      "retro",
-      "cyberpunk",
-      "valentine",
-      "halloween",
-      "garden",
-      "forest",
-      "aqua",
-      "lofi",
-      "pastel",
-      "fantasy",
-      "wireframe",
-      "black",
-      "luxury",
-      "dracula",
-      "cmyk",
-      "autumn",
-      "business",
-      "acid",
-      "lemonade",
-      "night",
-      "coffee",
-      "winter",
-      "dim",
-      "nord",
-      "sunset",],
-  },
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
       container: {
         center: true, // Центрировать контейнер
-        padding: '1rem', // Установите внутренние отступы
+        padding: {
+          DEFAULT: '1rem', // По умолчанию отступ
+          sm: '2rem', // Отступ для малых экранов
+          md: '3rem', // Отступ для средних экранов
+          lg: '4rem', // Отступ для больших экранов
+          xl: '5rem', // Отступ для очень больших экранов
+        },
         screens: {
-          sm: '640px',
-          md: '768px',
-          lg: '1024px',
-          xl: '1280px',
-          '2xl': '1280px',
+          sm: '640px', // Малый экран
+          md: '768px', // Средний экран
+          lg: '1024px', // Большой экран
+          xl: '1280px', // Очень большой экран
+          '2xl': '1536px', // Экстремально большой экран
         },
       },
     },
+    daisyui: {
+      themes: ["nord", "light", "cupcake"],
+      darkTheme: "nord",
+    },
+    darkMode: ['class', '[data-theme="nord"]']
   },
-  darkMode: ['class', '[data-theme="dark"]'],
-  plugins: [require('daisyui')],
+  plugins: [
+    require('daisyui'),
+  ],
 };

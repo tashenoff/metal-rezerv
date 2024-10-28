@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
 const ThemeToggle = () => {
-  const [theme, setTheme] = useState('nord'); // Начальная тема
+  const [theme, setTheme] = useState('light'); // Начальная тема
 
   const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'nord' : 'dark'; // Переключение
+    const newTheme = theme === 'nord' ? 'light' : 'nord'; // Переключение
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme); // Устанавливаем атрибут data-theme
   };
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'nord'; // Сохраняем тему
+    const savedTheme = localStorage.getItem('theme') || 'light'; // Сохраняем тему
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme); // Применение темы на уровне <html>
   }, []);
@@ -34,7 +34,7 @@ const ThemeToggle = () => {
       </svg>
       <input
         type="checkbox"
-        checked={theme === 'dark'}
+        checked={theme === 'nord'}
         onChange={toggleTheme}
         className="toggle theme-controller"
       />

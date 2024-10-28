@@ -5,12 +5,15 @@ import ResponseDetails from './ResponseDetails';
 
 const ActivityItem = ({ response }) => {
     return (
-        <div key={response.id} className="mb-10 ml-6">
-            
-            <div className="p-6 bg-white rounded-lg border flex flex-col justify-center border-gray-300 shadow-sm">
-            <StatusIcon status={response.status} />
-                <ListingLink listing={response.listing} />
-                <ResponseDetails status={response.status} createdAt={response.createdAt} />
+        <div key={response.id} className="card bg-base-200 my-5">
+
+            <div className="card-body">
+                <div className='flex items-center space-x-5 my-5'>
+                    <StatusIcon status={response.status} />
+                    <ListingLink listing={response.listing} />
+                </div>
+                {response && <ResponseDetails response={response} isPublicationStatus={false} />}
+
             </div>
         </div>
     );

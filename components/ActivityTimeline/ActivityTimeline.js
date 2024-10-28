@@ -6,7 +6,7 @@ import EmptyState from './EmptyState';
 
 const ActivityTimeline = ({ user, responses }) => {
     return (
-        <div className="relative border-l border-gray-300">
+        <div className="">
             {user && <UserRegistration user={user} />}
             
             {responses.length > 0 ? (

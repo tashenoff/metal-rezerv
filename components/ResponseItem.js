@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import ResponderInfo from './ResponderInfo'; // Импортируем ResponderInfo
 import Modal from './Modal'; // Импортируем модальное окно
 import Card from './Card'; // Импортируем Card
-import StatusDisplay from './StatusDisplay'; // Импортируем компонент StatusDisplay
 import DateDisplay from './DateDisplay'; // Импортируем компонент даты
 
 const ResponseItem = ({
@@ -10,13 +9,13 @@ const ResponseItem = ({
     acceptedResponses,
     onAccept,
     onDecline,
-    onResponderClick,
     acceptedResponseData,
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false); // Состояние для управления открытием модального окна
+    const [isAccepted, setIsAccepted] = useState(false); // Состояние для отслеживания, принят ли отклик
 
     const handleShowContacts = () => {
-        setIsModalOpen(true); // Открываем модальное окно
+        setIsModalOpen(true); // Открываем модальное окно с контактами
     };
 
     const closeModal = () => {
@@ -28,27 +27,24 @@ const ResponseItem = ({
 
     return (
         <Card title={response.responder ? response.responder.name : 'Неизвестный'}
-        content= {response.message}
-        
-        >
+              content={response.message}>
             <div className={`flex flex-col py-4 rounded-lg shadow-sm`}>
                 <div className="flex flex-col items-start">
-
                     <span className="py-2">
                         {/* Используем компонент DateDisplay для отображения даты */}
                         <DateDisplay label="Дата отклика" date={response.createdAt} />
                     </span>
-
-                 
                 </div>
-
-
 
                 <div className={`mt-2 flex space-x-2`}>
                     {!response.accepted && !response.declined && (
                         <>
                             <button
-                                onClick={() => onAccept(response.id, response.responder)}
+                                onClick={() => {
+                                    onAccept(response.id, response.responder); // Принять отклик
+                                    setIsAccepted(true); // Устанавливаем состояние, что отклик принят
+                                    handleShowContacts(); // Открываем модальное окно с контактами
+                                }}
                                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
                             >
                                 Принять
@@ -77,6 +73,11 @@ const ResponseItem = ({
             {/* Модальное окно для отображения информации о респонденте */}
             {isModalOpen && (
                 <Modal isOpen={isModalOpen} onClose={closeModal}>
+                    {isAccepted && (
+                        <div className="text-green-600 mb-4">
+                            Отклик принят
+                        </div>
+                    )}
                     <ResponderInfo responderData={acceptedResponseData[response.id]} />
                 </Modal>
             )}

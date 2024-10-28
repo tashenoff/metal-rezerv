@@ -16,7 +16,7 @@ const Layout = ({ children, title = "My Next.js App" }) => {
       <Header />
 
       {/* Основное содержимое с flex-grow, чтобы занимать оставшееся пространство */}
-      <main className="flex-grow container mx-auto p-4">
+      <main className="flex-grow container mx-auto py-4">
         {children}
       </main>
 

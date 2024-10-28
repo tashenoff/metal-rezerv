@@ -3,34 +3,31 @@ import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import Headlines from '../components/headlines';
 import Layout from '../components/Layout';
-import Card from '../components/Card';
-
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-import 'react-quill/dist/quill.snow.css';
+import Notification from '../components/Notification';
+import Input from '../components/Input';
+import FormSelect from '../components/FormSelect';
+import Textarea from '../components/Textarea.js';
 
 const CreateListing = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
-  const [publicationPeriod, setPublicationPeriod] = useState('1d'); // Состояние для периода публикации
+  const [publicationPeriod, setPublicationPeriod] = useState('1d');
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('');
   const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    }
+    if (!token) router.push('/login');
     setIsClient(true);
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-
-    // Вычисляем дату окончания публикации
     const expirationDate = calculateExpirationDate(publicationPeriod);
 
     try {
@@ -38,31 +35,33 @@ const CreateListing = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title, content, deliveryDate, purchaseDate, expirationDate }), // Передаем дату окончания публикации
+        body: JSON.stringify({ title, content, deliveryDate, purchaseDate, expirationDate }),
       });
 
       if (response.ok) {
         setMessage('Объявление успешно добавлено!');
+        setMessageType('success');
         setTitle('');
         setContent('');
         setDeliveryDate('');
         setPurchaseDate('');
-        setPublicationPeriod('1d'); // Сбрасываем поле периода публикации
+        setPublicationPeriod('1d');
       } else {
         const errorData = await response.json();
         setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
+        setMessageType('error');
       }
     } catch (error) {
       setMessage('Произошла ошибка при добавлении объявления.');
+      setMessageType('error');
     }
   };
 
   const calculateExpirationDate = (period) => {
     const now = new Date();
     let expirationDate = new Date(now);
-
     switch (period) {
       case '5m':
         expirationDate.setMinutes(expirationDate.getMinutes() + 5);
@@ -79,95 +78,42 @@ const CreateListing = () => {
       default:
         break;
     }
-
-    return expirationDate.toISOString(); // Возвращаем дату в формате ISO
+    return expirationDate.toISOString();
   };
 
   return (
     <Layout>
-      <div className="min-h-screen ">
-        <div className="container mx-auto p-8">
-          <Headlines title='Создание объявления' />
-
-          {message && <p className="mt-4 text-red-500">{message}</p>}
-         
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-bold mb-2" htmlFor="title">
-                  Заголовок:
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3  focus:outline-none focus:ring focus:ring-blue-500"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-bold mb-2" htmlFor="content">
-                  Содержимое:
-                </label>
-                {isClient && (
-                  <ReactQuill
-                    value={content}
-                    onChange={setContent}
-                    required
-                    className="shadow appearance-none border rounded w-full"
-                  />
-                )}
-              </div>
-              <div className="mb-4">
-                <label className="block  text-sm font-bold mb-2" htmlFor="deliveryDate">
-                  Дата доставки:
-                </label>
-                <input
-                  type="date"
-                  id="deliveryDate"
-                  value={deliveryDate}
-                  onChange={(e) => setDeliveryDate(e.target.value)}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3  focus:outline-none focus:ring focus:ring-blue-500"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-sm font-bold mb-2" htmlFor="purchaseDate">
-                  Дата закупа:
-                </label>
-                <input
-                  type="date"
-                  id="purchaseDate"
-                  value={purchaseDate}
-                  onChange={(e) => setPurchaseDate(e.target.value)}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-500"
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block  text-sm font-bold mb-2" htmlFor="publicationPeriod">
-                  Период публикации:
-                </label>
-                <select
-                  id="publicationPeriod"
-                  value={publicationPeriod}
-                  onChange={(e) => setPublicationPeriod(e.target.value)}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 focus:outline-none focus:ring focus:ring-blue-500"
-                >
-                  <option value="5m">5 минут</option>
-                  <option value="1d">1 день</option>
-                  <option value="2d">2 дня</option>
-                  <option value="3d">3 дня</option>
-                </select>
-              </div>
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
-              >
-                Добавить объявление
-              </button>
-            </form>
-         
+    
+        <div className="container mx-auto py-8">
+        <div className="card bg-base-200 p-5">
+          <Headlines title="Создание объявления" />
+          {message && <Notification message={message} type={messageType} />}
+          <form onSubmit={handleSubmit}>
+            <Input label="Заголовок" value={title} onChange={(e) => setTitle(e.target.value)} required />
+            <Textarea
+              id="content"
+              label="Содержимое:"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+            />
+            <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
+            <Input label="Дата закупа" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} required />
+            <FormSelect
+              label="Период публикации"
+              value={publicationPeriod}
+              onChange={(e) => setPublicationPeriod(e.target.value)}
+              options={[
+                { value: '5m', label: '5 минут' },
+                { value: '1d', label: '1 день' },
+                { value: '2d', label: '2 дня' },
+                { value: '3d', label: '3 дня' },
+              ]}
+            />
+            <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300">
+              Добавить объявление
+            </button>
+          </form>
         </div>
       </div>
     </Layout>
