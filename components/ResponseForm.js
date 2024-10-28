@@ -1,5 +1,7 @@
 // components/ResponseForm.js
 import { useState } from 'react';
+import Form from './Form';
+import Textarea from './Textarea'; // Импортируем компонент Textarea
 
 const ResponseForm = ({ onSubmit, feedback }) => {
     const [responseMessage, setResponseMessage] = useState('');
@@ -11,19 +13,22 @@ const ResponseForm = ({ onSubmit, feedback }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="mt-4 border p-4 rounded shadow">
-            <textarea
-                className="border w-full p-2 mb-2"
+        <Form onSubmit={handleSubmit} className="mt-5">
+            <Textarea
                 placeholder="Напишите ваш отклик"
                 value={responseMessage}
-                onChange={(e) => setResponseMessage(e.target.value)}
+                onChange={setResponseMessage} // Обновляем состояние при изменении
                 required // Убедитесь, что поле не пустое
+                
             />
-            <button type="submit" className="bg-blue-500 w-full text-white p-2 rounded">
+            <button 
+                type="submit" 
+                className="btn btn-primary w-full mt-5"
+            >
                 Отправить отклик
             </button>
             {feedback && <p className="text-red-500 mt-2">{feedback}</p>}
-        </form>
+        </Form>
     );
 };
 

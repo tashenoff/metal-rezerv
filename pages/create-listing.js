@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import dynamic from 'next/dynamic';
 import Headlines from '../components/headlines';
 import Layout from '../components/Layout';
 import Notification from '../components/Notification';
 import Input from '../components/Input';
 import FormSelect from '../components/FormSelect';
-import Textarea from '../components/Textarea.js';
+import Textarea from '../components/Textarea'; // Импортируем компонент Textarea
 
 const CreateListing = () => {
   const [title, setTitle] = useState('');
@@ -83,8 +82,7 @@ const CreateListing = () => {
 
   return (
     <Layout>
-    
-        <div className="container mx-auto py-8">
+      <div className="container mx-auto py-8">
         <div className="card bg-base-200 p-5">
           <Headlines title="Создание объявления" />
           {message && <Notification message={message} type={messageType} />}
@@ -92,9 +90,9 @@ const CreateListing = () => {
             <Input label="Заголовок" value={title} onChange={(e) => setTitle(e.target.value)} required />
             <Textarea
               id="content"
-              label="Содержимое:"
+              placeholder="Содержимое:"
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={setContent} // Используем setContent напрямую
               required
             />
             <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
