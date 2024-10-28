@@ -18,7 +18,7 @@ const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
           <h1 className="text-2xl font-bold">INEED</h1>
         </div>
         <div className="navbar-center hidden lg:flex">
-          <nav className="flex items-center space-x-4">
+          <nav className="flex items-center  w-full  space-x-4">
             {isLoggedIn ? (
               <>
                 
@@ -36,8 +36,8 @@ const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
                   </>
                 )}
                 {role === 'PUBLISHER' && (
-                  <div className="flex space-x-4">
-                    <Link href="/create-listing" className="link link-hover">
+                  <div className="flex space-x-4 items-center">
+                    <Link href="/create-listing" className="btn btn-primary btn-sm">
                       Создать Заявку
                     </Link>
                     <Link href="/publisher" className="link link-hover">

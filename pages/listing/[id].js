@@ -260,143 +260,143 @@ const ListingPage = (responseCountsByStatus) => {
     return (
         <>
             <Layout>
-                <div className="container mx-auto">
-                    <div className='grid grid-cols-12 gap-4 py-10 '>
-                        <div className='col-span-8 '>
 
-                            <Card
-                                key={listing.id}
-                                title={listing.title}
-                                content={listing.content}
-                                link={`/listing/${listing.id}`}
+                <div className='grid grid-cols-12 gap-4 py-10 '>
+                    <div className='col-span-8 '>
 
-                            >
-                                 <DateDisplay label="Дата публикации" date={listing.publishedAt} />
-                                <div className="grid grid-cols-3 gap-4 py-5">
-                                    
-                                    <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
-                                        <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
-                                    </div>
-                                    <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
-                                        <DateDisplay label="Дата закупки" date={listing.purchaseDate} />
-                                    </div>
-                                    <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
-                                        <DateDisplay date={listing.expirationDate} label="Актуально до" isExpirationDate={true} />
-                                    </div>
+                        <Card
+                            key={listing.id}
+                            title={listing.title}
+                            content={listing.content}
+                            link={`/listing/${listing.id}`}
+
+                        >
+                            <DateDisplay label="Дата публикации" date={listing.publishedAt} />
+                            <div className="grid grid-cols-3 gap-4 py-5">
+
+                                <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
+                                    <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
                                 </div>
+                                <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
+                                    <DateDisplay label="Дата закупки" date={listing.purchaseDate} />
+                                </div>
+                                <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
+                                    <DateDisplay date={listing.expirationDate} label="Актуально до" isExpirationDate={true} />
+                                </div>
+                            </div>
 
 
-                            </Card>
+                        </Card>
 
-                            {role !== 'PUBLISHER' && hasResponded && (
-                               <UserResponses responses={responses} userId={userId} />
-                               
-                                
-                            )}
+                        {role !== 'PUBLISHER' && hasResponded && (
+                            <UserResponses responses={responses} userId={userId} />
 
 
+                        )}
 
-                            {role === 'PUBLISHER' && listing.authorId === userId && responses.length > 0 && (
-                                <ResponsesList
-                                    responses={responses}
-                                    onAccept={handleAcceptResponse}
-                                    onDecline={handleDeclineResponse}
-                                    listingId={id}
-                                />
-                            )}
 
-                            {/* Модальное окно для отображения формы или сообщений */}
-                            <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-                                {modalContent ? (
-                                    modalContent.type === 'form' ? (
+
+                        {role === 'PUBLISHER' && listing.authorId === userId && responses.length > 0 && (
+                            <ResponsesList
+                                responses={responses}
+                                onAccept={handleAcceptResponse}
+                                onDecline={handleDeclineResponse}
+                                listingId={id}
+                            />
+                        )}
+
+                        {/* Модальное окно для отображения формы или сообщений */}
+                        <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+                            {modalContent ? (
+                                modalContent.type === 'form' ? (
+                                    <>
+                                        <p>{modalContent.message}</p>
+                                        <ResponseForm onSubmit={handleResponseSubmit} />
+                                    </>
+                                ) : (
+                                    <div>
+                                        <p className={`mt-2 ${modalContent.type === 'success' ? 'text-blue-500' : 'text-red-500'}`}>
+                                            {modalContent.message}
+                                        </p>
+                                        {/* Кнопка для покупки баллов при ошибке */}
+                                        {modalContent.type === 'error' && (
+                                            <button
+                                                className="mt-4 bg-green-500 text-white p-2 rounded"
+                                                onClick={() => window.location.href = '/buy-credits'}
+                                            >
+                                                Купить баллы
+                                            </button>
+                                        )}
+                                    </div>
+                                )
+                            ) : null}
+                        </Modal>
+
+                    </div>
+
+                    <div className='col-span-4'>
+                        <Card title={role !== 'PUBLISHER' && (<span>Информация о клиенте</span>)}>
+                            {role === 'PUBLISHER' && listing.authorId === userId && (
+
+                                <>
+                                    <div className='flex items-center justify-between'>
+                                        <span>Статус публикации</span>
+                                        <StatusDisplay response={{ published: listing.published }} isPublicationStatus={true} />
+                                    </div>
+                                    <div className='flex items-center justify-between mt-5'>
+
+                                        {/* <DateDisplay label='Cрок публикации' date={listing.expirationDate} /> */}
+                                    </div>
+
+                                    {listing.published ? (
                                         <>
-                                            <p>{modalContent.message}</p>
-                                            <ResponseForm onSubmit={handleResponseSubmit} />
+                                            {/* Если объявление опубликовано, показываем кнопку для снятия с публикации */}
+                                            <button className='btn btn-warning mt-5' onClick={() => onUnpublish(listing.id)}>Снять с публикации</button>
                                         </>
                                     ) : (
-                                        <div>
-                                            <p className={`mt-2 ${modalContent.type === 'success' ? 'text-blue-500' : 'text-red-500'}`}>
-                                                {modalContent.message}
-                                            </p>
-                                            {/* Кнопка для покупки баллов при ошибке */}
-                                            {modalContent.type === 'error' && (
-                                                <button
-                                                    className="mt-4 bg-green-500 text-white p-2 rounded"
-                                                    onClick={() => window.location.href = '/buy-credits'}
-                                                >
-                                                    Купить баллы
-                                                </button>
+                                        <>
+                                            {isExpired ? (
+                                                // Если срок истек, показываем кнопку для возобновления
+                                                <button className='btn btn-primary mt-5' onClick={() => onRepublish(listing.id)}>Возобновить</button>
+                                            ) : (
+                                                // Если объявление не опубликовано и срок не истек, показываем кнопку для публикации
+                                                <button className='btn btn-success mt-5' onClick={() => publish(listing.id)}>Опубликовать</button>
                                             )}
-                                        </div>
-                                    )
-                                ) : null}
-                            </Modal>
+                                        </>
+                                    )}
 
-                        </div>
+                                </>
 
-                        <div className='col-span-4'>
-                            <Card title={role !== 'PUBLISHER' && (<span>Информация о клиенте</span>)}>
-                                {role === 'PUBLISHER' && listing.authorId === userId && (
-
-                                    <>
-                                        <div className='flex items-center justify-between'>
-                                            <span>Статус публикации</span>
-                                            <StatusDisplay response={{ published: listing.published }} isPublicationStatus={true} />
-                                        </div>
-                                        <div className='flex items-center justify-between mt-5'>
-                                            
-                                            {/* <DateDisplay label='Cрок публикации' date={listing.expirationDate} /> */}
-                                        </div>
-
-                                        {listing.published ? (
-                                            <>
-                                                {/* Если объявление опубликовано, показываем кнопку для снятия с публикации */}
-                                                <button className='btn btn-warning mt-5' onClick={() => onUnpublish(listing.id)}>Снять с публикации</button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                {isExpired ? (
-                                                    // Если срок истек, показываем кнопку для возобновления
-                                                    <button className='btn btn-primary mt-5' onClick={() => onRepublish(listing.id)}>Возобновить</button>
-                                                ) : (
-                                                    // Если объявление не опубликовано и срок не истек, показываем кнопку для публикации
-                                                    <button className='btn btn-success mt-5' onClick={() => publish(listing.id)}>Опубликовать</button>
-                                                )}
-                                            </>
-                                        )}
-
-                                    </>
-
-                                )}
+                            )}
 
 
-                                {role !== 'PUBLISHER' && (
-                                    <>
-                                        <AuthorInfo
-                                            author={listing.author}
-                                            responses={responses.find(response => response.responderId === userId) || {}} // Находим отклик текущего пользователя
-                                            expirationDate={listing.expirationDate}
-                                        />
+                            {role !== 'PUBLISHER' && (
+                                <>
+                                    <AuthorInfo
+                                        author={listing.author}
+                                        responses={responses.find(response => response.responderId === userId) || {}} // Находим отклик текущего пользователя
+                                        expirationDate={listing.expirationDate}
+                                    />
 
 
 
-                                    </>
-                                )}
+                                </>
+                            )}
 
-                                {/* Кнопка для открытия формы отклика, если срок не истек */}
-                                {!isExpired && role !== 'PUBLISHER' && !hasResponded && (
-                                    <button
-                                        className="btn btn-primary mt-5 w-full text-white p-2 rounded"
-                                        onClick={handleOpenResponseForm}
-                                    >
-                                        Откликнуться
-                                    </button>
-                                )}
+                            {/* Кнопка для открытия формы отклика, если срок не истек */}
+                            {!isExpired && role !== 'PUBLISHER' && !hasResponded && (
+                                <button
+                                    className="btn btn-primary mt-5 w-full text-white p-2 rounded"
+                                    onClick={handleOpenResponseForm}
+                                >
+                                    Откликнуться
+                                </button>
+                            )}
 
-                            </Card>
+                        </Card>
 
 
-                        </div>
+
                     </div>
                 </div>
             </Layout>

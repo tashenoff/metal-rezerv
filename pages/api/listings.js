@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'; // Импортируем jsonwebtoken для р
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { title, content, deliveryDate, purchaseDate, expirationDate } = req.body; // Добавляем deliveryDate
+    const { title, content, deliveryDate, purchaseDate, expirationDate, categoryId } = req.body; // Добавляем deliveryDate
     const token = req.headers.authorization?.split(' ')[1]; // Получаем токен
 
     if (!token) {
@@ -22,6 +22,14 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: 'У вас нет прав для добавления объявлений.' });
       }
 
+      // Проверяем, указана ли категория
+      if (categoryId === undefined || categoryId === null || categoryId.trim() === '') {
+        return res.status(400).json({ error: 'Не указана категория.' });
+      }
+
+      // Преобразуем categoryId в целое число
+      const parsedCategoryId = parseInt(categoryId, 10);
+
       // Создаем объявление
       const listing = await prisma.listing.create({
         data: {
@@ -33,6 +41,9 @@ export default async function handler(req, res) {
           author: {
             connect: { id: user.id }, // Подключаем пользователя к объявлению
           },
+          category: {
+            connect: { id: parsedCategoryId }, // Подключаем категорию к объявлению
+          },
         },
       });
       res.status(201).json(listing);
@@ -43,6 +54,7 @@ export default async function handler(req, res) {
     const listings = await prisma.listing.findMany({
       include: {
         author: true,
+        category: true,
       },
     });
     res.status(200).json(listings);

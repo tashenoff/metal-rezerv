@@ -26,18 +26,21 @@ model User {
 }
 
 model Listing {
-  id            Int      @id @default(autoincrement())
-  title         String
-  content       String
-  published     Boolean  @default(false)
-  deliveryDate  DateTime @default(now()) // Устанавливаем значение по умолчанию
-  publishedAt   DateTime @default(now()) // Добавлено поле даты публикации
-  expirationDate DateTime? // Поле может быть null
-  purchaseDate  DateTime? // Дата закупа для объявления
-  author        User     @relation(fields: [authorId], references: [id])
-  authorId      Int
-  responses     Response[] // Отклики на это объявление
+  id             Int      @id @default(autoincrement())
+  title          String
+  content        String
+  published      Boolean  @default(false)
+  deliveryDate   DateTime @default(now())
+  publishedAt    DateTime @default(now())
+  expirationDate DateTime?
+  purchaseDate   DateTime?
+  author         User     @relation(fields: [authorId], references: [id])
+  authorId       Int
+  responses      Response[]
+  category       Category? @relation(fields: [categoryId], references: [id]) // Обратная связь
+  categoryId     Int
 }
+
 
 model Response {
   id          Int      @id @default(autoincrement())
@@ -49,4 +52,10 @@ model Response {
   status      String   @default("pending") // Статус отклика (pending, approved, rejected)
   createdAt   DateTime @default(now())
   accepted    Boolean?
+}
+
+model Category {
+  id       Int      @id @default(autoincrement())
+  name     String   @unique // Название категории
+  listings Listing[] // Связь с объявлениями
 }

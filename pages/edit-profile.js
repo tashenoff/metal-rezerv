@@ -88,7 +88,7 @@ const EditProfile = () => {
 
     return (
         <Layout>
-            <div className="container mx-auto my-8">
+          
                 <div className='flex items-center justify-between my-4 bg-base-200 p-4 rounded-md'>
                     <span>Настройка темы</span>
                     <ThemeToggle />
@@ -186,7 +186,7 @@ const EditProfile = () => {
 
                     <button type="submit" className="btn w-full">Обновить профиль</button>
                 </Form>
-            </div>
+          
         </Layout>
     );
 };

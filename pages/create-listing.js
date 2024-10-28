@@ -16,13 +16,31 @@ const CreateListing = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [isClient, setIsClient] = useState(false);
+  const [categories, setCategories] = useState([]); // Состояние для категорий
+  const [selectedCategoryId, setSelectedCategoryId] = useState(''); // Состояние для выбранной категории
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) router.push('/login');
     setIsClient(true);
+
+    // Получаем категории
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      if (!response.ok) {
+        throw new Error('Ошибка при загрузке категорий');
+      }
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Ошибка при получении категорий:', error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,7 +54,7 @@ const CreateListing = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title, content, deliveryDate, purchaseDate, expirationDate }),
+        body: JSON.stringify({ title, content, deliveryDate, purchaseDate, expirationDate, categoryId: selectedCategoryId }), // Передаем выбранную категорию
       });
 
       if (response.ok) {
@@ -47,6 +65,7 @@ const CreateListing = () => {
         setDeliveryDate('');
         setPurchaseDate('');
         setPublicationPeriod('1d');
+        setSelectedCategoryId(''); // Сбрасываем выбранную категорию
       } else {
         const errorData = await response.json();
         setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
@@ -82,38 +101,57 @@ const CreateListing = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto py-8">
-        <div className="card bg-base-200 p-5">
-          <Headlines title="Создание объявления" />
-          {message && <Notification message={message} type={messageType} />}
-          <form onSubmit={handleSubmit}>
-            <Input label="Заголовок" value={title} onChange={(e) => setTitle(e.target.value)} required />
-            <Textarea
-              id="content"
-              placeholder="Содержимое:"
-              value={content}
-              onChange={setContent} // Используем setContent напрямую
-              required
-            />
-            <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
-            <Input label="Дата закупа" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} required />
-            <FormSelect
-              label="Период публикации"
-              value={publicationPeriod}
-              onChange={(e) => setPublicationPeriod(e.target.value)}
-              options={[
-                { value: '5m', label: '5 минут' },
-                { value: '1d', label: '1 день' },
-                { value: '2d', label: '2 дня' },
-                { value: '3d', label: '3 дня' },
-              ]}
-            />
-            <button type="submit" className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300">
-              Добавить объявление
-            </button>
+    
+        <Headlines title="Создание объявления" />
+        {message && <Notification message={message} type={messageType} />}
+        <div className="">
+
+
+          <form className='grid grid-cols-12 gap-4' onSubmit={handleSubmit}>
+            <div className='col-span-8 card bg-base-200 p-5'>
+              <Input label="Заголовок" value={title} onChange={(e) => setTitle(e.target.value)} required />
+              <Textarea
+                id="content"
+                placeholder="Содержимое:"
+                value={content}
+                onChange={setContent} // Используем setContent напрямую
+                required
+              />
+            </div>
+            <div className='col-span-4 card bg-base-200 p-5'>
+              <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
+              <Input label="Дата закупа" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} required />
+              <FormSelect
+                label="Категория"
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                options={[
+                  { value: '', label: 'Выберите категорию' }, // Пустая опция
+                  ...categories.map(category => ({ value: category.id, label: category.name })), // Преобразуем категории в нужный формат
+                ]}
+                required
+              />
+              <FormSelect
+                label="Период публикации"
+                value={publicationPeriod}
+                onChange={(e) => setPublicationPeriod(e.target.value)}
+                options={[
+                  { value: '5m', label: '5 минут' },
+                  { value: '1d', label: '1 день' },
+                  { value: '2d', label: '2 дня' },
+                  { value: '3d', label: '3 дня' },
+                ]}
+              />
+
+<button type="submit" className="btn btn-primary">
+                Добавить объявление
+              </button>
+              
+            </div>
+           
           </form>
         </div>
-      </div>
+     
     </Layout>
   );
 };

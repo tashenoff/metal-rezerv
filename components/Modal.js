@@ -6,7 +6,7 @@ const Modal = ({ isOpen, onClose, children, modalMessage }) => {
     return (
 
         <dialog id="my_modal_3" className={`modal ${isOpen ? 'modal-open' : ''}`}>
-            <div className="modal-box">
+            <div className="modal-box border-primary border-2">
                 <form method="dialog">
                     <button
                         type="button"

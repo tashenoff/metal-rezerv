@@ -4,7 +4,7 @@ import Modal from '../components/Modal';
 import StatusDisplay from '../components/StatusDisplay';
 import DateDisplay from '../components/DateDisplay';
 import { useRouter } from 'next/router';
-import { LinkIcon } from '@heroicons/react/24/solid'
+import { LinkIcon, UserIcon, BuildingOffice2Icon, PhoneIcon, IdentificationIcon, AtSymbolIcon } from '@heroicons/react/24/solid'
 import Link from 'next/link';
 import TruncatedText from '../components/TruncatedText';
 import TabbedNavigation from '../components/TabbedNavigation'; // Импортируем TabbedNavigation
@@ -75,13 +75,13 @@ const ResponsesPage = () => {
 
     return (
         <Layout>
-            <div className='container mx-auto'>
+        
                 <h1 className="text-2xl font-bold mb-4">Мои отклики</h1>
                 {feedback && <p className="text-red-500 mb-4">{feedback}</p>}
 
-                <TabbedNavigation 
-                    onTabChange={setActiveTab} 
-                    responseCounts={responseCounts} 
+                <TabbedNavigation
+                    onTabChange={setActiveTab}
+                    responseCounts={responseCounts}
                     isSorted={true} // если вы хотите управлять сортировкой
                 />
 
@@ -106,7 +106,7 @@ const ResponsesPage = () => {
                                         <th>{index + 1}</th>
                                         <td>{response.listing.title}</td>
                                         <td>
-                                             <DateDisplay date={response.createdAt} />
+                                            <DateDisplay date={response.createdAt} />
                                         </td>
                                     </tr>
                                 ))}
@@ -124,24 +124,35 @@ const ResponsesPage = () => {
                             <h2 className="text-xl font-bold mb-2">{selectedResponse.listing.title}</h2>
                             <DateDisplay label="Дата отклика:" date={selectedResponse.createdAt} />
                             <p className="my-2"><strong>Информация:</strong></p>
-                            <p className="my-4"> <TruncatedText text={selectedResponse.listing.content} maxLength={100} /></p>
-                            <p className="my-2">
-                                <Link href={`/listing/${selectedResponse.listing.id}`} className='className="link link-primary flex space-x-2 items-center'>
-                                    <LinkIcon className="size-4" />
-                                    <span>Посмотреть объявление</span>
-                                </Link>
+                            <p className="my-4 bg-base-200 card p-2"> <TruncatedText text={selectedResponse.listing.content} maxLength={100} />
+                                <p className="my-2">
+                                    <Link href={`/listing/${selectedResponse.listing.id}`} className='className="link link-primary flex space-x-2 items-center'>
+                                        <LinkIcon className="size-4" />
+                                        <span>Посмотреть объявление</span>
+                                    </Link>
+                                </p>
                             </p>
                             {selectedResponse.status === 'approved' ? (
-                                <>
-                                    <p className="mb-2"><strong>Имя паблишера:</strong> {selectedResponse.listing.author.name}</p>
+                                <div className='bg-base-200 card p-2'>
                                     <p className="mb-2"><strong>Контактная информация:</strong></p>
                                     <ul className="list-disc list-inside mb-2">
-                                        <li><strong>Компания:</strong> {selectedResponse.listing.author.companyName}</li>
-                                        <li><strong>Телефон:</strong> {selectedResponse.listing.author.phoneNumber}</li>
-                                        <li><strong>BIN:</strong> {selectedResponse.listing.author.companyBIN}</li>
-                                        <li><strong>Email:</strong> {selectedResponse.listing.author.email}</li>
+                                        <li className='flex items-center mb-1'>
+                                            <UserIcon className="w-5 h-5 mr-2 text-gray-600" />
+                                            <strong>Контактное лицо:</strong> {selectedResponse.listing.author.name}</li>
+                                        <li className='flex items-center mb-1'>
+                                            <BuildingOffice2Icon className="w-5 h-5 mr-2 text-gray-600" />
+                                            <strong>Компания:</strong> {selectedResponse.listing.author.companyName}</li>
+                                        <li className='flex items-center mb-1'>
+                                            <PhoneIcon className="w-5 h-5 mr-2 text-gray-600" />
+                                            <strong>Телефон:</strong> {selectedResponse.listing.author.phoneNumber}</li>
+                                        <li className='flex items-center mb-1'>
+                                            <IdentificationIcon className="w-5 h-5 mr-2 text-gray-600" />
+                                            <strong>BIN:</strong> {selectedResponse.listing.author.companyBIN}</li>
+                                        <li className='flex items-center mb-1'>
+                                            <AtSymbolIcon className="w-5 h-5 mr-2 text-gray-600" />
+                                            <strong>Email:</strong> {selectedResponse.listing.author.email}</li>
                                     </ul>
-                                </>
+                                </div>
                             ) : (
                                 <p className="my-5 alert alert-info">
                                     <svg
@@ -161,7 +172,7 @@ const ResponsesPage = () => {
                         </>
                     )}
                 </Modal>
-            </div>
+           
         </Layout>
     );
 };

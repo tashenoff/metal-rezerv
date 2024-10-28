@@ -4,16 +4,16 @@ const StatusBadge = ({ status, color }) => {
 
     switch (color) {
         case 'accepted':
-            badgeColorClass = 'bg-green-500 text-white';
+            badgeColorClass = 'bg-green-500 text-sm text-black';
             break;
         case 'rejected':
-            badgeColorClass = 'bg-red-500 text-white';
+            badgeColorClass = 'bg-red-500 text-sm text-black';
             break;
         case 'pending':
-            badgeColorClass = 'bg-yellow-500 text-white';
+            badgeColorClass = 'bg-yellow-500 text-sm text-black';
             break;
         default:
-            badgeColorClass = 'bg-gray-300 text-gray-700';
+            badgeColorClass = 'bg-gray-300 text-sm text-gray-700';
             break;
     }
 
