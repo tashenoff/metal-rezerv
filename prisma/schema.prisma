@@ -38,7 +38,7 @@ model Listing {
   authorId       Int
   responses      Response[]
   category       Category? @relation(fields: [categoryId], references: [id]) // Обратная связь
-  categoryId     Int
+  categoryId     Int      // Временно делаем поле необязательным
 }
 
 

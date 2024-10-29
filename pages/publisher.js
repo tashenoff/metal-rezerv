@@ -167,7 +167,7 @@ const PublisherPage = () => {
   return (
     <Layout>
     <div className=''>
-      <div className="container mx-auto">
+    
         <div className="flex items-center my-4 justify-between">
           <h1>Ваши объявления</h1>
           <div>
@@ -184,13 +184,13 @@ const PublisherPage = () => {
               Не опубликованные
             </button>
           </div>
-        </div>
+      
       </div>
 
       {filteredListings.length === 0 ? (
         <p>У вас нет объявлений.</p>
       ) : (
-        <div className="container mx-auto">
+     
           <ul className="space-y-4">
             {filteredListings.map((listing) => {
               const isExpired = new Date() > new Date(listing.expirationDate); // Проверяем, истек ли срок
@@ -216,7 +216,7 @@ const PublisherPage = () => {
               );
             })}
           </ul>
-        </div>
+       
       )}
 
       {/* Модальное окно */}
