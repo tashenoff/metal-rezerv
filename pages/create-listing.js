@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Headlines from '../components/headlines';
 import Layout from '../components/Layout';
 import Notification from '../components/Notification';
 import Input from '../components/Input';
@@ -102,7 +101,7 @@ const CreateListing = () => {
   return (
     <Layout>
     
-        <Headlines title="Создание объявления" />
+       
         {message && <Notification message={message} type={messageType} />}
         <div className="">
 
