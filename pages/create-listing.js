@@ -5,7 +5,7 @@ import Layout from '../components/Layout';
 import Notification from '../components/Notification';
 import Input from '../components/Input';
 import FormSelect from '../components/FormSelect';
-import Textarea from '../components/Textarea'; // Импортируем компонент Textarea
+import Textarea from '../components/Textarea'; 
 
 const CreateListing = () => {
   const [title, setTitle] = useState('');
