@@ -10,7 +10,7 @@ import Layout from '../../components/Layout';
 import Card from '../../components/Card';
 import DateDisplay from '../../components/DateDisplay'; // Импортируем компонент даты
 import { unpublishListing } from '../../utils/unpublishListing';
-import publishListing from '../../utils/PublishListing';
+import publishListing from '../../utils/publishListing';
 import StatusDisplay from '../../components/StatusDisplay'; // Импортируйте ваш компонент
 
 const ListingPage = (responseCountsByStatus) => {
