@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import ResponsesList from '../../components/ResponsesList';
-import ResponseForm from '../../components/ResponseForm'; // Импортируем ResponseForm
+import ResponseForm from '../../components/ResponseForm'; 
 import Modal from '../../components/Modal'; // Импортируем Modal
 import UserResponses from '../../components/UserResponses';
 import AuthorInfo from '../../components/AuthorInfo';
