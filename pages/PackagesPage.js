@@ -10,7 +10,7 @@ const PackagesPage = () => {
       duration: 'Бессрочно',
       support: 'Приоритетная поддержка',
       buttonText: 'Купить за 100₸',
-      gradient: 'from-green-400 to-green-600', // Градиент для стартового пакета
+      gradient: 'from-green-400 to-green-600', 
     },
     {
       title: 'Стандартный пакет',
