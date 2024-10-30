@@ -64,7 +64,7 @@ const CreateListing = () => {
         setDeliveryDate('');
         setPurchaseDate('');
         setPublicationPeriod('1d');
-        setSelectedCategoryId(''); // Сбрасываем выбранную категорию
+        setSelectedCategoryId(''); 
       } else {
         const errorData = await response.json();
         setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
