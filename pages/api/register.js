@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   // Определяем значение поинтов по умолчанию для RESPONDER
   let points = 0;
   if (role === 'RESPONDER') {
-    points = 100; // 100 поинтов для RESPONDER
+    points = 100; 
   }
 
   // Создание нового пользователя

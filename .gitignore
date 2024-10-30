@@ -33,3 +33,6 @@ logs
 *.swo
 
 
+
+# Local Netlify folder
+.netlify

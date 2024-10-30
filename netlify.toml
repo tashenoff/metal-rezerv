@@ -1,2 +1,7 @@
 [build]
-  functions = "netlify/functions"
+  command = "npm run build"
+  publish = ".next"  # Указываем на папку с билдом Next.js
+  functions = "netlify/functions"  # Указываем папку для функций
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
