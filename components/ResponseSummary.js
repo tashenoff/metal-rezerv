@@ -8,7 +8,7 @@ const ResponseSummary = ({ responses }) => {
     const pendingResponses = responses.filter(response => response.accepted === null).length; // Количество на рассмотрении
 
     return (
-        <div className="p-4 card bg-base-200 mb-5">
+        <div className="p-4 card bg-base-100 mb-5">
             <h3 className="text-lg font-semibold">Статистика откликов</h3>
             <ul className="mt-2">
                 <li>Общее количество откликов: <strong>{totalResponses}</strong></li>

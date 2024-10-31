@@ -5,7 +5,7 @@ import ResponseDetails from './ResponseDetails';
 
 const ActivityItem = ({ response }) => {
     return (
-        <div key={response.id} className="card bg-base-200 my-5">
+        <div key={response.id} className="card bg-base-100 my-5">
 
             <div className="card-body">
                 <div className='flex items-center space-x-5 my-5'>

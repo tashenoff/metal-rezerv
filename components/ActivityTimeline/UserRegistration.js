@@ -7,7 +7,7 @@ const UserRegistration = ({ user }) => {
     return (
         <div className="mb-10">
 
-            <div className="card bg-base-200">
+            <div className="card bg-base-100">
 
 
 

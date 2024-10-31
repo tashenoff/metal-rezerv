@@ -3,6 +3,7 @@ import Layout from '../components/Layout';
 import ListingsDisplay from '../components/ListingsDisplay';
 import Dropdown from '../components/Dropdown';
 import SearchBar from '../components/SearchBar';
+import { filterListingsBySearchTerm, filterListingsByCategories } from '../utils/filterHelpers';
 
 const Listings = () => {
   const [listings, setListings] = useState([]);
@@ -32,19 +33,13 @@ const Listings = () => {
   }, []);
 
   const handleSearch = (term) => {
-    const filtered = listings.filter((listing) =>
-      listing.title.toLowerCase().includes(term) ||
-      listing.content.toLowerCase().includes(term)
-    );
+    const filtered = filterListingsBySearchTerm(listings, term);
     setFilteredResults(filtered);
   };
 
-  const handleCategorySelect = (selectedCategories) => {
-    setSelectedCategories(selectedCategories);
-
-    const filteredByCategory = listings.filter((listing) => 
-      selectedCategories.length === 0 || selectedCategories.includes(listing.category.name) // Предположим, что у вас есть поле category.name
-    );
+  const handleCategorySelect = (selected) => {
+    setSelectedCategories(selected);
+    const filteredByCategory = filterListingsByCategories(listings, selected);
     setFilteredResults(filteredByCategory);
   };
 
@@ -59,9 +54,8 @@ const Listings = () => {
         />
       </div>
 
-      {loading ? ( // Проверяем состояние загрузки
+      {loading ? (
         <div className="flex flex-col gap-4">
-          {/* Используем указанный вами шаблон скелетона */}
           <div className="flex w-full flex-col gap-4">
             <div className="skeleton h-32 w-full"></div>
             <div className="skeleton h-4 w-28"></div>
