@@ -12,7 +12,7 @@ const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
   };
 
   return (
-    <div className="navbar bg-base-200">
+    <div className="navbar bg-base-100">
       <div className="container mx-auto flex justify-between items-center">
         <div className="navbar-start">
           <h1 className="text-2xl font-bold">Sphere </h1>
