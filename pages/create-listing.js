@@ -59,49 +59,49 @@ const CreateListing = () => {
 
     // Создаем объект данных для отправки
     const listingData = {
-        title: escapeHtml(title),
-        content: escapeHtml(stripHtmlTags(content)), // Очистка содержимого
-        deliveryDate,
-        purchaseDate,
-        expirationDate,
-        categoryId: selectedCategoryId,
+      title: escapeHtml(title),
+      content: escapeHtml(stripHtmlTags(content)), // Очистка содержимого
+      deliveryDate,
+      purchaseDate,
+      expirationDate,
+      categoryId: selectedCategoryId,
     };
 
     // Логируем данные, которые будут отправлены на сервер
     console.log('Отправка данных на сервер:', listingData);
 
     try {
-        const response = await fetch('/api/listings', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(listingData),
-        });
+      const response = await fetch('/api/listings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(listingData),
+      });
 
-        if (response.ok) {
-            setMessage('Объявление успешно добавлено!');
-            setMessageType('success');
-            setTitle('');
-            setContent('');
-            setDeliveryDate('');
-            setPurchaseDate('');
-            setPublicationPeriod('1d');
-            setSelectedCategoryId('');
-        } else {
-            const errorData = await response.json();
-            // Логируем ошибку, если она есть
-            console.error('Ошибка при добавлении объявления:', errorData);
-            setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
-            setMessageType('error');
-        }
-    } catch (error) {
-        console.error('Произошла ошибка при добавлении объявления:', error);
-        setMessage('Произошла ошибка при добавлении объявления.');
+      if (response.ok) {
+        setMessage('Объявление успешно добавлено!');
+        setMessageType('success');
+        setTitle('');
+        setContent('');
+        setDeliveryDate('');
+        setPurchaseDate('');
+        setPublicationPeriod('1d');
+        setSelectedCategoryId('');
+      } else {
+        const errorText = await response.text(); // Получаем текст ответа
+        console.error('Ошибка ответа:', errorText); // Логируем текст
+        const errorData = await response.json();
+        setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
         setMessageType('error');
+      }
+    } catch (error) {
+      console.error('Произошла ошибка при добавлении объявления:', error);
+      setMessage('Произошла ошибка при добавлении объявления.');
+      setMessageType('error');
     }
-};
+  };
 
   const calculateExpirationDate = (period) => {
     const now = new Date();
