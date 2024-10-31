@@ -1,5 +1,6 @@
-import prisma from '../../prisma/client'; // Импортируй клиента Prisma
+import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken'; // Импортируем jsonwebtoken для работы с токенами
+const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   console.log('Request method:', req.method); // Логируем метод запроса
