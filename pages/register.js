@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 export default function Register() {
     const [formData, setFormData] = useState({
-        role: 'user', // по умолчанию "Пользователь"
+        role: 'PUBLISHER', // по умолчанию "Пользователь"
         name: '',
         email: '',
         password: '',
