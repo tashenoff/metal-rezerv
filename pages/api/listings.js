@@ -1,5 +1,8 @@
+// pages/api/listings.js
 import prisma from '../../prisma/client'; // Импортируй клиента Prisma
 import jwt from 'jsonwebtoken'; // Импортируем jsonwebtoken для работы с токенами
+
+const JWT_SECRET = 'your_jwt_secret'; // Замените на ваш секретный ключ
 
 export default async function handler(req, res) {
   console.log('Request received:', req.method, req.body); // Логируем метод и тело запроса
@@ -16,7 +19,7 @@ export default async function handler(req, res) {
 
     try {
       // Декодируем токен и получаем пользователя
-      const decoded = jwt.verify(token, 'your_jwt_secret'); // Замените на ваш секрет
+      const decoded = jwt.verify(token, JWT_SECRET); // Замените на ваш секрет
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },
       });
@@ -63,15 +66,6 @@ export default async function handler(req, res) {
       console.error('Error during listing creation:', error); // Логируем ошибку
       return res.status(500).json({ error: 'Ошибка сервера.' });
     }
-  } else if (req.method === 'GET') {
-    console.log('Fetching listings'); // Логируем получение объявлений
-    const listings = await prisma.listing.findMany({
-      include: {
-        author: true,
-        category: true,
-      },
-    });
-    return res.status(200).json(listings);
   } else {
     console.log(`Method ${req.method} not allowed`); // Логируем недопустимый метод
     return res.status(405).json({ error: 'Метод не разрешен.' });
