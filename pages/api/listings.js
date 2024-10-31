@@ -1,48 +1,46 @@
-import prisma from '../../prisma/client'; // Импортируй клиента Prisma
-import jwt from 'jsonwebtoken'; // Импортируем jsonwebtoken для работы с токенами
+import prisma from '../../prisma/client';
+import jwt from 'jsonwebtoken';
 
 export default async function handler(req, res) {
+  console.log(`Request Method: ${req.method}`);
+  console.log(`Request URL: ${req.url}`);
+
   if (req.method === 'POST') {
-    const { title, content, deliveryDate, purchaseDate, expirationDate, categoryId } = req.body; // Добавляем deliveryDate
-    const token = req.headers.authorization?.split(' ')[1]; // Получаем токен
+    const { title, content, deliveryDate, purchaseDate, expirationDate, categoryId } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
       return res.status(401).json({ error: 'Необходима авторизация.' });
     }
 
     try {
-      // Декодируем токен и получаем пользователя
       const decoded = jwt.verify(token, 'your_jwt_secret'); // Замените на ваш секрет
       const user = await prisma.user.findUnique({
         where: { id: decoded.id },
       });
 
-      // Проверяем, является ли пользователь PUBLISHER
       if (user.role !== 'PUBLISHER') {
         return res.status(403).json({ error: 'У вас нет прав для добавления объявлений.' });
       }
 
-      // Проверяем, указана ли категория
       if (categoryId === undefined || categoryId === null || categoryId.trim() === '') {
         return res.status(400).json({ error: 'Не указана категория.' });
       }
 
-      // Преобразуем categoryId в целое число
       const parsedCategoryId = parseInt(categoryId, 10);
 
-      // Создаем объявление
       const listing = await prisma.listing.create({
         data: {
           title,
           content,
-          deliveryDate: deliveryDate ? new Date(deliveryDate) : new Date(), // Устанавливаем дату, если передана, или текущую дату
-          purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(), // Устанавливаем дату, если передана, или текущую дату
+          deliveryDate: deliveryDate ? new Date(deliveryDate) : new Date(),
+          purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
           expirationDate: expirationDate ? new Date(expirationDate) : new Date(),
           author: {
-            connect: { id: user.id }, // Подключаем пользователя к объявлению
+            connect: { id: user.id },
           },
           category: {
-            connect: { id: parsedCategoryId }, // Подключаем категорию к объявлению
+            connect: { id: parsedCategoryId },
           },
         },
       });
