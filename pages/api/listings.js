@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   console.log('Request received:', req.method, req.body); // Логируем метод и тело запроса
 
   if (req.method === 'POST') {
-    const { title, content, deliveryDate, purchaseDate, expirationDate, categoryId } = req.body; // Добавляем deliveryDate
+    const { title, content, deliveryDate, purchaseDate, expirationDate, categoryId } = req.body;
     const token = req.headers.authorization?.split(' ')[1]; // Получаем токен
 
     if (!token) {
@@ -39,23 +39,29 @@ export default async function handler(req, res) {
 
       // Преобразуем categoryId в целое число
       const parsedCategoryId = parseInt(categoryId, 10);
+      console.log('Parsed category ID:', parsedCategoryId); // Логируем преобразованный ID
 
       // Создаем объявление
-      const listing = await prisma.listing.create({
-        data: {
-          title,
-          content,
-          deliveryDate: deliveryDate ? new Date(deliveryDate) : new Date(), // Устанавливаем дату, если передана, или текущую дату
-          purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(), // Устанавливаем дату, если передана, или текущую дату
-          expirationDate: expirationDate ? new Date(expirationDate) : new Date(),
-          author: {
-            connect: { id: user.id }, // Подключаем пользователя к объявлению
-          },
-          category: {
-            connect: { id: parsedCategoryId }, // Подключаем категорию к объявлению
-          },
+      const listingData = {
+        title,
+        content,
+        deliveryDate: deliveryDate ? new Date(deliveryDate) : new Date(),
+        purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
+        expirationDate: expirationDate ? new Date(expirationDate) : new Date(),
+        author: {
+          connect: { id: user.id },
         },
+        category: {
+          connect: { id: parsedCategoryId },
+        },
+      };
+
+      console.log('Attempting to create listing with data:', listingData); // Логируем данные перед созданием
+
+      const listing = await prisma.listing.create({
+        data: listingData,
       });
+
       console.log('Listing created:', listing); // Логируем созданное объявление
       return res.status(201).json(listing);
     } catch (error) {
