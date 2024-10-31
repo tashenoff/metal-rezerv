@@ -29,9 +29,7 @@ const CreateListing = () => {
   const fetchCategories = async () => {
     try {
       const response = await fetch('/api/categories');
-      if (!response.ok) {
-        throw new Error('Ошибка при загрузке категорий');
-      }
+      if (!response.ok) throw new Error('Ошибка при загрузке категорий');
       const data = await response.json();
       setCategories(data);
     } catch (error) {
@@ -49,7 +47,7 @@ const CreateListing = () => {
   };
 
   const stripHtmlTags = (html) => {
-    return html.replace(/<[^>]*>/g, ''); // Удаляет все HTML-теги
+    return html.replace(/<[^>]*>/g, '');
   };
 
   const handleSubmit = async (e) => {
@@ -57,17 +55,15 @@ const CreateListing = () => {
     const token = localStorage.getItem('token');
     const expirationDate = calculateExpirationDate(publicationPeriod);
 
-    // Создаем объект данных для отправки
     const listingData = {
       title: escapeHtml(title),
-      content: escapeHtml(stripHtmlTags(content)), // Очистка содержимого
-      deliveryDate,
-      purchaseDate,
+      content: escapeHtml(stripHtmlTags(content)),
+      deliveryDate: deliveryDate || undefined,
+      purchaseDate: purchaseDate || undefined,
       expirationDate,
       categoryId: selectedCategoryId,
     };
 
-    // Логируем данные, которые будут отправлены на сервер
     console.log('Отправка данных на сервер:', listingData);
 
     try {
@@ -90,10 +86,8 @@ const CreateListing = () => {
         setPublicationPeriod('1d');
         setSelectedCategoryId('');
       } else {
-        const errorText = await response.text(); // Получаем текст ответа
-        console.error('Ошибка ответа:', errorText); // Логируем текст
         const errorData = await response.json();
-        setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
+        setMessage(`Ошибка: ${errorData.error || 'Ошибка при добавлении объявления.'}`);
         setMessageType('error');
       }
     } catch (error) {
@@ -105,7 +99,7 @@ const CreateListing = () => {
 
   const calculateExpirationDate = (period) => {
     const now = new Date();
-    let expirationDate = new Date(now);
+    const expirationDate = new Date(now);
     switch (period) {
       case '5m':
         expirationDate.setMinutes(expirationDate.getMinutes() + 5);
@@ -141,8 +135,8 @@ const CreateListing = () => {
             />
           </div>
           <div className='col-span-4 card bg-base-200 p-5'>
-            <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
-            <Input label="Дата закупа" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} required />
+            <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} />
+            <Input label="Дата закупа" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} />
             <FormSelect
               label="Категория"
               value={selectedCategoryId}
@@ -161,15 +155,9 @@ const CreateListing = () => {
                 { value: '3d', label: '3 дня' },
               ]}
             />
-            <button type="submit" className="btn btn-primary">
-              Добавить объявление
-            </button>
+            <button type="submit" className="btn btn-primary">Добавить объявление</button>
           </div>
         </form>
-        <div className="output mt-5">
-          <h2>Результат:</h2>
-          <div>{stripHtmlTags(content)}</div> {/* Отображение чистого текста без тегов */}
-        </div>
       </div>
     </Layout>
   );
