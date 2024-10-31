@@ -2,14 +2,14 @@ import prisma from '../../prisma/client'; // Импортируй клиента
 import jwt from 'jsonwebtoken'; // Импортируем jsonwebtoken для работы с токенами
 
 export default async function handler(req, res) {
-  console.log('Request method:', req.method); // Логируем метод запроса
+  console.log('Request received:', req.method, req.body); // Логируем метод и тело запроса
 
   if (req.method === 'POST') {
     const { title, content, deliveryDate, purchaseDate, expirationDate, categoryId } = req.body; // Добавляем deliveryDate
     const token = req.headers.authorization?.split(' ')[1]; // Получаем токен
 
     if (!token) {
-      console.log('No token provided');
+      console.log('Authorization token is missing'); // Логируем отсутствие токена
       return res.status(401).json({ error: 'Необходима авторизация.' });
     }
 
@@ -20,24 +20,25 @@ export default async function handler(req, res) {
         where: { id: decoded.id },
       });
 
+      if (!user) {
+        console.log('User not found'); // Логируем, если пользователь не найден
+        return res.status(404).json({ error: 'Пользователь не найден.' });
+      }
+
       // Проверяем, является ли пользователь PUBLISHER
       if (user.role !== 'PUBLISHER') {
-        console.log('User is not a publisher');
+        console.log(`User role is ${user.role}. Access denied.`); // Логируем, если у пользователя нет прав
         return res.status(403).json({ error: 'У вас нет прав для добавления объявлений.' });
       }
 
       // Проверяем, указана ли категория
       if (!categoryId || categoryId.trim() === '') {
-        console.log('Category ID is not provided');
+        console.log('Category ID is missing or empty'); // Логируем, если категория отсутствует
         return res.status(400).json({ error: 'Не указана категория.' });
       }
 
       // Преобразуем categoryId в целое число
       const parsedCategoryId = parseInt(categoryId, 10);
-      if (isNaN(parsedCategoryId)) {
-        console.log('Invalid category ID:', categoryId);
-        return res.status(400).json({ error: 'Некорректный ID категории.' });
-      }
 
       // Создаем объявление
       const listing = await prisma.listing.create({
@@ -55,12 +56,14 @@ export default async function handler(req, res) {
           },
         },
       });
+      console.log('Listing created:', listing); // Логируем созданное объявление
       return res.status(201).json(listing);
     } catch (error) {
-      console.error('Error:', error.message); // Логируем ошибку
-      return res.status(500).json({ error: error.message });
+      console.error('Error during listing creation:', error); // Логируем ошибку
+      return res.status(500).json({ error: 'Ошибка сервера.' });
     }
   } else if (req.method === 'GET') {
+    console.log('Fetching listings'); // Логируем получение объявлений
     const listings = await prisma.listing.findMany({
       include: {
         author: true,
@@ -69,6 +72,7 @@ export default async function handler(req, res) {
     });
     return res.status(200).json(listings);
   } else {
+    console.log(`Method ${req.method} not allowed`); // Логируем недопустимый метод
     return res.status(405).json({ error: 'Метод не разрешен.' });
   }
 }
