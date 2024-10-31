@@ -9,6 +9,7 @@ const Listings = () => {
   const [filteredResults, setFilteredResults] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [loading, setLoading] = useState(true); // Состояние загрузки
 
   useEffect(() => {
     const fetchListings = async () => {
@@ -17,6 +18,7 @@ const Listings = () => {
       const publishedListings = data.filter((listing) => listing.published);
       setListings(publishedListings);
       setFilteredResults(publishedListings);
+      setLoading(false); // Устанавливаем состояние загрузки в false после загрузки
     };
 
     const fetchCategories = async () => {
@@ -57,7 +59,17 @@ const Listings = () => {
         />
       </div>
 
-      {filteredResults.length === 0 ? (
+      {loading ? ( // Проверяем состояние загрузки
+        <div className="flex flex-col gap-4">
+          {/* Используем указанный вами шаблон скелетона */}
+          <div className="flex w-full flex-col gap-4">
+            <div className="skeleton h-32 w-full"></div>
+            <div className="skeleton h-4 w-28"></div>
+            <div className="skeleton h-4 w-full"></div>
+            <div className="skeleton h-4 w-full"></div>
+          </div>
+        </div>
+      ) : filteredResults.length === 0 ? (
         <p>Нет опубликованных объявлений.</p>
       ) : (
         <ListingsDisplay listings={filteredResults} onListingClick={() => {}} />
