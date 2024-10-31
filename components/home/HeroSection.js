@@ -9,10 +9,10 @@ const HeroSection = () => {
             style={{
                 backgroundImage: `url(${heroImage.src})`,
                 backgroundSize: 'cover',
-                backgroundPosition: 'center',
+                backgroundPosition: 'unset',
             }}
         >
-              <div className="hero-overlay bg-black bg-opacity-60"></div>
+              <div className="hero-overlay bg-primary bg-opacity-60"></div>
 
             <div className="hero-content text-center">
                 <div className="container mx-auto text-center">
