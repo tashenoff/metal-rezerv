@@ -6,35 +6,41 @@ const prisma = new PrismaClient();
 async function main() {
   // Удаляем все отклики
   await prisma.response.deleteMany({});
-  
+
   // Удаляем все объявления
   await prisma.listing.deleteMany({});
-  
+
   // Удаляем всех пользователей
   await prisma.user.deleteMany({});
 
-  // Хэшируем пароли
-  const hashedPasswordAdmin = await bcrypt.hash('adminPassword', 10);
-  const hashedPasswordPublisher = await bcrypt.hash('publisherPassword', 10);
-  const hashedPasswordResponder = await bcrypt.hash('responderPassword', 10);
+  // Удаляем все категории
+  await prisma.category.deleteMany({});
 
-  // Создаем администратора
-  const admin = await prisma.user.create({
+  // Создаем категории
+  const category1 = await prisma.category.create({
     data: {
-      name: 'Аманжол Тулебаев1',
-      email: 'admin@example.com',
-      password: hashedPasswordAdmin,
-      role: 'ADMIN',
-      points: null,
-      companyName: 'Admin Company',
-      companyBIN: '111111111',
-      phoneNumber: '7771234567',
-      city: 'Нур-Султан',
-      registrationDate: new Date(),
+      name: 'Строительные материалы',
     },
   });
 
-  // Создаем пользователя с ролью PUBLISHER
+  const category2 = await prisma.category.create({
+    data: {
+      name: 'Металлы',
+    },
+  });
+
+  const category3 = await prisma.category.create({
+    data: {
+      name: 'Инструменты',
+
+    },
+  });
+
+  // Хэшируем пароли
+  const hashedPasswordPublisher = await bcrypt.hash('publisherPassword', 10);
+  const hashedPasswordResponder = await bcrypt.hash('responderPassword', 10);
+
+  // Создаем одного публишера
   const publisher = await prisma.user.create({
     data: {
       name: 'Алия Султанова',
@@ -45,106 +51,59 @@ async function main() {
       companyName: 'Publisher Company',
       companyBIN: '222222222',
       phoneNumber: '7777654321',
-      city: 'Алматы',
+      city: 'Астана',
+      country: 'Казахстан',
       registrationDate: new Date(),
+      isCompanyVerified: false,
     },
   });
 
-  // Создаем пользователей с ролью RESPONDER
+  // Создаем одно объявление с категорией
+  const listing = await prisma.listing.create({
+    data: {
+      title: 'Требуется арматура для строительных работ в Астане',
+      content: `Нужна арматура диаметром от 10 до 32 мм. Рассмотрим предложения от поставщиков в Астане.`,
+      published: true,
+      authorId: publisher.id,
+      categoryId: category1.id,  // Привязываем категорию
+      deliveryDate: new Date(),
+      publishedAt: new Date(),
+      purchaseDate: new Date('2024-10-01'),
+      expirationDate: new Date(new Date().setMinutes(new Date().getMinutes() + 10)),
+    },
+  });
+
+  // Создаем респондентов
   const responder1 = await prisma.user.create({
     data: {
-      name: 'Данияр Мусабеков',
+      name: 'Респондент 1',
       email: 'responder1@example.com',
       password: hashedPasswordResponder,
       role: 'RESPONDER',
       points: 10,
-      companyName: 'Daniya Company',
-      companyBIN: '333333333',
-      phoneNumber: '7772345678',
-      city: 'Шымкент',
+      companyName: 'Responder Company 1',
+      companyBIN: '666666666',
+      phoneNumber: '7771234567',
+      city: 'Астана',
+      country: 'Казахстан',
       registrationDate: new Date(),
+      isCompanyVerified: false,
     },
   });
 
-  const responder2 = await prisma.user.create({
+  // Создаем отклики
+  await prisma.response.create({
     data: {
-      name: 'Сауле Байгулова',
-      email: 'responder2@example.com',
-      password: hashedPasswordResponder,
-      role: 'RESPONDER',
-      points: 15,
-      companyName: 'Saule Company',
-      companyBIN: '444444444',
-      phoneNumber: '7778765432',
-      city: 'Караганда',
-      registrationDate: new Date(),
+      responderId: responder1.id,
+      message: 'Я могу предложить арматуру по выгодной цене.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
     },
   });
 
-  // Создаем несколько объявлений по теме металлопроката с требованиями
-  const listings = await prisma.listing.createMany({
-    data: [
-      {
-        title: 'Требуется арматура для строительных работ',
-        content: 'Нужна арматура диаметром от 10 до 32 мм. Рассмотрим предложения от поставщиков.',
-        published: true,
-        authorId: publisher.id,
-        deliveryDate: new Date(),
-        publishedAt: new Date(),
-      },
-      {
-        title: 'Ищем стальные листы',
-        content: 'Требуются стальные листы различных размеров для производства. Срочно!',
-        published: true,
-        authorId: publisher.id,
-        deliveryDate: new Date(),
-        publishedAt: new Date(),
-      },
-      {
-        title: 'Требуются трубы стальные: опт и розница',
-        content: 'Ищем поставщиков стальных труб различных диаметров. Предложения с ценами приветствуются.',
-        published: true,
-        authorId: publisher.id,
-        deliveryDate: new Date(),
-        publishedAt: new Date(),
-      },
-    ],
-  });
-
-  // Получаем созданные объявления для добавления откликов
-  const allListings = await prisma.listing.findMany();
-
-  // Создаем отклики на объявления
-  await prisma.response.createMany({
-    data: [
-      {
-        responderId: responder1.id,
-        message: 'Здравствуйте! Я могу предложить арматуру по хорошей цене. Свяжитесь со мной, пожалуйста.',
-        listingId: allListings[0].id, // Отклик на первое объявление
-        status: 'pending',
-        createdAt: new Date(),
-        accepted: null,
-      },
-      {
-        responderId: responder2.id,
-        message: 'Добрый день! У меня есть стальные листы нужного размера. Жду вашего ответа.',
-        listingId: allListings[1].id, // Отклик на второе объявление
-        status: 'pending',
-        createdAt: new Date(),
-        accepted: null,
-      },
-      {
-        responderId: responder1.id,
-        message: 'Здравствуйте! Я могу предложить трубы в необходимых объемах. Напишите, если интересно.',
-        listingId: allListings[2].id, // Отклик на третье объявление
-        status: 'pending',
-        createdAt: new Date(),
-        accepted: null,
-      },
-    ],
-  });
-
-  console.log('Users, listings, and responses created!');
+  console.log('Данные успешно добавлены');
 }
 
 main()

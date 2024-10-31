@@ -1,44 +1,16 @@
-// components/ResponderInfo.js
-import { useEffect, useState } from 'react';
+import React from 'react';
 
-const ResponderInfo = ({ id }) => {
-    const [responder, setResponder] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        const fetchResponder = async () => {
-            try {
-                const response = await fetch(`/api/responder/${id}`);
-                if (!response.ok) {
-                    throw new Error('Не удалось загрузить данные респондента');
-                }
-                const data = await response.json();
-                setResponder(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (id) fetchResponder(); // Добавляем проверку на наличие ID
-    }, [id]);
-
-    if (loading) return <p>Загрузка...</p>;
-    if (error) return <p>{error}</p>;
-    if (!responder) return <p>Респондент не найден.</p>; // Добавляем обработку ошибки
+const ResponderInfo = ({ responderData }) => {
+    if (!responderData) return null;
 
     return (
-        <div className="responder-info">
-            <h2>Информация о респонденте</h2>
-            <p><strong>ID:</strong> {responder.id}</p>
-            <p><strong>Имя:</strong> {responder.name || 'Не указано'}</p>
-            <p><strong>Email:</strong> {responder.email}</p>
-            <p><strong>Номер телефона:</strong> {responder.phoneNumber || 'Не указано'}</p>
-            <p><strong>Название компании:</strong> {responder.companyName || 'Не указано'}</p>
-            <p><strong>Город:</strong> {responder.city || 'Не указано'}</p>
-            <p><strong>Роль:</strong> {responder.role}</p>
+        <div className="mt-4 p-2 border-t border-gray-300">
+            <h4 className="font-semibold">Информация о респонденте:</h4>
+            <p><strong>Имя:</strong> {responderData.name}</p>
+            <p><strong>Организация:</strong> {responderData.companyName}</p>
+            <p><strong>Дата Регистрации:</strong> {new Date(responderData.registrationDate).toLocaleDateString()}</p>
+            <p><strong>Контактный Email:</strong> {responderData.email}</p>
+            <p><strong>Телефон для связи:</strong> {responderData.phoneNumber}</p>
         </div>
     );
 };

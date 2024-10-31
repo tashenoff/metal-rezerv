@@ -1,112 +1,157 @@
-// pages/create-listing.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import dynamic from 'next/dynamic'; // Импортируем dynamic из next/dynamic
-import Header from '../components/Header';
-
-// Импортируем react-quill динамически, чтобы избежать проблем с SSR
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
-import 'react-quill/dist/quill.snow.css'; // Импортируем стили для react-quill
+import Layout from '../components/Layout';
+import Notification from '../components/Notification';
+import Input from '../components/Input';
+import FormSelect from '../components/FormSelect';
+import Textarea from '../components/Textarea'; 
 
 const CreateListing = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [deliveryDate, setDeliveryDate] = useState(''); // Новое состояние для даты доставки
+  const [deliveryDate, setDeliveryDate] = useState('');
+  const [purchaseDate, setPurchaseDate] = useState('');
+  const [publicationPeriod, setPublicationPeriod] = useState('1d');
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('');
   const [isClient, setIsClient] = useState(false);
+  const [categories, setCategories] = useState([]); // Состояние для категорий
+  const [selectedCategoryId, setSelectedCategoryId] = useState(''); // Состояние для выбранной категории
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-    }
+    if (!token) router.push('/login');
     setIsClient(true);
+
+    // Получаем категории
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      if (!response.ok) {
+        throw new Error('Ошибка при загрузке категорий');
+      }
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Ошибка при получении категорий:', error);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
+    const expirationDate = calculateExpirationDate(publicationPeriod);
 
     try {
       const response = await fetch('/api/listings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title, content, deliveryDate }), // Передаем дату
+        body: JSON.stringify({ title, content, deliveryDate, purchaseDate, expirationDate, categoryId: selectedCategoryId }), // Передаем выбранную категорию
       });
 
       if (response.ok) {
         setMessage('Объявление успешно добавлено!');
+        setMessageType('success');
         setTitle('');
         setContent('');
-        setDeliveryDate(''); // Сбрасываем поле даты
+        setDeliveryDate('');
+        setPurchaseDate('');
+        setPublicationPeriod('1d');
+        setSelectedCategoryId(''); 
       } else {
         const errorData = await response.json();
         setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
+        setMessageType('error');
       }
     } catch (error) {
       setMessage('Произошла ошибка при добавлении объявления.');
+      setMessageType('error');
     }
   };
 
+  const calculateExpirationDate = (period) => {
+    const now = new Date();
+    let expirationDate = new Date(now);
+    switch (period) {
+      case '5m':
+        expirationDate.setMinutes(expirationDate.getMinutes() + 5);
+        break;
+      case '1d':
+        expirationDate.setDate(expirationDate.getDate() + 1);
+        break;
+      case '2d':
+        expirationDate.setDate(expirationDate.getDate() + 2);
+        break;
+      case '3d':
+        expirationDate.setDate(expirationDate.getDate() + 3);
+        break;
+      default:
+        break;
+    }
+    return expirationDate.toISOString();
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Header />
-      <div className="container mx-auto p-8">
-        <h1 className="text-3xl font-bold mb-6">Создание объявления</h1>
-        {message && <p className="mt-4 text-red-500">{message}</p>}
-        <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6">
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
-              Заголовок:
-            </label>
-            <input
-              type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-500"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="content">
-              Содержимое:
-            </label>
-            {isClient && (
-              <ReactQuill
+    <Layout>
+    
+       
+        {message && <Notification message={message} type={messageType} />}
+        <div className="">
+
+
+          <form className='grid grid-cols-12 gap-4' onSubmit={handleSubmit}>
+            <div className='col-span-8 card bg-base-200 p-5'>
+              <Input label="Заголовок" value={title} onChange={(e) => setTitle(e.target.value)} required />
+              <Textarea
+                id="content"
+                placeholder="Содержимое:"
                 value={content}
-                onChange={setContent}
+                onChange={setContent} // Используем setContent напрямую
                 required
-                className="shadow appearance-none border rounded w-full"
               />
-            )}
-          </div>
-          <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="deliveryDate">
-              Дата доставки:
-            </label>
-            <input
-              type="date"
-              id="deliveryDate"
-              value={deliveryDate}
-              onChange={(e) => setDeliveryDate(e.target.value)} // Обновляем состояние
-              required
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring focus:ring-blue-500"
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300"
-          >
-            Добавить объявление
-          </button>
-        </form>
-      </div>
-    </div>
+            </div>
+            <div className='col-span-4 card bg-base-200 p-5'>
+              <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
+              <Input label="Дата закупа" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} required />
+              <FormSelect
+                label="Категория"
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                options={[
+                  { value: '', label: 'Выберите категорию' }, // Пустая опция
+                  ...categories.map(category => ({ value: category.id, label: category.name })), // Преобразуем категории в нужный формат
+                ]}
+                required
+              />
+              <FormSelect
+                label="Период публикации"
+                value={publicationPeriod}
+                onChange={(e) => setPublicationPeriod(e.target.value)}
+                options={[
+                  { value: '5m', label: '5 минут' },
+                  { value: '1d', label: '1 день' },
+                  { value: '2d', label: '2 дня' },
+                  { value: '3d', label: '3 дня' },
+                ]}
+              />
+
+<button type="submit" className="btn btn-primary">
+                Добавить объявление
+              </button>
+              
+            </div>
+           
+          </form>
+        </div>
+     
+    </Layout>
   );
 };
 

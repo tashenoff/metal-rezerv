@@ -1,23 +1,88 @@
-// components/ResponsesList.js
 import React, { useEffect, useState } from 'react';
-import Modal from './Modal'; // Импортируем компонент модального окна
+import Modal from './Modal';
+import SkeletonLoader from './SkeletonLoader'; // Импортируем SkeletonLoader
+import ResponseItem from './ResponseItem'; // Импортируем ResponseItem
+import TabbedNavigation from './TabbedNavigation'; // Импортируем TabbedNavigation
+import { getResponseCounts } from '../utils/getResponseCounts';
 
-const ResponsesList = ({ responses, onAccept, onDecline }) => {
+const ResponsesList = ({ responses, onAccept, onDecline, listingId }) => {
+    const [visibleResponses, setVisibleResponses] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const [selectedResponder, setSelectedResponder] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
     const [responseToAccept, setResponseToAccept] = useState(null);
     const [acceptedResponses, setAcceptedResponses] = useState(new Set());
-    const [acceptedResponseData, setAcceptedResponseData] = useState({}); // Состояние для принятого ответа
+    const [acceptedResponseData, setAcceptedResponseData] = useState({});
+    const [expandedMessages, setExpandedMessages] = useState(new Set()); // Для отслеживания длинных сообщений
+    const [currentStatus, setCurrentStatus] = useState('pending'); // Текущий статус
+    const [isSorted, setIsSorted] = useState(false); // Добавляем новое состояние
+    const [responseCounts, setResponseCounts] = useState({});
+
 
     useEffect(() => {
-        // Загружаем принятую информацию о респондентах из localStorage
         const storedAcceptedResponses = JSON.parse(localStorage.getItem('acceptedResponses')) || [];
         setAcceptedResponses(new Set(storedAcceptedResponses));
 
         const storedResponseData = JSON.parse(localStorage.getItem('acceptedResponseData')) || {};
         setAcceptedResponseData(storedResponseData);
-    }, []);
+
+        // Загружаем отклики по текущему статусу
+        loadResponsesByStatus(currentStatus);
+        console.log('listingId:', listingId); // Проверьте значение здесь
+
+        const fetchCounts = async () => {
+            const counts = await getResponseCounts([{ id: listingId }]);
+            setResponseCounts(counts[listingId] || {});
+        };
+
+        fetchCounts();
+
+        console.log('Текущий статус:', currentStatus);
+
+
+    }, [responses, listingId]);
+
+
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const bottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight;
+            if (bottom && !isLoading && visibleResponses.length < responses.length) {
+                loadMoreResponses();
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [visibleResponses, isLoading, responses]);
+
+    const loadResponsesByStatus = (status) => {
+        setIsLoading(true);
+
+        const filteredResponses = responses.filter(response => {
+            const responseStatus = response.status === 'processed' ? 'approved' : response.status; // Изменяем статус при фильтрации
+            return responseStatus === status;
+        });
+
+        console.log('Отфильтрованные отклики:', filteredResponses);
+        setVisibleResponses(filteredResponses.slice(0, 5));
+        setIsLoading(false);
+        setIsSorted(true);
+    };
+
+
+    const loadMoreResponses = () => {
+        setIsLoading(true);
+        setTimeout(() => {
+            const nextResponses = responses.filter(response => response.status === currentStatus)
+                .slice(visibleResponses.length, visibleResponses.length + 5);
+            if (nextResponses.length > 0) {
+                setVisibleResponses((prev) => [...prev, ...nextResponses]);
+            }
+            setIsLoading(false);
+        }, 1000);
+    };
 
     const handleResponderClick = (responder) => {
         setSelectedResponder(responder);
@@ -48,71 +113,69 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
             setAcceptedResponses(updatedAcceptedResponses);
             localStorage.setItem('acceptedResponses', JSON.stringify(Array.from(updatedAcceptedResponses)));
 
-            // Сохраняем данные о принятом ответе
             setAcceptedResponseData((prev) => {
                 const updatedResponseData = {
                     ...prev,
-                    [responseToAccept]: selectedResponder // Сохраняем респондента, связанного с ответом
+                    [responseToAccept]: selectedResponder
                 };
-                localStorage.setItem('acceptedResponseData', JSON.stringify(updatedResponseData)); // Сохраняем в localStorage
+                localStorage.setItem('acceptedResponseData', JSON.stringify(updatedResponseData));
                 return updatedResponseData;
             });
         }
         closeConfirmation();
     };
 
+    // Функция для переключения состояния "Показать больше/меньше"
+    const toggleMessageExpansion = (id) => {
+        setExpandedMessages((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
+    };
+
+    console.log('Все отклики:', responses);
+
+
     return (
         <div className="mt-6">
             <h2 className="text-2xl font-bold mb-4">Отклики:</h2>
+
+            <TabbedNavigation
+                onTabChange={(status) => {
+                    setCurrentStatus(status);
+                    loadResponsesByStatus(status); // Загружаем отклики при смене вкладки
+                }}
+                responseCounts={responseCounts.counts} // Передаем количество откликов
+                isSorted={isSorted} // Передаем статус сортировки
+            />
+
             <ul className="space-y-4">
-                {responses.map((response) => (
-                    <li key={response.id} className="p-4 bg-gray-100 border border-gray-300 rounded-lg shadow-sm">
-                        <p className="font-semibold">
-                            <strong>Сообщение:</strong> {response.message}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                            <strong>Пользователь: {response.responder ? response.responder.name : 'Неизвестный'}</strong>
-                        </p>
-                        <span
-                            className="cursor-pointer text-blue-500 underline my-5"
-                            onClick={() => handleResponderClick(response.responder)}
-                        >
-                            посмотреть профиль пользователя
-                        </span>
-
-                        <div className="mt-2 flex space-x-2">
-                            <button
-                                onClick={() => openConfirmation(response.id, response.responder)}
-                                className={`px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition duration-200 ${acceptedResponses.has(response.id) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                disabled={acceptedResponses.has(response.id)}
-                            >
-                                Принять
-                            </button>
-                            <button
-                                onClick={() => onDecline(response.id)}
-                                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition duration-200"
-                            >
-                                Отклонить
-                            </button>
-                            {response.accepted && <span className="text-green-600 font-semibold"> (Принят)</span>}
-                        </div>
-
-                        {/* Показываем информацию о респонденте под откликом, если отклик принят */}
-                        {acceptedResponseData[response.id] && (
-                            <div className="mt-4 p-2 border-t border-gray-300">
-                                <h4 className="font-semibold">Информация о респонденте:</h4>
-                                <p><strong>Имя:</strong> {acceptedResponseData[response.id].name}</p>
-                                <p><strong>Организация:</strong> {acceptedResponseData[response.id].companyName}</p>
-                                <p><strong>Дата Регистрации:</strong> {new Date(acceptedResponseData[response.id].registrationDate).toLocaleDateString()}</p>
-                                <p><strong>Контактный Email:</strong> {acceptedResponseData[response.id].email}</p>
-                                <p><strong>Телефон для связи:</strong> {acceptedResponseData[response.id].phoneNumber}</p>
-                            </div>
-                        )}
-                    </li>
+                {visibleResponses.map((response) => (
+                    <ResponseItem
+                        key={response.id}
+                        response={response}
+                        acceptedResponses={acceptedResponses}
+                        onAccept={openConfirmation}
+                        onDecline={onDecline}
+                        onResponderClick={handleResponderClick}
+                        expandedMessages={expandedMessages}
+                        toggleMessageExpansion={toggleMessageExpansion}
+                        acceptedResponseData={acceptedResponseData}
+                    />
                 ))}
+
+                {isLoading && (
+                    <li className="p-4">
+                        <SkeletonLoader />
+                    </li>
+                )}
             </ul>
 
-            {/* Используем компонент модального окна для отображения профиля респондента */}
             <Modal isOpen={isModalOpen} onClose={closeModal}>
                 {selectedResponder && (
                     <div>
@@ -124,7 +187,6 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
                 )}
             </Modal>
 
-            {/* Используем компонент модального окна для подтверждения */}
             <Modal isOpen={isConfirmationOpen} onClose={closeConfirmation}>
                 {selectedResponder && (
                     <div>
@@ -144,7 +206,7 @@ const ResponsesList = ({ responses, onAccept, onDecline }) => {
                                 onClick={closeConfirmation}
                                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
                             >
-                                Нет, отменить
+                                Нет, закрыть
                             </button>
                         </div>
                     </div>

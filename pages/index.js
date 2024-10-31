@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import Header from '../components/Header';
+import Layout from '../components/home/Layout';
+import HeroSection from '../components/home/HeroSection';
+import HowItWorks from '../components/home/HowItWorks';
+import Features from '../components/home/Features';
+import TargetAudience from '../components/home/TargetAudience';
+import Testimonials from '../components/home/Testimonials';
+import CallToAction from '../components/home/CallToAction';
+
 
 export default function Home() {
   const [email, setEmail] = useState('');
@@ -28,26 +35,13 @@ export default function Home() {
   };
 
   return (
-    <div>
-         <Header />
-      <h1>Авторизация</h1>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Войти</button>
-      </form>
-    </div>
+    <Layout>
+      <HeroSection />
+      <HowItWorks />
+      <Features />
+      <TargetAudience />
+      {/* <Testimonials /> */}
+      <CallToAction />
+    </Layout>
   );
 }

@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.no-border .ql-container {
+    border: none;
+  }
+  
+  .no-border .ql-toolbar {
+    border: none;
+  }
+
+  .ql-container.ql-snow{
+    border: none!important;
+  }
+  .ql-toolbar.ql-snow{
+    border: none!important;
+  }
+
+  .ql-container{
+    height: auto;
+  }

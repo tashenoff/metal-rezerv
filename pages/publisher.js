@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import Header from '../components/Header';
-import Link from 'next/link';
+import ListingItem from '../components/ListingItem'; // Импортируем новый компонент
+import Modal from '../components/Modal'; // Импортируем модальное окно
+import { getResponseCounts } from '../utils/getResponseCounts'; // Импортируем утилиту
+import Layout from '../components/Layout';
 
 const PublisherPage = () => {
   const [listings, setListings] = useState([]);
@@ -8,8 +10,12 @@ const PublisherPage = () => {
   const [error, setError] = useState(null);
   const [userId, setUserId] = useState(null);
   const [activeTab, setActiveTab] = useState('published');
-  const [responseCounts, setResponseCounts] = useState({});
   const [responseCountsByStatus, setResponseCountsByStatus] = useState({});
+
+  // Состояние для модального окна
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState('');
+  const [confirmAction, setConfirmAction] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -53,7 +59,6 @@ const PublisherPage = () => {
       if (response.ok) {
         const data = await response.json();
         setListings(data);
-        await fetchResponseCounts(data);
         await fetchResponseCountsByStatus(data);
       } else {
         setError('Ошибка при загрузке объявлений.');
@@ -63,28 +68,42 @@ const PublisherPage = () => {
     }
   };
 
-  const fetchResponseCounts = async (listings) => {
-    const counts = {};
-    for (const listing of listings) {
-      const response = await fetch(`/api/responses/getResponsesCount?listingId=${listing.id}`);
+  const fetchResponseCountsByStatus = async (listings) => {
+    const counts = await getResponseCounts(listings); // Используем утилиту
+    setResponseCountsByStatus(counts);
+};
+
+  // Функция для повторной публикации объявления
+  const handleRepublish = async (listingId, newExpirationDate) => {
+    try {
+      const response = await fetch('/api/publisher/republishListing', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ listingId, newExpirationDate }),
+      });
+
       if (response.ok) {
-        const data = await response.json();
-        counts[listing.id] = data.count; 
+        const updatedListing = await response.json();
+        setListings((prevListings) =>
+          prevListings.map((listing) =>
+            listing.id === updatedListing.id ? updatedListing : listing
+          )
+        );
+      } else {
+        setError('Ошибка при повторной публикации объявления.');
       }
+    } catch (err) {
+      setError('Ошибка при повторной публикации объявления.');
     }
-    setResponseCounts(counts);
   };
 
-  const fetchResponseCountsByStatus = async (listings) => {
-    const counts = {};
-    for (const listing of listings) {
-      const response = await fetch(`/api/responses/getResponsesCountByStatus?listingId=${listing.id}`);
-      if (response.ok) {
-        const data = await response.json();
-        counts[listing.id] = data; 
-      }
-    }
-    setResponseCountsByStatus(counts); 
+  // Обработчик открытия модального окна для подтверждения
+  const handleOpenModal = (content, action) => {
+    setModalContent(content);
+    setConfirmAction(() => action);
+    setIsModalOpen(true);
   };
 
   const handlePublish = async (listingId) => {
@@ -144,10 +163,11 @@ const PublisherPage = () => {
     activeTab === 'published' ? listing.published : !listing.published
   );
 
+
   return (
-    <div>
-      <Header />
-      <div className="container mx-auto">
+    <Layout>
+    <div className=''>
+    
         <div className="flex items-center my-4 justify-between">
           <h1>Ваши объявления</h1>
           <div>
@@ -164,61 +184,58 @@ const PublisherPage = () => {
               Не опубликованные
             </button>
           </div>
-        </div>
+      
       </div>
 
       {filteredListings.length === 0 ? (
         <p>У вас нет объявлений.</p>
       ) : (
-        <div className="container mx-auto">
+     
           <ul className="space-y-4">
-            {filteredListings.map((listing) => (
-              <li key={listing.id} className="border border-gray-300 rounded-lg p-4 shadow-md bg-white">
-                <Link href={`/listing/${listing.id}`}>
-                  <h2 className="text-xl font-bold">{listing.title}</h2>
-                </Link>
-                <p className="text-gray-700">{listing.content}</p>
-                <p className="text-sm text-gray-500">
-                  Опубликовано: {new Date(listing.publishedAt).toLocaleDateString()}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Статус: {listing.published ? 'Опубликовано' : 'Не опубликовано'}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Дата доставки: {new Date(listing.deliveryDate).toLocaleDateString()}
-                </p>
-                {/* Отображение количества откликов */}
-                <div className="mt-2">
-                  <p>Количество откликов: {responseCounts[listing.id] || 0}</p>
-                  {responseCountsByStatus[listing.id] && (
-                    <div>
-                      <p>Ожидающие отклики: {responseCountsByStatus[listing.id].pending || 0}</p>
-                      <p>Обработанные отклики: {responseCountsByStatus[listing.id].approved || 0}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="flex space-x-2 mt-2">
-                  <button
-                    onClick={() => handlePublish(listing.id)}
-                    disabled={listing.published}
-                    className={`px-4 py-2 text-white rounded-md ${listing.published ? 'bg-gray-400' : 'bg-green-500'}`}
-                  >
-                    Опубликовать
-                  </button>
-                  <button
-                    onClick={() => handleUnpublish(listing.id)}
-                    disabled={!listing.published}
-                    className={`px-4 py-2 text-white rounded-md ${!listing.published ? 'bg-gray-400' : 'bg-red-500'}`}
-                  >
-                    Снять с публикации
-                  </button>
-                </div>
-              </li>
-            ))}
+            {filteredListings.map((listing) => {
+              const isExpired = new Date() > new Date(listing.expirationDate); // Проверяем, истек ли срок
+
+              return (
+                  <ListingItem
+                    key={listing.id}
+                    listing={listing}
+                    responseCountsByStatus={responseCountsByStatus}
+                    isExpired={isExpired}
+                    handlePublish={() =>
+                      handleOpenModal('Вы уверены, что хотите опубликовать это объявление?', () => handlePublish(listing.id))
+                    }
+                    handleUnpublish={() =>
+                      handleOpenModal('Вы уверены, что хотите снять это объявление с публикации?', () => handleUnpublish(listing.id))
+                    }
+                    handleRepublish={(newExpirationDate) =>
+                      handleOpenModal('Вы уверены, что хотите продлить публикацию этого объявления?', () =>
+                        handleRepublish(listing.id, newExpirationDate)
+                      )
+                    } // Передаем функцию handleRepublish
+                  />
+              );
+            })}
           </ul>
-        </div>
+       
       )}
+
+      {/* Модальное окно */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <p>{modalContent}</p>
+        <div className="flex justify-end mt-4">
+          <button className="mr-2 px-4 py-2 bg-gray-200 rounded-md" onClick={() => setIsModalOpen(false)}>
+            Отмена
+          </button>
+          <button className="px-4 py-2 bg-blue-500 text-white rounded-md" onClick={() => {
+            confirmAction(); // Выполняем подтвержденное действие
+            setIsModalOpen(false);
+          }}>
+            Подтвердить
+          </button>
+        </div>
+      </Modal>
     </div>
+    </Layout>
   );
 };
 
