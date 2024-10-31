@@ -1,7 +1,8 @@
-import prisma from '../../prisma/client';
-import jwt from 'jsonwebtoken';
+import prisma from '../../prisma/client'; // Импортируй клиента Prisma
+import jwt from 'jsonwebtoken'; // Импортируем jsonwebtoken для работы с токенами
 
 export default async function handler(req, res) {
+  // Логирование метода и URL запроса
   console.log(`Request Method: ${req.method}`);
   console.log(`Request URL: ${req.url}`);
 
@@ -46,16 +47,22 @@ export default async function handler(req, res) {
       });
       res.status(201).json(listing);
     } catch (error) {
+      console.error('Error during listing creation:', error); // Логирование ошибок
       res.status(500).json({ error: error.message });
     }
   } else if (req.method === 'GET') {
-    const listings = await prisma.listing.findMany({
-      include: {
-        author: true,
-        category: true,
-      },
-    });
-    res.status(200).json(listings);
+    try {
+      const listings = await prisma.listing.findMany({
+        include: {
+          author: true,
+          category: true,
+        },
+      });
+      res.status(200).json(listings);
+    } catch (error) {
+      console.error('Error fetching listings:', error); // Логирование ошибок
+      res.status(500).json({ error: error.message });
+    }
   } else {
     res.status(405).json({ error: 'Метод не разрешен.' });
   }
