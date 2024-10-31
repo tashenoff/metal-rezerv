@@ -58,11 +58,11 @@ const CreateListing = () => {
     const expirationDate = calculateExpirationDate(publicationPeriod);
 
     try {
-      const response = await fetch('https://metal-rezerv-git-new-ui-tashenoffs-projects.vercel.app/api/listings', {
+      const response = await fetch('/api/listings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          // Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title: escapeHtml(title),
