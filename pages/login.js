@@ -4,10 +4,13 @@ import { useRouter } from 'next/router';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: {
@@ -15,6 +18,8 @@ export default function Login() {
       },
       body: JSON.stringify({ email, password }),
     });
+
+    setLoading(false);
 
     if (res.ok) {
       const { token, role } = await res.json();
@@ -32,7 +37,12 @@ export default function Login() {
   };
 
   return (
-    <div data-theme="nord" className="flex flex-col items-center justify-center h-screen">
+    <div data-theme="nord" className="flex flex-col items-center justify-center h-screen relative">
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/60 bg-opacity-75 z-50">
+          <span className="loading loading-infinity loading-lg"></span>
+        </div>
+      )}
       <div className="bg-white shadow-md rounded-lg p-8 max-w-sm w-full">
         <h1 className="text-2xl font-semibold text-center text-gray-700 mb-6">Авторизация</h1>
         <form onSubmit={handleSubmit}>
@@ -42,7 +52,7 @@ export default function Login() {
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 16 16"
                 fill="currentColor"
-                class="h-4 w-4 opacity-70">
+                className="h-4 w-4 opacity-70">
                 <path
                   d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" />
                 <path
@@ -59,7 +69,7 @@ export default function Login() {
             </label>
           </div>
           <div className="mb-6">
-            <label className="input input-bordered  flex items-center gap-2">
+            <label className="input input-bordered flex items-center gap-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 16 16"
@@ -76,12 +86,12 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="grow input  w-full"
+                className="grow input w-full"
               />
             </label>
           </div>
-          <button type="submit" className="btn btn-primary w-full">
-            Войти
+          <button type="submit" className="btn btn-primary w-full" disabled={loading}>
+            {loading ? 'Загрузка...' : 'Войти'}
           </button>
         </form>
       </div>
