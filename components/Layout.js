@@ -6,7 +6,7 @@ import Header from './Header'; // Вы можете создать свой Head
 
 const Layout = ({ children, title = "My Next.js App" }) => {
   return (
-    <div className="flex bg-base-200 flex-col min-h-screen">
+    <div className="flex bg-base-300 flex-col min-h-screen">
       <Head>
         <title>{title}</title>
         <meta name="description" content="This is a Next.js app" />

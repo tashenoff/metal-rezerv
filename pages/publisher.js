@@ -71,7 +71,7 @@ const PublisherPage = () => {
   const fetchResponseCountsByStatus = async (listings) => {
     const counts = await getResponseCounts(listings); // Используем утилиту
     setResponseCountsByStatus(counts);
-};
+  };
 
   // Функция для повторной публикации объявления
   const handleRepublish = async (listingId, newExpirationDate) => {
@@ -156,18 +156,37 @@ const PublisherPage = () => {
     }
   };
 
-  if (loading) return <p>Загрузка...</p>;
+  if (loading) {
+    return (
+      <Layout>
+        <div className='flex w-full flex-col items-center justify-center'>
+          {/* Скелетон для загрузки */}
+          <div className="flex w-full flex-col gap-4">
+            <div className="skeleton h-32 w-full"></div>
+            <div className="skeleton h-4 w-28"></div>
+            <div className="skeleton h-4 w-full"></div>
+            <div className="skeleton h-4 w-full"></div>
+          </div>
+          <div className="flex w-full flex-col gap-4">
+            <div className="skeleton h-32 w-full"></div>
+            <div className="skeleton h-4 w-28"></div>
+            <div className="skeleton h-4 w-full"></div>
+            <div className="skeleton h-4 w-full"></div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   if (error) return <p>Ошибка: {error}</p>;
 
   const filteredListings = listings.filter((listing) =>
     activeTab === 'published' ? listing.published : !listing.published
   );
 
-
   return (
     <Layout>
-    <div className=''>
-    
+      <div className=''>
         <div className="flex items-center my-4 justify-between">
           <h1>Ваши объявления</h1>
           <div>
@@ -184,57 +203,54 @@ const PublisherPage = () => {
               Не опубликованные
             </button>
           </div>
-      
-      </div>
+        </div>
 
-      {filteredListings.length === 0 ? (
-        <p>У вас нет объявлений.</p>
-      ) : (
-     
+        {filteredListings.length === 0 ? (
+          <p>У вас нет объявлений.</p>
+        ) : (
           <ul className="space-y-4">
             {filteredListings.map((listing) => {
               const isExpired = new Date() > new Date(listing.expirationDate); // Проверяем, истек ли срок
 
               return (
-                  <ListingItem
-                    key={listing.id}
-                    listing={listing}
-                    responseCountsByStatus={responseCountsByStatus}
-                    isExpired={isExpired}
-                    handlePublish={() =>
-                      handleOpenModal('Вы уверены, что хотите опубликовать это объявление?', () => handlePublish(listing.id))
-                    }
-                    handleUnpublish={() =>
-                      handleOpenModal('Вы уверены, что хотите снять это объявление с публикации?', () => handleUnpublish(listing.id))
-                    }
-                    handleRepublish={(newExpirationDate) =>
-                      handleOpenModal('Вы уверены, что хотите продлить публикацию этого объявления?', () =>
-                        handleRepublish(listing.id, newExpirationDate)
-                      )
-                    } // Передаем функцию handleRepublish
-                  />
+                <ListingItem
+                  key={listing.id}
+                  listing={listing}
+                  responseCountsByStatus={responseCountsByStatus}
+                  isExpired={isExpired}
+                  handlePublish={() =>
+                    handleOpenModal('Вы уверены, что хотите опубликовать это объявление?', () => handlePublish(listing.id))
+                  }
+                  handleUnpublish={() =>
+                    handleOpenModal('Вы уверены, что хотите снять это объявление с публикации?', () => handleUnpublish(listing.id))
+                  }
+                  handleRepublish={(newExpirationDate) =>
+                    handleOpenModal('Вы уверены, что хотите продлить публикацию этого объявления?', () =>
+                      handleRepublish(listing.id, newExpirationDate)
+                    ) // Передаем функцию handleRepublish
+                  }
+                />
               );
             })}
           </ul>
-       
-      )}
+        )}
 
-      {/* Модальное окно */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <p>{modalContent}</p>
-        <div className="flex justify-end mt-4">
-          <button className="mr-2 px-4 py-2 bg-gray-200 rounded-md" onClick={() => setIsModalOpen(false)}>
-            Отмена
-          </button>
-          <button className="px-4 py-2 bg-blue-500 text-white rounded-md" onClick={() => {
-            confirmAction(); // Выполняем подтвержденное действие
-            setIsModalOpen(false);
-          }}>
-            Подтвердить
-          </button>
-        </div>
-      </Modal>
-    </div>
+        {/* Модальное окно */}
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <p>{modalContent}</p>
+          <div className="flex justify-end mt-4">
+            <button className="mr-2 px-4 py-2 bg-gray-200 rounded-md" onClick={() => setIsModalOpen(false)}>
+              Отмена
+            </button>
+            <button className="px-4 py-2 bg-blue-500 text-white rounded-md" onClick={() => {
+              confirmAction(); // Выполняем подтвержденное действие
+              setIsModalOpen(false);
+            }}>
+              Подтвердить
+            </button>
+          </div>
+        </Modal>
+      </div>
     </Layout>
   );
 };

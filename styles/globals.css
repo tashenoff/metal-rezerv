@@ -18,5 +18,7 @@
   }
 
   .ql-container{
-    height: auto;
+    height: auto!important;
   }
+
+  

@@ -25,10 +25,10 @@ module.exports = {
       },
     },
     daisyui: {
-      themes: ["nord", "light", "cupcake"],
-      darkTheme: "nord",
+      themes: ["light", "cupcake"],
+      darkTheme: "light",
     },
-    darkMode: ['class', '[data-theme="nord"]']
+    darkMode: false, // Отключение dark mode
   },
   plugins: [
     require('daisyui'),
