@@ -15,7 +15,7 @@ const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
     <div className="navbar bg-base-200">
       <div className="container mx-auto flex justify-between items-center">
         <div className="navbar-start">
-          <h1 className="text-2xl font-bold">TradeSphere </h1>
+          <h1 className="text-2xl font-bold">Sphere </h1>
         </div>
         <div className="navbar-center hidden lg:flex">
           <nav className="flex items-center  w-full  space-x-4">

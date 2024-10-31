@@ -1,26 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
-
 const prisma = new PrismaClient();
 
-// Установка заголовков CORS
-const setCORSHeaders = (res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Разрешаем доступ из любого источника
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // Разрешаем методы
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Разрешаем заголовки
-};
-
 export default async function handler(req, res) {
-  // Устанавливаем заголовки CORS
-  setCORSHeaders(res);
-
   console.log('Request method:', req.method);
   console.log('Request body:', req.body);
-
-  if (req.method === 'OPTIONS') {
-    // Обработка preflight-запроса
-    return res.status(204).end();
-  }
 
   if (req.method === 'POST') {
     const { title, content, deliveryDate, purchaseDate, expirationDate, categoryId } = req.body;
@@ -31,33 +15,36 @@ export default async function handler(req, res) {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+      const decoded = jwt.verify(token, 'your_jwt_secret');
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.id },
+      });
 
       if (!user || user.role !== 'PUBLISHER') {
         return res.status(403).json({ error: 'У вас нет прав для добавления объявлений.' });
       }
 
-      // Валидация категорий
-      if (!categoryId || isNaN(parseInt(categoryId, 10))) {
-        return res.status(400).json({ error: 'Неверная категория.' });
+      if (!categoryId || categoryId.trim() === '') {
+        return res.status(400).json({ error: 'Не указана категория.' });
       }
+
+      const parsedCategoryId = parseInt(categoryId, 10);
 
       const listing = await prisma.listing.create({
         data: {
           title,
           content,
-          deliveryDate: new Date(deliveryDate || Date.now()),
-          purchaseDate: new Date(purchaseDate || Date.now()),
-          expirationDate: new Date(expirationDate || Date.now()),
+          deliveryDate: deliveryDate ? new Date(deliveryDate) : new Date(),
+          purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
+          expirationDate: expirationDate ? new Date(expirationDate) : new Date(),
           author: { connect: { id: user.id } },
-          category: { connect: { id: parseInt(categoryId, 10) } },
+          category: { connect: { id: parsedCategoryId } },
         },
       });
       res.status(201).json(listing);
     } catch (error) {
       console.error('Server error:', error.message);
-      res.status(500).json({ error: 'Ошибка сервера. Попробуйте позже.' });
+      res.status(500).json({ error: error.message });
     }
   } else if (req.method === 'GET') {
     try {
