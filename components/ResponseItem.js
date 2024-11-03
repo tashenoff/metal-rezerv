@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ResponderInfo from './ResponderInfo'; // Импортируем ResponderInfo
 import Modal from './Modal'; // Импортируем модальное окно
 import Card from './Card'; // Импортируем Card
@@ -12,7 +12,14 @@ const ResponseItem = ({
     acceptedResponseData,
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false); // Состояние для управления открытием модального окна
-    const [isAccepted, setIsAccepted] = useState(false); // Состояние для отслеживания, принят ли отклик
+    const [isAccepted, setIsAccepted] = useState(response.accepted || false); // Устанавливаем состояние, если отклик принят
+
+    useEffect(() => {
+        // Отслеживаем изменения состояния отклика
+        if (isAccepted) {
+            console.log(`Отклик принят: ${response.id}`);
+        }
+    }, [isAccepted, response.id]);
 
     const handleShowContacts = () => {
         setIsModalOpen(true); // Открываем модальное окно с контактами
@@ -37,7 +44,7 @@ const ResponseItem = ({
                 </div>
 
                 <div className={`mt-2 flex space-x-2`}>
-                    {!response.accepted && !response.declined && (
+                    {!isAccepted && !response.declined && (
                         <>
                             <button
                                 onClick={() => {
@@ -50,7 +57,7 @@ const ResponseItem = ({
                                 Принять
                             </button>
                             <button
-                                onClick={() => onDecline(response.id)}
+                                onClick={() => onDecline(response.id)} // Отклонить отклик
                                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200"
                             >
                                 Отклонить
@@ -58,8 +65,8 @@ const ResponseItem = ({
                         </>
                     )}
 
-                    {/* Кнопка "Показать контакты" */}
-                    {response.accepted && acceptedResponseData[response.id] && (
+                    {/* Кнопка "Показать контакты", которая всегда видна после принятия отклика */}
+                    {(isAccepted || response.accepted) && acceptedResponseData[response.id] && (
                         <button
                             onClick={handleShowContacts} // Открытие модального окна
                             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"

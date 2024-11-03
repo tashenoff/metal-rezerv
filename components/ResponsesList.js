@@ -138,8 +138,7 @@ const ResponsesList = ({ responses, onAccept, onDecline, listingId }) => {
         });
     };
 
-    console.log('Все отклики:', responses);
-
+ 
 
     return (
         <div className="mt-6">

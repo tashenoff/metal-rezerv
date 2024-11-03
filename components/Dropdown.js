@@ -28,6 +28,18 @@ const Dropdown = ({ label, options, onSelect }) => {
     }
   };
 
+
+   // Обработчик для кнопки "Сбросить" или "Показать все"
+  const handleButtonClick = () => {
+    if (selectedOptions.length === options.length) {
+      // Если все опции выбраны, сбрасываем выбор
+      setSelectedOptions([]);
+    } else {
+      // Иначе выбираем все опции
+      setSelectedOptions(options);
+    }
+  };
+
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
@@ -52,7 +64,7 @@ const Dropdown = ({ label, options, onSelect }) => {
                   <input
                     type="checkbox"
                     checked={selectedOptions.includes(option)}
-                    onChange={() => handleSelect(option)}
+                    onChange={() => handleSelect(option)} // Обработчик выбора опции
                     className="checkbox checkbox-primary mx-2"
                   />
                   <label className='label-text'>{option}</label>
@@ -62,6 +74,14 @@ const Dropdown = ({ label, options, onSelect }) => {
               <li><span>Нет доступных опций</span></li>
             )}
           </ul>
+          <div className="flex justify-between mt-2 py-2">
+            <button 
+              className="btn" 
+              onClick={handleButtonClick}
+            >
+              {selectedOptions.length === options.length ? 'Сбросить' : 'Показать все'}
+            </button>
+          </div>
         </div>
       )}
     </div>

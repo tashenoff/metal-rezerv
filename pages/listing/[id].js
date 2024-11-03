@@ -1,31 +1,29 @@
 // pages/listings/[id].js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { useAuth } from '../../contexts/AuthContext'; // Импортируем useAuth из AuthContext
 import ResponsesList from '../../components/ResponsesList';
-import ResponseForm from '../../components/ResponseForm'; 
-import Modal from '../../components/Modal'; // Импортируем Modal
+import ResponseForm from '../../components/ResponseForm';
+import Modal from '../../components/Modal';
 import UserResponses from '../../components/UserResponses';
 import AuthorInfo from '../../components/AuthorInfo';
 import Layout from '../../components/Layout';
 import Card from '../../components/Card';
-import DateDisplay from '../../components/DateDisplay'; // Импортируем компонент даты
+import DateDisplay from '../../components/DateDisplay';
 import { unpublishListing } from '../../utils/unpublishListing';
 import publishListing from '../../utils/publishListing';
-import StatusDisplay from '../../components/StatusDisplay'; // Импортируйте ваш компонент
+import StatusDisplay from '../../components/StatusDisplay';
 
 const ListingPage = (responseCountsByStatus) => {
-    const [error, setError] = useState(null); // Добавляем состояние для ошибок
+    const [error, setError] = useState(null);
     const [listing, setListing] = useState(null);
-
-    const [role, setRole] = useState(null); // Роль пользователя
-    const [userId, setUserId] = useState(null); // Идентификатор пользователя
     const [responses, setResponses] = useState([]);
-    const [userPoints, setUserPoints] = useState(0); // Баллы пользователя
-    const [isModalOpen, setIsModalOpen] = useState(false); // Состояние модального окна
-    const [modalContent, setModalContent] = useState(null); // Состояние для содержимого модального окна
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalContent, setModalContent] = useState(null);
 
     const router = useRouter();
-    const { id } = router.query; // Используйте id
+    const { id } = router.query;
+    const { user, loading } = useAuth(); // Используем данные пользователя и состояние загрузки из контекста
 
     useEffect(() => {
         if (id) {
@@ -36,7 +34,6 @@ const ListingPage = (responseCountsByStatus) => {
                         const data = await response.json();
                         setListing(data);
                     } else {
-                        // Если произошла ошибка при загрузке объявления
                         setModalContent({
                             type: 'error',
                             message: 'Ошибка при загрузке объявления.',
@@ -44,7 +41,6 @@ const ListingPage = (responseCountsByStatus) => {
                         setIsModalOpen(true);
                     }
                 } catch (err) {
-                    // Если произошла ошибка в процессе выполнения запроса
                     setModalContent({
                         type: 'error',
                         message: 'Ошибка при загрузке объявления: ' + err.message,
@@ -53,30 +49,13 @@ const ListingPage = (responseCountsByStatus) => {
                 }
             };
 
-
             fetchListing();
-
-            const token = localStorage.getItem('token');
-            if (token) {
-                const fetchUserData = async () => {
-                    const response = await fetch('/api/user', {
-                        headers: { Authorization: `Bearer ${token}` },
-                    });
-                    if (response.ok) {
-                        const user = await response.json();
-                        setRole(user.role); // Сохраняем роль пользователя
-                        setUserId(user.id); // Сохраняем идентификатор пользователя
-                        setUserPoints(user.points); // Сохраняем баллы пользователя
-                    }
-                };
-                fetchUserData();
-            }
 
             const fetchResponses = async () => {
                 const response = await fetch(`/api/responses?id=${id}`);
                 if (response.ok) {
                     const data = await response.json();
-                    setResponses(data); // Устанавливаем отклики
+                    setResponses(data);
                 } else {
                     setModalContent({
                         type: 'error',
@@ -92,28 +71,23 @@ const ListingPage = (responseCountsByStatus) => {
 
     // Обработчик снятия с публикации
     const onUnpublish = async (listingId) => {
-        console.log('Снимаем с публикации объявление с ID:', listingId); // Логирование
         try {
-            const updatedListing = await unpublishListing(listingId); // Удаляем параметр setListings
-            setListing(updatedListing); // Обновляем состояние listing
+            const updatedListing = await unpublishListing(listingId);
+            setListing(updatedListing);
         } catch (err) {
             setError(err.message);
         }
     };
-
-
 
     // Обработчик публикации
     const publish = async (listingId) => {
-        console.log('Публикуем объявление с ID:', listingId); // Логирование
         try {
-            const updatedListing = await publishListing(listingId); // Получаем обновленное объявление
-            setListing(updatedListing); // Обновляем состояние listing
+            const updatedListing = await publishListing(listingId);
+            setListing(updatedListing);
         } catch (err) {
             setError(err.message);
         }
     };
-
 
     const getResponseStatus = (response) => {
         if (response.accepted === true) return 'Принят';
@@ -122,8 +96,7 @@ const ListingPage = (responseCountsByStatus) => {
     };
 
     const handleResponseSubmit = async (message) => {
-        const token = localStorage.getItem('token');
-        if (!token) {
+        if (!user) {
             setModalContent({
                 type: 'error',
                 message: 'Вы должны быть авторизованы для отправки отклика.',
@@ -137,7 +110,7 @@ const ListingPage = (responseCountsByStatus) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
                 body: JSON.stringify({
                     listingId: id,
@@ -165,21 +138,20 @@ const ListingPage = (responseCountsByStatus) => {
                 message: `Ошибка сети: ${error.message}`,
             });
         } finally {
-            setIsModalOpen(true); // Открываем модальное окно
+            setIsModalOpen(true);
         }
     };
 
-    const hasResponded = responses.some((response) => response.responderId === userId);
+    const hasResponded = responses.some((response) => response.responderId === user?.id);
 
     const handleAcceptResponse = async (responseId) => {
-        const token = localStorage.getItem('token');
         const response = await fetch(`/api/responses/acceptResponse`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
-            body: JSON.stringify({ responseId, userId }),
+            body: JSON.stringify({ responseId, userId: user?.id }),
         });
 
         if (response.ok) {
@@ -194,18 +166,16 @@ const ListingPage = (responseCountsByStatus) => {
                 type: 'error',
                 message: `Ошибка при принятии отклика: ${errorData.message}`,
             });
-            setIsModalOpen(true); // Открываем модальное окно для ошибки
+            setIsModalOpen(true);
         }
     };
 
-
     const handleDeclineResponse = async (responseId) => {
-        const token = localStorage.getItem('token');
         const response = await fetch(`/api/responses/declineResponse`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
             body: JSON.stringify({ responseId }),
         });
@@ -227,20 +197,19 @@ const ListingPage = (responseCountsByStatus) => {
                 message: `Ошибка при отклонении отклика: ${errorData.message}`,
             });
         }
-        setIsModalOpen(true); // Открываем модальное окно
+        setIsModalOpen(true);
     };
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setModalContent(null); // Сбрасываем содержимое модального окна
+        setModalContent(null);
     };
 
     const handleOpenResponseForm = () => {
-        // Проверка на недостаток баллов
-        if (userPoints <= 0) {
+        if (user?.points <= 0) {
             setModalContent({
                 type: 'error',
-                message: 'У вас недостаточно кред для отправки отклика.',
+                message: 'У вас недостаточно кредов для отправки отклика.',
             });
         } else {
             setModalContent({
@@ -248,12 +217,11 @@ const ListingPage = (responseCountsByStatus) => {
                 message: 'Заполните форму для отклика:',
             });
         }
-        setIsModalOpen(true); // Открываем модальное окно
+        setIsModalOpen(true);
     };
 
-    if (!listing) {
-        return <p>Загрузка...</p>;
-    }
+    if (loading) return <p>Загрузка...</p>; // Показать состояние загрузки пользователя
+    if (!listing) return <p>Загрузка объявления...</p>;
 
     const isExpired = new Date(listing.expirationDate) < new Date();
 
@@ -261,144 +229,95 @@ const ListingPage = (responseCountsByStatus) => {
         <>
             <Layout>
 
-                <div className='grid grid-cols-12 gap-4 py-10 '>
-                    <div className='col-span-8 '>
-
-                        <Card
-                            key={listing.id}
-                            title={listing.title}
-                            content={listing.content}
-                            link={`/listing/${listing.id}`}
-
-                        >
-                            <DateDisplay label="Дата публикации" date={listing.publishedAt} />
-                            <div className="grid grid-cols-3 gap-4 py-5">
-
-                                <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
-                                    <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
-                                </div>
-                                <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
-                                    <DateDisplay label="Дата закупки" date={listing.purchaseDate} />
-                                </div>
-                                <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
-                                    <DateDisplay date={listing.expirationDate} label="Актуально до" isExpirationDate={true} />
-                                </div>
+            <div className='grid grid-cols-12 gap-4 py-10'>
+                <div className='col-span-8'>
+                    <Card key={listing.id} title={listing.title} content={listing.content} link={`/listing/${listing.id}`}>
+                        <DateDisplay label="Дата публикации" date={listing.publishedAt} />
+                        <div className="grid grid-cols-3 gap-4 py-5">
+                            <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
+                                <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
                             </div>
+                            <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
+                                <DateDisplay label="Дата закупки" date={listing.purchaseDate} />
+                            </div>
+                            <div className="py-2 px-2 text-center text-sm rounded-full bg-base-100 shadow">
+                                <DateDisplay date={listing.expirationDate} label="Актуально до" isExpirationDate={true} />
+                            </div>
+                        </div>
+                    </Card>
 
+                    {user?.role !== 'PUBLISHER' && hasResponded && (
+                        <UserResponses responses={responses} userId={user.id} />
+                    )}
 
-                        </Card>
+                    {user?.role === 'PUBLISHER' && listing.authorId === user.id && responses.length > 0 && (
+                        <ResponsesList responses={responses} onAccept={handleAcceptResponse} onDecline={handleDeclineResponse} listingId={id} />
+                    )}
 
-                        {role !== 'PUBLISHER' && hasResponded && (
-                            <UserResponses responses={responses} userId={userId} />
-
-
-                        )}
-
-
-
-                        {role === 'PUBLISHER' && listing.authorId === userId && responses.length > 0 && (
-                            <ResponsesList
-                                responses={responses}
-                                onAccept={handleAcceptResponse}
-                                onDecline={handleDeclineResponse}
-                                listingId={id}
-                            />
-                        )}
-
-                        {/* Модальное окно для отображения формы или сообщений */}
-                        <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
-                            {modalContent ? (
-                                modalContent.type === 'form' ? (
-                                    <>
-                                        <p>{modalContent.message}</p>
-                                        <ResponseForm onSubmit={handleResponseSubmit} />
-                                    </>
-                                ) : (
-                                    <div>
-                                        <p className={`mt-2 ${modalContent.type === 'success' ? 'text-blue-500' : 'text-red-500'}`}>
-                                            {modalContent.message}
-                                        </p>
-                                        {/* Кнопка для покупки баллов при ошибке */}
-                                        {modalContent.type === 'error' && (
-                                            <button
-                                                className="mt-4 bg-green-500 text-white p-2 rounded"
-                                                onClick={() => window.location.href = '/buy-credits'}
-                                            >
-                                                Купить баллы
-                                            </button>
-                                        )}
-                                    </div>
-                                )
-                            ) : null}
-                        </Modal>
-
-                    </div>
-
-                    <div className='col-span-4'>
-                        <Card title={role !== 'PUBLISHER' && (<span>Информация о клиенте</span>)}>
-                            {role === 'PUBLISHER' && listing.authorId === userId && (
-
+                    <Modal isOpen={isModalOpen} onClose={handleCloseModal}>
+                        {modalContent ? (
+                            modalContent.type === 'form' ? (
                                 <>
-                                    <div className='flex items-center justify-between'>
-                                        <span>Статус публикации</span>
-                                        <StatusDisplay response={{ published: listing.published }} isPublicationStatus={true} />
-                                    </div>
-                                    <div className='flex items-center justify-between mt-5'>
-
-                                        {/* <DateDisplay label='Cрок публикации' date={listing.expirationDate} /> */}
-                                    </div>
-
-                                    {listing.published ? (
-                                        <>
-                                            {/* Если объявление опубликовано, показываем кнопку для снятия с публикации */}
-                                            <button className='btn btn-warning mt-5' onClick={() => onUnpublish(listing.id)}>Снять с публикации</button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            {isExpired ? (
-                                                // Если срок истек, показываем кнопку для возобновления
-                                                <button className='btn btn-primary mt-5' onClick={() => onRepublish(listing.id)}>Возобновить</button>
-                                            ) : (
-                                                // Если объявление не опубликовано и срок не истек, показываем кнопку для публикации
-                                                <button className='btn btn-success mt-5' onClick={() => publish(listing.id)}>Опубликовать</button>
-                                            )}
-                                        </>
+                                    <p>{modalContent.message}</p>
+                                    <ResponseForm onSubmit={handleResponseSubmit} />
+                                </>
+                            ) : (
+                                <div>
+                                    <p className={`mt-2 ${modalContent.type === 'success' ? 'text-blue-500' : 'text-red-500'}`}>
+                                        {modalContent.message}
+                                    </p>
+                                    {modalContent.type === 'error' && (
+                                        <button
+                                            className="mt-4 bg-green-500 text-white p-2 rounded"
+                                            onClick={() => window.location.href = '/buy-credits'}
+                                        >
+                                            Купить баллы
+                                        </button>
                                     )}
-
-                                </>
-
-                            )}
-
-
-                            {role !== 'PUBLISHER' && (
-                                <>
-                                    <AuthorInfo
-                                        author={listing.author}
-                                        responses={responses.find(response => response.responderId === userId) || {}} // Находим отклик текущего пользователя
-                                        expirationDate={listing.expirationDate}
-                                    />
-
-
-
-                                </>
-                            )}
-
-                            {/* Кнопка для открытия формы отклика, если срок не истек */}
-                            {!isExpired && role !== 'PUBLISHER' && !hasResponded && (
-                                <button
-                                    className="btn btn-primary mt-5 w-full text-white p-2 rounded"
-                                    onClick={handleOpenResponseForm}
-                                >
-                                    Откликнуться
-                                </button>
-                            )}
-
-                        </Card>
-
-
-
-                    </div>
+                                </div>
+                            )
+                        ) : null}
+                    </Modal>
                 </div>
+
+                <div className='col-span-4'>
+                    <Card title={user?.role !== 'PUBLISHER' && (<span>Информация о клиенте</span>)}>
+                        {user?.role === 'PUBLISHER' && listing.authorId === user.id && (
+                            <>
+                                <div className='flex items-center justify-between'>
+                                    <span>Статус публикации</span>
+                                    <StatusDisplay response={{ published: listing.published }} isPublicationStatus={true} />
+                                </div>
+
+                                {listing.published ? (
+                                    <button className='btn btn-warning mt-5' onClick={() => onUnpublish(listing.id)}>Снять с публикации</button>
+                                ) : (
+                                    <>
+                                        {isExpired ? (
+                                            <button className='btn btn-primary mt-5' onClick={() => onRepublish(listing.id)}>Возобновить</button>
+                                        ) : (
+                                            <button className='btn btn-success mt-5' onClick={() => publish(listing.id)}>Опубликовать</button>
+                                        )}
+                                    </>
+                                )}
+                            </>
+                        )}
+
+                        {user?.role !== 'PUBLISHER' && (
+                            <AuthorInfo author={listing.author} responses={responses.find(response => response.responderId === user?.id) || {}} expirationDate={listing.expirationDate} />
+                        )}
+
+                        {!isExpired && user?.role !== 'PUBLISHER' && !hasResponded && (
+                            <button
+                                className="btn btn-primary mt-5 w-full text-white p-2 rounded"
+                                onClick={handleOpenResponseForm}
+                            >
+                                Откликнуться
+                            </button>
+                        )}
+                    </Card>
+                </div>
+            </div>
             </Layout>
         </>
     );
