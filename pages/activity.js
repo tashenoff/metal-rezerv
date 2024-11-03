@@ -1,4 +1,3 @@
-// pages/UserActivityTimeline.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
@@ -14,13 +13,16 @@ const UserActivityTimeline = () => {
     const router = useRouter();
 
     useEffect(() => {
-        if (!loading) {
-            if (user && user.id) {
-                fetchResponses(user.id);
-            } else {
-                setFeedback('Вы должны быть авторизованы для доступа к активности.');
-               
-            }
+        // Переход на страницу логина, если пользователь не авторизован
+        if (!loading && !user) {
+            setFeedback('Вы должны быть авторизованы для доступа к активности.');
+            
+            return; // Завершаем выполнение, чтобы избежать дальнейших проверок
+        }
+
+        // Если пользователь авторизован, загружаем его ответы
+        if (!loading && user && user.id) {
+            fetchResponses(user.id);
         }
     }, [user, loading, router]);
 
