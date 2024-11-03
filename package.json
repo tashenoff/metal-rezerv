@@ -2,6 +2,7 @@
   "dependencies": {
     "@heroicons/react": "^2.1.5",
     "@prisma/client": "^5.20.0",
+    "@reduxjs/toolkit": "^2.3.0",
     "bcryptjs": "^2.4.3",
     "daisyui": "^4.12.13",
     "jsonwebtoken": "^9.0.2",
@@ -11,7 +12,9 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-icons": "^5.3.0",
-    "react-quill": "^2.0.0"
+    "react-quill": "^2.0.0",
+    "react-redux": "^9.1.2",
+    "redux-thunk": "^3.1.0"
   },
   "scripts": {
     "seed": "node prisma/seed.js",

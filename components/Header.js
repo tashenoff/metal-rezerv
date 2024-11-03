@@ -1,56 +1,25 @@
 // components/Header.js
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import PointsDisplay from './PointsDisplay'; // Импорт компонента PointsDisplay
-import UsernameDisplay from './UsernameDisplay'; // Импорт компонента UsernameDisplay
 import Navbar from './Navbar';
+import { useRouter } from 'next/router';
+import { useDispatch } from 'react-redux';
+import { clearUser } from '../store/userSlice';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
+    const { setUserState } = useAuth();
+    const dispatch = useDispatch();
     const router = useRouter();
-    const [points, setPoints] = useState(0);
-    const [role, setRole] = useState(null);
-    const [username, setUsername] = useState(''); // Инициализация состояния для имени пользователя
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            setIsLoggedIn(true);
-            const fetchUserData = async () => {
-                const response = await fetch('/api/user', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                if (response.ok) {
-                    const user = await response.json();
-                    setPoints(user.points);
-                    setRole(user.role);
-                    setUsername(user.name); // Устанавливаем имя пользователя
-                }
-            };
-            fetchUserData();
-        }
-    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
+        dispatch(clearUser());
+        setUserState(null);
         router.push('/login');
     };
 
     return (
         <header>
-
-            <Navbar
-                points={points}
-                role={role}
-                username={username}
-                isLoggedIn={isLoggedIn}
-                handleLogout={handleLogout}
-            />
-
-
+            <Navbar handleLogout={handleLogout} />
         </header>
     );
 };

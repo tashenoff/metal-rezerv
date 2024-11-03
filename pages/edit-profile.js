@@ -5,8 +5,10 @@ import Notification from '../components/Notification';
 import ThemeToggle from '../components/ThemeToggle';
 import Form from '../components/Form';
 import Input from '../components/Input';
+import { useAuth } from '../contexts/AuthContext'; // Импортируем контекст аутентификации
 
 const EditProfile = () => {
+    const { user } = useAuth(); // Получаем пользователя из контекста аутентификации
     const [email, setEmail] = useState('');
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -88,8 +90,7 @@ const EditProfile = () => {
 
     return (
         <Layout>
-          
-                <div className='flex items-center justify-between my-4 bg-base-100 p-4 rounded-md'>
+                <div className='flex items-center justify-between my-4 bg-base-200 p-4 rounded-md'>
                     <span>Настройка темы</span>
                     <ThemeToggle />
                 </div>
@@ -186,7 +187,6 @@ const EditProfile = () => {
 
                     <button type="submit" className="btn w-full">Обновить профиль</button>
                 </Form>
-          
         </Layout>
     );
 };

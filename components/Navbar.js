@@ -1,31 +1,33 @@
 import { useState } from 'react';
 import Link from 'next/link';
-import UsernameDisplay from './UsernameDisplay'; // Импорт компонента отображения имени
-import PointsDisplay from './PointsDisplay'; // Импорт компонента отображения баллов
+import UsernameDisplay from './UsernameDisplay';
+import PointsDisplay from './PointsDisplay';
+import { useAuth } from '../contexts/AuthContext';
 
-
-const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
+const Navbar = ({ handleLogout }) => {
+  const { user, loading } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
   };
 
+  if (loading) return <div>Loading...</div>;
+
   return (
     <div className="navbar bg-base-100">
       <div className="container mx-auto flex justify-between items-center">
         <div className="navbar-start">
-          <h1 className="text-2xl font-bold">INEED </h1>
+          <h1 className="text-2xl font-bold">INEED</h1>
         </div>
         <div className="navbar-center hidden lg:flex">
-          <nav className="flex items-center  w-full  space-x-4">
-            {isLoggedIn ? (
+          <nav className="flex items-center w-full space-x-4">
+            {user && user.isLoggedIn ? (
               <>
-                
                 <Link href="/listings" className="link link-hover">
                   Заявки
                 </Link>
-                {role !== 'PUBLISHER' && (
+                {user.role !== 'PUBLISHER' && (
                   <>
                     <Link href="/responses" className="link link-hover">
                       Мои отклики
@@ -35,7 +37,7 @@ const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
                     </Link>
                   </>
                 )}
-                {role === 'PUBLISHER' && (
+                {user.role === 'PUBLISHER' && (
                   <div className="flex space-x-4 items-center">
                     <Link href="/create-listing" className="btn btn-primary btn-sm">
                       Создать Заявку
@@ -49,11 +51,13 @@ const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
                 {/* Выпадающее меню */}
                 <div className="relative inline-block">
                   <div className="flex items-center cursor-pointer" onClick={toggleDropdown}>
-                    <UsernameDisplay username={username} />
-                    <PointsDisplay points={points} role={role} />
+                    <UsernameDisplay username={user.username} />
+                    <PointsDisplay points={user.points} role={user.role} />
                     {/* Галочка для выпадающего меню */}
                     <svg
-                      className={`w-4 h-4 ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                      className={`w-4 h-4 ml-1 transition-transform duration-200 ${
+                        isDropdownOpen ? 'rotate-180' : ''
+                      }`}
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -85,11 +89,9 @@ const Navbar = ({ isLoggedIn, role, username, points, handleLogout }) => {
                 </div>
               </>
             ) : (
-              <>
-                <Link href="/login" className="btn btn-outline">
-                  Вход
-                </Link>
-              </>
+              <Link href="/login" className="btn btn-outline">
+                Вход
+              </Link>
             )}
           </nav>
         </div>

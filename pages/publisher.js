@@ -3,12 +3,12 @@ import ListingItem from '../components/ListingItem'; // Импортируем �
 import Modal from '../components/Modal'; // Импортируем модальное окно
 import { getResponseCounts } from '../utils/getResponseCounts'; // Импортируем утилиту
 import Layout from '../components/Layout';
+import { useAuth } from '../contexts/AuthContext'; // Импортируем useAuth
 
 const PublisherPage = () => {
+  const { user, loading: loadingUser } = useAuth(); // Получаем данные пользователя и статус загрузки
   const [listings, setListings] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userId, setUserId] = useState(null);
   const [activeTab, setActiveTab] = useState('published');
   const [responseCountsByStatus, setResponseCountsByStatus] = useState({});
 
@@ -18,33 +18,10 @@ const PublisherPage = () => {
   const [confirmAction, setConfirmAction] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-
-    if (token) {
-      const fetchUserData = async () => {
-        try {
-          const response = await fetch('/api/user', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (response.ok) {
-            const user = await response.json();
-            setUserId(user.id);
-            await fetchListings(user.id);
-          } else {
-            setError('Ошибка при загрузке данных пользователя.');
-          }
-        } catch (err) {
-          setError('Ошибка при загрузке данных пользователя.');
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchUserData();
-    } else {
-      setError('Вы должны быть авторизованы для доступа к объявлениям.');
-      setLoading(false);
+    if (user) {
+      fetchListings(user.id);
     }
-  }, []);
+  }, [user]);
 
   const fetchListings = async (userId) => {
     try {
@@ -156,26 +133,30 @@ const PublisherPage = () => {
     }
   };
 
-  if (loading) {
+  if (loadingUser) {
     return (
       <Layout>
         <div className='flex w-full flex-col items-center justify-center'>
           {/* Скелетон для загрузки */}
           <div className="flex w-full flex-col gap-4">
-            <div className="skeleton h-32 w-full"></div>
-            <div className="skeleton h-4 w-28"></div>
-            <div className="skeleton h-4 w-full"></div>
-            <div className="skeleton h-4 w-full"></div>
+            <div className="skeleton bg-base-200 h-32 w-full"></div>
+            <div className="skeleton bg-base-200 h-4 w-28"></div>
+            <div className="skeleton bg-base-200 h-4 w-full"></div>
+            <div className="skeleton bg-base-200 h-4 w-full"></div>
           </div>
-          <div className="flex w-full flex-col gap-4">
-            <div className="skeleton h-32 w-full"></div>
-            <div className="skeleton h-4 w-28"></div>
-            <div className="skeleton h-4 w-full"></div>
-            <div className="skeleton h-4 w-full"></div>
+          <div className="flex w-full flex-col gap-4 mt-10">
+            <div className="skeleton bg-base-200 h-32 w-full"></div>
+            <div className="skeleton bg-base-200 h-4 w-28"></div>
+            <div className="skeleton bg-base-200 h-4 w-full"></div>
+            <div className="skeleton bg-base-200 h-4 w-full"></div>
           </div>
         </div>
       </Layout>
     );
+  }
+
+  if (!user) {
+    return <p>Вы должны быть авторизованы для доступа к этой странице.</p>;
   }
 
   if (error) return <p>Ошибка: {error}</p>;

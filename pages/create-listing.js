@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import { useAuth } from '../contexts/AuthContext'; // Импортируйте контекст аутентификации
 import Layout from '../components/Layout';
 import Notification from '../components/Notification';
 import Input from '../components/Input';
@@ -7,6 +8,7 @@ import FormSelect from '../components/FormSelect';
 import Textarea from '../components/Textarea';
 
 const CreateListing = () => {
+  const { user, loading } = useAuth(); // Получаем информацию о пользователе
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
@@ -14,19 +16,21 @@ const CreateListing = () => {
   const [publicationPeriod, setPublicationPeriod] = useState('1d');
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
-  const [isClient, setIsClient] = useState(false);
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // Состояние для загрузки
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) router.push('/login');
-    setIsClient(true);
+    // Если пользователь не аутентифицирован и загрузка завершена, перенаправляем на страницу входа
+    if (!loading && !user) {
+      router.push('/login');
+    }
 
-    fetchCategories();
-  }, []);
+    // Получаем категории, если пользователь аутентифицирован
+    if (user) {
+      fetchCategories();
+    }
+  }, [user, loading]);
 
   const fetchCategories = async () => {
     try {
@@ -43,8 +47,6 @@ const CreateListing = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true); // Начинаем загрузку
-
     const token = localStorage.getItem('token');
     const expirationDate = calculateExpirationDate(publicationPeriod);
 
@@ -61,7 +63,6 @@ const CreateListing = () => {
       if (response.ok) {
         setMessage('Объявление успешно добавлено!');
         setMessageType('success');
-        // Сброс состояния...
         setTitle('');
         setContent('');
         setDeliveryDate('');
@@ -76,8 +77,6 @@ const CreateListing = () => {
     } catch (error) {
       setMessage('Произошла ошибка при добавлении объявления.');
       setMessageType('error');
-    } finally {
-      setIsLoading(false); // Завершаем загрузку
     }
   };
 
@@ -107,51 +106,46 @@ const CreateListing = () => {
     <Layout>
       {message && <Notification message={message} type={messageType} />}
       <div className="">
-        {isLoading ? ( // Отображаем текст о загрузке, если идет загрузка
-          <p>Идет загрузка...</p>
-        ) : (
-          <form className='grid grid-cols-12 gap-4' onSubmit={handleSubmit}>
-            <div className='col-span-8 card bg-base-100 p-5'>
-              <Input label="Заголовок" value={title} onChange={(e) => setTitle(e.target.value)} required />
-              <Textarea
-                id="content"
-                placeholder="Содержимое:"
-                value={content}
-                onChange={setContent}
-                required
-              />
-            </div>
-            <div className='col-span-4 card bg-base-100 p-5'>
-              <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
-              <Input label="Дата закупа" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} required />
-              <FormSelect
-                label="Категория"
-                value={selectedCategoryId}
-                onChange={(e) => setSelectedCategoryId(e.target.value)}
-                options={[
-                  { value: '', label: 'Выберите категорию' },
-                  ...categories.map(category => ({ value: category.id, label: category.name })),
-                ]}
-                required
-              />
-              <FormSelect
-                label="Период публикации"
-                value={publicationPeriod}
-                onChange={(e) => setPublicationPeriod(e.target.value)}
-                options={[
-                  { value: '5m', label: '5 минут' },
-                  { value: '1d', label: '1 день' },
-                  { value: '2d', label: '2 дня' },
-                  { value: '3d', label: '3 дня' },
-                ]}
-              />
-
-              <button type="submit" className="btn btn-primary">
-                Добавить объявление
-              </button>
-            </div>
-          </form>
-        )}
+        <form className='grid grid-cols-12 gap-4' onSubmit={handleSubmit}>
+          <div className='col-span-8 card bg-base-200 p-5'>
+            <Input label="Заголовок" value={title} onChange={(e) => setTitle(e.target.value)} required />
+            <Textarea
+              id="content"
+              placeholder="Содержимое:"
+              value={content}
+              onChange={setContent}
+              required
+            />
+          </div>
+          <div className='col-span-4 card bg-base-200 p-5'>
+            <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
+            <Input label="Дата закупа" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} required />
+            <FormSelect
+              label="Категория"
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              options={[
+                { value: '', label: 'Выберите категорию' },
+                ...categories.map(category => ({ value: category.id, label: category.name })),
+              ]}
+              required
+            />
+            <FormSelect
+              label="Период публикации"
+              value={publicationPeriod}
+              onChange={(e) => setPublicationPeriod(e.target.value)}
+              options={[
+                { value: '5m', label: '5 минут' },
+                { value: '1d', label: '1 день' },
+                { value: '2d', label: '2 дня' },
+                { value: '3d', label: '3 дня' },
+              ]}
+            />
+            <button type="submit" className="btn btn-primary">
+              Добавить объявление
+            </button>
+          </div>
+        </form>
       </div>
     </Layout>
   );

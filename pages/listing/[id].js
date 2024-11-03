@@ -240,7 +240,7 @@ const ListingPage = (responseCountsByStatus) => {
         if (userPoints <= 0) {
             setModalContent({
                 type: 'error',
-                message: 'У вас недостаточно кредитов для отправки отклика.',
+                message: 'У вас недостаточно кред для отправки отклика.',
             });
         } else {
             setModalContent({

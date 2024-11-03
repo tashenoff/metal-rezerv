@@ -1,51 +1,42 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
+import { useState } from 'react'; // Импортируем useState для управления состоянием
+import { useRouter } from 'next/router'; // Импортируем useRouter для навигации
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [email, setEmail] = useState(''); // Состояние для хранения email
+  const [password, setPassword] = useState(''); // Состояние для хранения пароля
+  const router = useRouter(); // Хук для навигации
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
+    e.preventDefault(); // Предотвращаем стандартное поведение формы
     const res = await fetch('/api/auth', {
-      method: 'POST',
+      method: 'POST', // Используем метод POST для аутентификации
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json', // Указываем заголовок для JSON
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password }), // Отправляем email и пароль в теле запроса
     });
 
-    setLoading(false);
+    if (res.ok) { // Если ответ успешный
+      const { token, role } = await res.json(); // Извлекаем токен и роль из ответа
+      localStorage.setItem('token', token); // Сохраняем токен в localStorage
 
-    if (res.ok) {
-      const { token, role } = await res.json();
-      localStorage.setItem('token', token);
-
+      // Перенаправляем пользователя на нужную страницу в зависимости от роли
       if (role === 'RESPONDER') {
-        router.push('/activity');
+        router.push('/activity'); // Если роль - RESPONDER, перенаправляем на страницу активности
       } else {
-        router.push('/listings');
+        router.push('/listings'); // В противном случае перенаправляем на страницу объявлений
       }
     } else {
-      const { message } = await res.json();
-      alert(message);
+      const { message } = await res.json(); // Извлекаем сообщение об ошибке
+      alert(message); // Показываем сообщение об ошибке
     }
   };
 
   return (
-    <div data-theme="nord" className="flex flex-col items-center justify-center h-screen relative">
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 bg-opacity-75 z-50">
-          <span className="loading loading-infinity loading-lg"></span>
-        </div>
-      )}
+    <div data-theme="nord" className="flex flex-col items-center justify-center h-screen">
       <div className="bg-white shadow-md rounded-lg p-8 max-w-sm w-full">
         <h1 className="text-2xl font-semibold text-center text-gray-700 mb-6">Авторизация</h1>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}> {/* Обработчик отправки формы */}
           <div className="mb-4">
             <label className="input input-bordered flex items-center gap-2">
               <svg
@@ -59,10 +50,10 @@ export default function Login() {
                   d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
               </svg>
               <input
-                type="email"
+                type="email" // Поле для ввода email
                 placeholder="Email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)} // Обновляем состояние при вводе
                 required
                 className="grow input w-full"
               />
@@ -81,17 +72,17 @@ export default function Login() {
                   clipRule="evenodd" />
               </svg>
               <input
-                type="password"
+                type="password" // Поле для ввода пароля
                 placeholder="Пароль"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)} // Обновляем состояние при вводе
                 required
                 className="grow input w-full"
               />
             </label>
           </div>
-          <button type="submit" className="btn btn-primary w-full" disabled={loading}>
-            {loading ? 'Загрузка...' : 'Войти'}
+          <button type="submit" className="btn btn-primary w-full"> {/* Кнопка для отправки формы */}
+            Войти
           </button>
         </form>
       </div>
