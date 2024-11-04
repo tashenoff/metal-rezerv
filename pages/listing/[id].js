@@ -8,7 +8,7 @@ import ClientControls from '../../components/ClientControls';
 import ResponsesList from '../../components/ResponsesList';
 import UserResponses from '../../components/UserResponses';
 import { unpublishListing } from '../../utils/unpublishListing';
-import publishListing from '../../utils/PublishListing';
+import publishListing from '../../utils/publishListing';
 import Modal from '../../components/Modal';
 import ResponseForm from '../../components/ResponseForm';
 
