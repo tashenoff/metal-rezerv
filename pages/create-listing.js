@@ -106,8 +106,8 @@ const CreateListing = () => {
     <Layout>
       {message && <Notification message={message} type={messageType} />}
       <div className="">
-        <form className='grid grid-cols-12 gap-4' onSubmit={handleSubmit}>
-          <div className='col-span-8 card bg-base-200 p-5'>
+        <form className='grid lg:grid-cols-12 gap-4' onSubmit={handleSubmit}>
+          <div className='lg:col-span-8 card bg-base-200 p-5'>
             <Input label="Заголовок" value={title} onChange={(e) => setTitle(e.target.value)} required />
             <Textarea
               id="content"
@@ -117,7 +117,7 @@ const CreateListing = () => {
               required
             />
           </div>
-          <div className='col-span-4 card bg-base-200 p-5'>
+          <div className='lg:col-span-4 card bg-base-200 p-5'>
             <Input label="Дата доставки" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} required />
             <Input label="Дата закупа" type="date" value={purchaseDate} onChange={(e) => setPurchaseDate(e.target.value)} required />
             <FormSelect

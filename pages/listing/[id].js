@@ -228,7 +228,7 @@ const ListingPage = () => {
     return (
         <Layout>
             <div className='grid lg:grid-cols-12 gap-4 py-10'>
-                <div className='lg:col-span-8'>
+                <div className='lg:col-span-8 '>
                     <ListingInfo listing={listing} />
                     {user?.role !== 'PUBLISHER' && hasResponded && <UserResponses responses={responses} userId={user.id} />}
                     {user?.role === 'PUBLISHER' && listing.authorId === user.id && responses.length > 0 && (
