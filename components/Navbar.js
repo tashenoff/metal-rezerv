@@ -16,10 +16,7 @@ const Navbar = ({ handleLogout }) => {
   // Закрытие меню при клике вне его
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
         // Закрывать мобильное меню только если оно открыто
         if (isMobileMenuOpen) {
@@ -27,10 +24,10 @@ const Navbar = ({ handleLogout }) => {
         }
       }
     };
-  
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMobileMenuOpen]); // добавьте isMobileMenuOpen в зависимости
+  }, [isMobileMenuOpen]);
 
   if (loading) {
     return (
@@ -76,23 +73,28 @@ const Navbar = ({ handleLogout }) => {
             <>
               <PointsDisplay points={user.points} role={user.role} />
               {user.role === 'PUBLISHER' && (
-                <>
-                  <Link href="/create-listing" className="btn btn-primary btn-sm">
-                    Создать Заявку
-                  </Link>
-                  <div className='hidden lg:block'>
-                  <UsernameDisplay username={user?.username} />
-                  </div>
-                </>
+
+                <Link href="/create-listing" className="btn btn-primary btn-sm">
+                  Создать Заявку
+                </Link>
+
+
               )}
 
-              {/* Выпадающее меню */}
+              <div className='hidden lg:block'>
+                <UsernameDisplay username={user?.username} />
+              </div>
+
+              {/* Выпадающее меню только для авторизованных пользователей */}
               <div className="relative inline-block" ref={dropdownRef}>
+
                 <button
                   className="flex items-center cursor-pointer"
                   onClick={toggleDropdown}
                   aria-expanded={isDropdownOpen}
                 >
+
+
                   <svg
                     className={`w-4 h-4 hidden lg:block ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
                     xmlns="http://www.w3.org/2000/svg"
@@ -146,9 +148,11 @@ const Navbar = ({ handleLogout }) => {
       {isMobileMenuOpen && (
         <div ref={dropdownRef} className="lg:hidden absolute top-16 right-4 w-48 bg-base-100 border border-base-200 rounded-md shadow-lg z-10">
           <ul className="menu p-2">
-            <li>
-              <UsernameDisplay username={user?.username} />
-            </li>
+            {user?.isLoggedIn && (
+              <li>
+                <UsernameDisplay username={user?.username} />
+              </li>
+            )}
             <li>
               <Link href="/listings" className="link link-hover text-primary">
                 Заявки
@@ -175,16 +179,20 @@ const Navbar = ({ handleLogout }) => {
                 </Link>
               </li>
             )}
-            <li>
-              <Link href="/edit-profile" className="link link-hover">
-                Редактировать профиль
-              </Link>
-            </li>
-            <li>
-              <button onClick={handleLogout} className="link link-hover text-red-500">
-                Выход
-              </button>
-            </li>
+            {user?.isLoggedIn && (
+              <>
+                <li>
+                  <Link href="/edit-profile" className="link link-hover">
+                    Редактировать профиль
+                  </Link>
+                </li>
+                <li>
+                  <button onClick={handleLogout} className="link link-hover text-red-500">
+                    Выход
+                  </button>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       )}
