@@ -56,7 +56,7 @@ const Dropdown = ({ label, options, onSelect }) => {
         {label} ({selectedOptions.length} выбрано)
       </button>
       {isOpen && (
-        <div className="absolute z-10 p-2 border border-base-100 bg-base-200 rounded-md shadow-md mt-2 w-full">
+        <div className="absolute z-10 p-2 border border-base-100 bg-base-300 rounded-md shadow-md mt-2 w-full">
           <ul>
             {options.length > 0 ? (
               options.map((option, index) => (

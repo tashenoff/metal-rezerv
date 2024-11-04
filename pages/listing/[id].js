@@ -12,6 +12,7 @@ import publishListing from '../../utils/PublishListing';
 import Modal from '../../components/Modal';
 import ResponseForm from '../../components/ResponseForm';
 
+
 const ListingPage = () => {
     const [listing, setListing] = useState(null);
     const [responses, setResponses] = useState([]);
@@ -19,14 +20,22 @@ const ListingPage = () => {
     const [modalContent, setModalContent] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [userId, setUserId] = useState(null); // Идентификатор пользователя
 
     const router = useRouter();
     const { id } = router.query;
     const { user, loading: authLoading } = useAuth();
 
     useEffect(() => {
+        if (user) {
+            setUserId(user.id); // Устанавливаем идентификатор пользователя, если user существует
+        }
+    }, [user]);
+
+    useEffect(() => {
         const fetchData = async () => {
-            if (!id) return; // Ждем, пока id станет доступным
+            if (!router.isReady || !id) return; // Ждем, пока router станет готовым и id станет доступным
+
             setLoading(true);
             setError(null);
             try {
@@ -59,8 +68,7 @@ const ListingPage = () => {
         };
 
         fetchData();
-    }, [id]); // Зависимость от id
-
+    }, [id, router.isReady]); // Зависимости для useEffect
 
     // Обработчик снятия с публикации
     const onUnpublish = async (listingId) => {
@@ -81,7 +89,6 @@ const ListingPage = () => {
             setError(err.message);
         }
     };
-
 
     const handleOpenResponseForm = () => {
         if (!user) {
@@ -220,8 +227,8 @@ const ListingPage = () => {
 
     return (
         <Layout>
-            <div className='grid grid-cols-12 gap-4 py-10'>
-                <div className='col-span-8'>
+            <div className='grid lg:grid-cols-12 gap-4 py-10'>
+                <div className='lg:col-span-8'>
                     <ListingInfo listing={listing} />
                     {user?.role !== 'PUBLISHER' && hasResponded && <UserResponses responses={responses} userId={user.id} />}
                     {user?.role === 'PUBLISHER' && listing.authorId === user.id && responses.length > 0 && (
@@ -234,7 +241,7 @@ const ListingPage = () => {
                     )}
                 </div>
 
-                <div className='col-span-4'>
+                <div className='lg:col-span-4'>
                     {user?.role === 'PUBLISHER' && listing.authorId === user.id ? (
                         <PublisherControls
                             listing={listing}
@@ -268,14 +275,6 @@ const ListingPage = () => {
                             <p className={`mt-2 ${modalContent.type === 'success' ? 'text-blue-500' : 'text-red-500'}`}>
                                 {modalContent.message}
                             </p>
-                            {modalContent.type === 'error' && (
-                                <button
-                                    className="mt-4 bg-green-500 text-white p-2 rounded"
-                                    onClick={() => window.location.href = '/buy-credits'}
-                                >
-                                    Купить баллы
-                                </button>
-                            )}
                         </div>
                     )
                 ) : null}

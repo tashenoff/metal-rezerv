@@ -25,8 +25,14 @@ module.exports = {
       },
     },
     daisyui: {
-      themes: ["light", "cupcake"],
-      darkTheme: "light",
+      themes: [
+        {
+          light: {
+            "primary": "#a991f7",
+          }
+        }
+      ]
+
     },
     darkMode: false, // Отключение dark mode
   },
