@@ -16,9 +16,8 @@ const EffectivenessDisplay = ({ responses }) => {
     };
 
     return (
-        <div className="p-4 card bg-base-100">
-            <h3 className="text-lg font-semibold">Эффективность</h3>
-            <p className="mt-2">Вы находитесь на уровне: <strong>{getEffectivenessLevel()}</strong></p>
+        <div className="flex py-2 px-5 rounded-full  items-center bg-base-100">
+            <div className=""><span className='mr-2'>Ваш уровень:</span> <strong className='text-secondary'>{getEffectivenessLevel()}</strong></div>
             {/* <p>Общее количество откликов: <strong>{totalResponses}</strong></p> */}
         </div>
     );

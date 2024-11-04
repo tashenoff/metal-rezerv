@@ -41,15 +41,17 @@ const UserActivityTimeline = () => {
 
             {loading && <p className="text-gray-500">Загрузка данных...</p>}
             {!loading && feedback && <p className="text-red-500 mb-4">{feedback}</p>}
-            <div className='grid lg:grid-cols-12 gap-4'>
-                <div className='lg:col-span-8 order-2'>
+
+            <div className='flex w-full justify-between items-center'>
+
+                <ResponseSummary responses={responses} />
+                    <EffectivenessDisplay responses={responses} />
+            </div>
+           
+                <div className=''>
                     <ActivityTimeline user={user} responses={responses} />
                 </div>
-                <div className='lg:col-span-4'>
-                    <ResponseSummary responses={responses} />
-                    <EffectivenessDisplay responses={responses} />
-                </div>
-            </div>
+         
 
         </Layout>
     );
