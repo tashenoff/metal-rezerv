@@ -1,3 +1,4 @@
+// ListingPage.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,7 +13,6 @@ import publishListing from '../../utils/publishListing';
 import Modal from '../../components/Modal';
 import ResponseForm from '../../components/ResponseForm';
 
-
 const ListingPage = () => {
     const [listing, setListing] = useState(null);
     const [responses, setResponses] = useState([]);
@@ -21,6 +21,7 @@ const ListingPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [userId, setUserId] = useState(null); // Идентификатор пользователя
+    const [loadingModal, setLoadingModal] = useState(false); // Индикатор загрузки в модальном окне
 
     const router = useRouter();
     const { id } = router.query;
@@ -113,6 +114,7 @@ const ListingPage = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setModalContent(null);
+        setLoadingModal(false); // Сброс состояния загрузки модального окна
     };
 
     const handleResponseSubmit = async (message) => {
@@ -125,6 +127,7 @@ const ListingPage = () => {
             return;
         }
 
+        setLoadingModal(true); // Начинаем загрузку в модальном окне
         try {
             const response = await fetch('/api/responses', {
                 method: 'POST',
@@ -158,6 +161,7 @@ const ListingPage = () => {
                 message: `Ошибка сети: ${error.message}`,
             });
         } finally {
+            setLoadingModal(false); // Завершаем загрузку в модальном окне
             setIsModalOpen(true);
         }
     };
@@ -218,7 +222,16 @@ const ListingPage = () => {
         setIsModalOpen(true);
     };
 
-    if (authLoading || loading) return <p>Загрузка...</p>;
+    if (authLoading || loading) {
+        return (
+            <Layout>
+                <div className="flex justify-center items-center h-screen">
+                    <span className="loading loading-bars loading-lg"></span>
+                </div>
+            </Layout>
+        );
+    }
+
     if (error) return <p>Ошибка: {error}</p>;
     if (!listing) return <p>Объявление не найдено.</p>;
 
@@ -268,7 +281,14 @@ const ListingPage = () => {
                     modalContent.type === 'form' ? (
                         <>
                             <p>{modalContent.message}</p>
-                            <ResponseForm onSubmit={handleResponseSubmit} />
+                            <div className="relative">
+                                {loadingModal && (
+                                    <div className="absolute inset-0 flex justify-center items-center bg-white bg-opacity-75 z-10">
+                                        <span className="loading loading-bars loading-lg"></span>
+                                    </div>
+                                )}
+                                <ResponseForm onSubmit={handleResponseSubmit} />
+                            </div>
                         </>
                     ) : (
                         <div>
