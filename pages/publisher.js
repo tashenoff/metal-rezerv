@@ -168,21 +168,25 @@ const PublisherPage = () => {
   return (
     <Layout>
       <div className=''>
-        <div className="flex items-center my-4 justify-between">
-          <h1>Ваши объявления</h1>
-          <div>
+
+        <div className='grid lg:grid-cols-2 items-center justify-center p-5'>
+          <div className='py-5'> <h1>Ваши объявления</h1></div>
+          <div className="flex w-full lg:justify-end justify-center items-center space-x-4">
+
+
             <button
               onClick={() => setActiveTab('published')}
-              className={`px-4 py-2 rounded-md ${activeTab === 'published' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              className={`btn  ${activeTab === 'published' ? 'btn-active' : 'bg-base-200'}`}
             >
               Опубликованные
             </button>
             <button
               onClick={() => setActiveTab('unpublished')}
-              className={`px-4 py-2 rounded-md ${activeTab === 'unpublished' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+              className={`btn ${activeTab === 'unpublished' ? 'btn-active' : 'bg-base-200'}`}
             >
               Не опубликованные
             </button>
+
           </div>
         </div>
 

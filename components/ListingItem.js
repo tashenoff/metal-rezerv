@@ -2,9 +2,8 @@ import { useState } from 'react';
 import ResponseCounts from './ResponseCounts';
 import Modal from './Modal'; // Импортируем компонент модального окна
 import StatusDisplay from './StatusDisplay'; // Импортируем StatusDisplay
-import Card from './Card';
 import DateDisplay from './DateDisplay'; // Импортируем компонент даты
-
+import Link from 'next/link'; // Импортируем компонент ссылки
 
 const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish, handleUnpublish, handleRepublish }) => {
     const [showModal, setShowModal] = useState(false); // Состояние для открытия/закрытия модального окна
@@ -31,21 +30,32 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
     };
 
     return (
-        <Card link={`/listing/${listing.id}`} title={listing.title}
+        <div className='card bg-base-100 p-5'>
+            <div className='flex items-center  border-b border-base-200 w-full py-5'>
+                <Link className='card-title' href={`/listing/${listing.id}`}>{listing.title}</Link>
+            </div>
 
 
-            content={<p className="text-gray-700">{listing.content}</p>}
-        >
-
-
-            <p className="flex items-center space-x-5">
-                <DateDisplay label="Опубликовано" date={listing.publishedAt} />
+            <p className='card-body px-0 py-2'>{listing.content}</p>
 
 
 
-                <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
+            <div className="grid lg:grid-cols-3 gap-4 py-5">
+                <div className="py-2 px-2 text-center text-sm rounded-full bg-base-300 shadow">
 
-            </p>
+                    <DateDisplay label="Опубликовано" date={listing.publishedAt} />
+
+                </div>
+                <div className="py-2 px-2 text-center text-sm rounded-full bg-base-300 shadow">
+
+                    <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
+                </div>
+            </div>
+
+            <div className='flex items-center justify-between w-full py-5'>
+                <span className='text-sm'>Статус публикации:</span>
+                <StatusDisplay response={{ published: listing.published }} isPublicationStatus={true} />
+            </div>
 
             {isExpired && (
                 <p className="text-red-500 font-bold">
@@ -53,8 +63,7 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
                 </p>
             )}
 
-            {/* Используем компонент StatusDisplay для отображения статуса публикации */}
-            <StatusDisplay response={{ published: listing.published }} isPublicationStatus={true} />
+
 
             {/* Отображение количества откликов */}
             <ResponseCounts
@@ -62,14 +71,14 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
                 responseCountsByStatus={responseCountsByStatus}
             />
 
-            <div className="flex space-x-2 mt-2">
+            <div className="card-actions">
 
                 {!isExpired && (
                     <>
                         <button
                             onClick={() => handlePublish(listing.id)}
                             disabled={listing.published}
-                            className={`px-4 py-2 text-white rounded-md ${listing.published ? 'bg-gray-400' : 'bg-green-500'}`}
+                            className={`btn ${listing.published ? 'btn-active' : 'btn-success'}`}
                         >
                             Опубликовать
                         </button>
@@ -77,7 +86,7 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
                         <button
                             onClick={() => handleUnpublish(listing.id)}
                             disabled={!listing.published}
-                            className={`px-4 py-2 text-white rounded-md ${!listing.published ? 'bg-gray-400' : 'bg-red-500'}`}
+                            className={`btn ${!listing.published ? 'btn-active' : 'btn-warning'}`}
                         >
                             Снять с публикации
                         </button>
@@ -122,7 +131,7 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
                     </button>
                 </div>
             </Modal>
-        </Card>
+        </div>
     );
 };
 

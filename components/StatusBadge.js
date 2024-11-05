@@ -1,26 +1,27 @@
 // components/StatusBadge.js
 const StatusBadge = ({ status, color }) => {
-    let badgeColorClass;
+    let dotColorClass;
 
     switch (color) {
         case 'accepted':
-            badgeColorClass = 'bg-green-500 text-sm text-black';
+            dotColorClass = 'bg-green-500';
             break;
         case 'rejected':
-            badgeColorClass = 'bg-red-500 text-sm text-black';
+            dotColorClass = 'bg-red-500';
             break;
         case 'pending':
-            badgeColorClass = 'bg-yellow-500 text-sm text-black';
+            dotColorClass = 'bg-yellow-500';
             break;
         default:
-            badgeColorClass = 'bg-gray-300 text-sm text-gray-700';
+            dotColorClass = 'bg-gray-300';
             break;
     }
 
     return (
-        <span className={`inline-block px-2 py-1 rounded ${badgeColorClass}`}>
-            {status}
-        </span>
+        <div className="flex items-center">
+            <span className={`inline-block h-2 w-2 rounded-full ${dotColorClass} mr-2`} />
+            <span className="text-sm text-gray-700">{status}</span>
+        </div>
     );
 };
 
