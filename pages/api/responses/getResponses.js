@@ -12,7 +12,7 @@ export default async function handler(req, res) {
         const responses = await prisma.response.findMany({
             where: {
                 responderId: parsedResponderId,
-             
+
             },
             include: {
                 listing: { // Здесь мы включаем связанную модель Listing
@@ -38,6 +38,13 @@ export default async function handler(req, res) {
                 },
             },
         });
+
+        const user = await prisma.user.findUnique({
+            where: { id: Number(responderId) },
+            select: { level: true },
+        });
+
+        return res.status(200).json({ responses, level: user.level });
 
         res.status(200).json(responses);
     } catch (error) {

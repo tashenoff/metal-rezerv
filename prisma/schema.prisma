@@ -7,40 +7,46 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum UserLevel {
+  NOVICE      // Новичок
+  EXPERIENCED // Опытный
+  EXPERT      // Эксперт
+}
+
 model User {
-  id             Int      @id @default(autoincrement())
-  name           String?  // Имя пользователя
-  email          String   @unique
-  password       String
-  role           String   // Строка для ролей
-  points         Int?     // Баллы
-  companyName    String?  // Название компании
-  companyBIN     String?  // БИН компании
-  phoneNumber    String?  // Номер телефона пользователя
-  listings       Listing[] // Связь с объявлениями
-  responses      Response[] // Отклики на объявления
-  city           String?  // Город пользователя
-  country        String?  // Страна пользователя - новое поле
-  registrationDate DateTime @default(now()) // Дата регистрации
-  isCompanyVerified Boolean @default(false) // Подтверждена ли компания
+  id               Int       @id @default(autoincrement())
+  name             String?   // Имя пользователя
+  email            String    @unique
+  password         String
+  role             String    // Строка для ролей
+  points           Int?      // Баллы
+  companyName      String?   // Название компании
+  companyBIN       String?   // БИН компании
+  phoneNumber      String?   // Номер телефона пользователя
+  listings         Listing[] // Связь с объявлениями
+  responses        Response[] // Отклики на объявления
+  city             String?   // Город пользователя
+  country          String?   // Страна пользователя
+  registrationDate DateTime  @default(now()) // Дата регистрации
+  isCompanyVerified Boolean  @default(false) // Подтверждена ли компания
+  level            UserLevel @default(NOVICE) // Уровень пользователя
 }
 
 model Listing {
-  id             Int      @id @default(autoincrement())
+  id             Int       @id @default(autoincrement())
   title          String
   content        String
-  published      Boolean  @default(false)
-  deliveryDate   DateTime @default(now())
-  publishedAt    DateTime @default(now())
+  published      Boolean   @default(false)
+  deliveryDate   DateTime  @default(now())
+  publishedAt    DateTime  @default(now())
   expirationDate DateTime?
   purchaseDate   DateTime?
-  author         User     @relation(fields: [authorId], references: [id])
+  author         User      @relation(fields: [authorId], references: [id])
   authorId       Int
   responses      Response[]
   category       Category? @relation(fields: [categoryId], references: [id]) // Обратная связь
-  categoryId     Int      // Временно делаем поле необязательным
+  categoryId     Int
 }
-
 
 model Response {
   id          Int      @id @default(autoincrement())
@@ -55,7 +61,7 @@ model Response {
 }
 
 model Category {
-  id       Int      @id @default(autoincrement())
-  name     String   @unique // Название категории
+  id       Int       @id @default(autoincrement())
+  name     String    @unique // Название категории
   listings Listing[] // Связь с объявлениями
 }

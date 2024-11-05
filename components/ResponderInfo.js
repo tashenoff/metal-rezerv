@@ -11,6 +11,8 @@ const ResponderInfo = ({ responderData }) => {
             <p><strong>Дата Регистрации:</strong> {new Date(responderData.registrationDate).toLocaleDateString()}</p>
             <p><strong>Контактный Email:</strong> {responderData.email}</p>
             <p><strong>Телефон для связи:</strong> {responderData.phoneNumber}</p>
+            <p><strong>уровень:</strong> {responderData.level}</p>
+            
         </div>
     );
 };

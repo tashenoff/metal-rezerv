@@ -1,7 +1,7 @@
 // components/ResponseSummary.js
 import React from 'react';
 
-const ResponseSummary = ({ responses }) => {
+const ResponseSummary = ({ responses = [] }) => {
     const totalResponses = responses.length; // Общее количество откликов
     const acceptedResponses = responses.filter(response => response.accepted === true).length; // Количество принятых откликов
     const rejectedResponses = responses.filter(response => response.accepted === false).length; // Количество отклоненных откликов

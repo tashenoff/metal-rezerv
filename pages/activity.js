@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 const UserActivityTimeline = () => {
     const [responses, setResponses] = useState([]);
+    const [userLevel, setUserLevel] = useState('');
     const [feedback, setFeedback] = useState('');
     const { user, loading } = useAuth();
     const router = useRouter();
@@ -16,7 +17,6 @@ const UserActivityTimeline = () => {
         // Переход на страницу логина, если пользователь не авторизован
         if (!loading && !user) {
             setFeedback('Вы должны быть авторизованы для доступа к активности.');
-
             return; // Завершаем выполнение, чтобы избежать дальнейших проверок
         }
 
@@ -30,29 +30,40 @@ const UserActivityTimeline = () => {
         const res = await fetch(`/api/responses/getResponses?responderId=${responderId}`);
         if (res.ok) {
             const data = await res.json();
-            setResponses(data);
+            setResponses(data.responses);  // Устанавливаем отклики
+            updateUserLevel(responderId);  // Обновляем уровень пользователя
         } else {
             setFeedback('Ошибка при загрузке откликов.');
         }
     };
 
+    const updateUserLevel = async (responderId) => {
+        try {
+            const res = await fetch(`/api/responder/${responderId}`);
+            if (res.ok) {
+                const data = await res.json();
+                setUserLevel(data.level); // Устанавливаем уровень пользователя из API
+            } else {
+                console.error('Ошибка при получении уровня пользователя:', res.statusText);
+            }
+        } catch (error) {
+            console.error('Ошибка при обновлении уровня пользователя:', error);
+        }
+    };
+
     return (
         <Layout>
-
             {loading && <p className="text-gray-500">Загрузка данных...</p>}
             {!loading && feedback && <p className="text-red-500 mb-4">{feedback}</p>}
 
             <div className='flex w-full justify-between items-center'>
-
                 <ResponseSummary responses={responses} />
-                    <EffectivenessDisplay responses={responses} />
+                <EffectivenessDisplay level={userLevel} />
             </div>
-           
-                <div className=''>
-                    <ActivityTimeline user={user} responses={responses} />
-                </div>
-         
 
+            <div>
+                <ActivityTimeline user={user} responses={responses} />
+            </div>
         </Layout>
     );
 };

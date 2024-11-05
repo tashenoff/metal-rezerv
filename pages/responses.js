@@ -32,11 +32,18 @@ const ResponsesPage = () => {
         const res = await fetch(`/api/responses/getResponses?responderId=${responderId}`);
         if (res.ok) {
             const data = await res.json();
-            setResponses(data);
+            console.log('Received data:', data); // Для отладки
+            if (Array.isArray(data.responses)) { // Предположим, что вы ожидаете массив в data.responses
+                setResponses(data.responses);
+            } else {
+                setFeedback('Данные откликов не в правильном формате.');
+            }
         } else {
             setFeedback('Ошибка при загрузке откликов.');
         }
     };
+    
+
 
     const filteredResponses = responses.filter((response) => response.status === activeTab);
 
@@ -44,7 +51,7 @@ const ResponsesPage = () => {
         setSelectedResponse(response);
         setIsModalOpen(true);
     };
-
+        
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedResponse(null);

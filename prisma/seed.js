@@ -32,7 +32,6 @@ async function main() {
   const category3 = await prisma.category.create({
     data: {
       name: 'Инструменты',
-
     },
   });
 
@@ -40,7 +39,7 @@ async function main() {
   const hashedPasswordPublisher = await bcrypt.hash('publisherPassword', 10);
   const hashedPasswordResponder = await bcrypt.hash('responderPassword', 10);
 
-  // Создаем одного публишера
+  // Создаем одного публишера с уровнем NOVICE
   const publisher = await prisma.user.create({
     data: {
       name: 'Алия Султанова',
@@ -55,6 +54,7 @@ async function main() {
       country: 'Казахстан',
       registrationDate: new Date(),
       isCompanyVerified: false,
+      level: 'NOVICE', // Уровень пользователя
     },
   });
 
@@ -65,7 +65,7 @@ async function main() {
       content: `Нужна арматура диаметром от 10 до 32 мм. Рассмотрим предложения от поставщиков в Астане.`,
       published: true,
       authorId: publisher.id,
-      categoryId: category1.id,  // Привязываем категорию
+      categoryId: category1.id,
       deliveryDate: new Date(),
       publishedAt: new Date(),
       purchaseDate: new Date('2024-10-01'),
@@ -73,7 +73,7 @@ async function main() {
     },
   });
 
-  // Создаем респондентов
+  // Создаем респондента с уровнем EXPERIENCED
   const responder1 = await prisma.user.create({
     data: {
       name: 'Респондент 1',
@@ -88,10 +88,11 @@ async function main() {
       country: 'Казахстан',
       registrationDate: new Date(),
       isCompanyVerified: false,
+      level: 'NOVICE', // Уровень пользователя
     },
   });
 
-  // Создаем отклики
+  // Создаем отклик
   await prisma.response.create({
     data: {
       responderId: responder1.id,
