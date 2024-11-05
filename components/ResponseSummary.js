@@ -1,5 +1,6 @@
 // components/ResponseSummary.js
 import React from 'react';
+import { InboxIcon , CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/solid';
 
 const ResponseSummary = ({ responses = [] }) => {
     const totalResponses = responses.length; // Общее количество откликов
@@ -8,14 +9,42 @@ const ResponseSummary = ({ responses = [] }) => {
     const pendingResponses = responses.filter(response => response.accepted === null).length; // Количество на рассмотрении
 
     return (
-        <div className="py-4">
-           
-            <ul className=" flex">
-                <li className='rounded-full py-2 px-5 text-sm items-center bg-base-100 mx-2 space-x-3 flex'><span>Общее количество откликов:</span> <strong className='text-secondary'>{totalResponses}</strong></li>
-                <li className='rounded-full py-2 px-5 text-sm items-center bg-base-100 mx-2 space-x-3 flex'><span>Принятые отклики: </span><strong className='text-secondary'>{acceptedResponses}</strong></li> {/* Добавлено */}
-                <li className='rounded-full py-2 px-5 text-sm items-center bg-base-100 mx-2 space-x-3 flex'><span>Отклоненные отклики:</span> <strong className='text-secondary'>{rejectedResponses}</strong></li>
-                <li className='rounded-full py-2 px-5 text-sm items-center bg-base-100 mx-2 space-x-3 flex'><span>На рассмотрении:</span> <strong className='text-secondary'>{pendingResponses}</strong></li>
-            </ul>
+        <div className="stats shadow w-full my-5">
+            <div className="stat">
+                <div className="stat-figure text-secondary">
+                    <InboxIcon  className="h-8 w-8" />
+                </div>
+                <div className="stat-title">Общее количество откликов</div>
+                <div className="stat-value">{totalResponses}</div>
+               
+            </div>
+
+            <div className="stat">
+                <div className="stat-figure text-secondary">
+                    <CheckCircleIcon className="h-8 w-8" />
+                </div>
+                <div className="stat-title">Принятые отклики</div>
+                <div className="stat-value">{acceptedResponses}</div>
+                
+            </div>
+
+            <div className="stat">
+                <div className="stat-figure text-secondary">
+                    <XCircleIcon className="h-8 w-8" />
+                </div>
+                <div className="stat-title">Отклоненные отклики</div>
+                <div className="stat-value">{rejectedResponses}</div>
+               
+            </div>
+
+            <div className="stat">
+                <div className="stat-figure text-secondary">
+                    <ClockIcon className="h-8 w-8" />
+                </div>
+                <div className="stat-title">На рассмотрении</div>
+                <div className="stat-value">{pendingResponses}</div>
+               
+            </div>
         </div>
     );
 };

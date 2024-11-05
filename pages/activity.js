@@ -55,10 +55,11 @@ const UserActivityTimeline = () => {
         <Layout>
             {loading && <p className="text-gray-500">Загрузка данных...</p>}
             {!loading && feedback && <p className="text-red-500 mb-4">{feedback}</p>}
+            <EffectivenessDisplay level={userLevel} />
 
             <div className='flex w-full justify-between items-center'>
                 <ResponseSummary responses={responses} />
-                <EffectivenessDisplay level={userLevel} />
+            
             </div>
 
             <div>
