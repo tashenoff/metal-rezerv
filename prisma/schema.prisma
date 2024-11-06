@@ -30,6 +30,57 @@ model User {
   registrationDate DateTime  @default(now()) // Дата регистрации
   isCompanyVerified Boolean  @default(false) // Подтверждена ли компания
   level            UserLevel @default(NOVICE) // Уровень пользователя
+  pointsSpent      PointsSpent[] // Связь с моделью PointsSpent
+  pointsAdded      PointsAdded[]  // Связь с моделью PointsAdded (для истории пополнений)
+}
+
+model PointsAdded {
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int
+  points     Int      // Количество добавленных баллов
+  addedAt    DateTime @default(now()) // Дата и время пополнения
+  addedBy    String?  // Идентификатор администратора, который добавил баллы (может быть email или ID)
+  reason     String?  // Причина или комментарий к пополнению
+  priceAtAdded Int?   // Стоимость балла на момент пополнения
+}
+
+model PointsSpent {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  response    Response @relation(fields: [responseId], references: [id])
+  responseId  Int
+  listing   Listing  @relation(fields: [listingId], references: [id])
+  listingId Int      // Это поле будет хранить ID лота
+  pointsUsed  Int      // Количество потраченных баллов
+  spentAt     DateTime @default(now()) // Дата и время расхода баллов
+}
+
+model PointsPrice {
+  id         Int      @id @default(autoincrement())
+  price      Int      // Стоимость одного балла
+  validFrom  DateTime @default(now())  // Дата начала действия стоимости
+  validUntil DateTime? // Дата окончания действия стоимости (если применимо)
+  history    PointPriceHistory[] @relation("PriceHistory") // История изменений стоимости
+}
+
+model PointPriceHistory {
+  id           Int      @id @default(autoincrement())
+  pointsPrice  PointsPrice @relation("PriceHistory", fields: [pointsPriceId], references: [id])
+  pointsPriceId Int
+  oldPrice     Int      // Старая цена балла
+  newPrice     Int      // Новая цена балла
+  changedAt    DateTime @default(now()) // Когда было изменение
+  changedBy    String   // Кто изменил цену
+}
+
+model PointsStatistics {
+  id               Int      @id @default(autoincrement())
+  period           String   // Период статистики (например, "2024-11", "2024-12")
+  totalPointsAdded Int      // Общая сумма начисленных баллов за период
+  totalPointsSpent Int      // Общая сумма потраченных баллов за период
+  statisticsDate   DateTime @default(now()) // Дата статистики
 }
 
 model Listing {
@@ -43,9 +94,11 @@ model Listing {
   purchaseDate   DateTime?
   author         User      @relation(fields: [authorId], references: [id])
   authorId       Int
-  responses      Response[]
+  responses      Response[] // Связь с откликами
   category       Category? @relation(fields: [categoryId], references: [id]) // Обратная связь
   categoryId     Int
+  responseCost   Int       @default(10) // Цена отклика для этого объявления
+  pointsSpent PointsSpent[]  // Обратная связь с PointsSpent
 }
 
 model Response {
@@ -58,6 +111,7 @@ model Response {
   status      String   @default("pending") // Статус отклика (pending, approved, rejected)
   createdAt   DateTime @default(now())
   accepted    Boolean?
+  pointsSpent PointsSpent[] // Связь с моделью PointsSpent
 }
 
 model Category {

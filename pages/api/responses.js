@@ -1,6 +1,5 @@
 import prisma from '../../prisma/client';
 import jwt from 'jsonwebtoken';
-import { getResponseCost } from './responseCost'; // Импортируем функцию
 
 export default async function handler(req, res) {
     try {
@@ -75,20 +74,16 @@ export default async function handler(req, res) {
                 return res.status(400).json({ message: 'Вы уже отправили отклик на это объявление.' });
             }
 
-            // Подсчет количества откликов на объявление
-            const responseCount = await prisma.response.count({
-                where: { listingId: parseInt(listingId) },
-            });
-            console.log('Current response count for listing:', responseCount);
-
-            // Получаем стоимость отклика
-            const responseCost = getResponseCost(listingId, responseCount, listing.author.isCompanyVerified);
+            // Получаем стоимость отклика из объявления
+            const responseCost = listing.responseCost;
+            console.log('Response cost:', responseCost);
 
             // Проверка на наличие достаточного количества баллов
             if (user.points === null || user.points < responseCost) {
                 return res.status(400).json({ message: 'Недостаточно баллов для отклика.' });
             }
 
+            // Создаем отклик
             const response = await prisma.response.create({
                 data: {
                     responderId: userId,
@@ -99,7 +94,18 @@ export default async function handler(req, res) {
             });
             console.log('New response created:', response);
 
-            // Обновляем баллы пользователя только если они не уйдут в минус
+            // Создаем запись о потраченных баллах
+            await prisma.pointsSpent.create({
+                data: {
+                    userId,
+                    responseId: response.id,
+                    pointsUsed: listing.responseCost,
+                    listingId: listing.id,
+                    spentAt: new Date(),
+                },
+            });
+
+            // Обновляем баллы пользователя
             await prisma.user.update({
                 where: { id: userId },
                 data: { points: user.points - responseCost },

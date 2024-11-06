@@ -20,7 +20,7 @@ const StatusBadge = ({ status, color }) => {
     return (
         <div className="flex items-center">
             <span className={`inline-block h-2 w-2 rounded-full ${dotColorClass} mr-2`} />
-            <span className="text-sm text-gray-700">{status}</span>
+            <span className="text-sm">{status}</span>
         </div>
     );
 };

@@ -113,7 +113,7 @@ const ListingPage = () => {
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
-        setModalContent(null);
+        setModalContent(null); // Очищаем модальное содержание при закрытии
         setLoadingModal(false); // Сброс состояния загрузки модального окна
     };
 
@@ -167,59 +167,83 @@ const ListingPage = () => {
     };
 
     const handleAcceptResponse = async (responseId) => {
-        const response = await fetch(`/api/responses/acceptResponse`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify({ responseId, userId: user?.id }),
-        });
+        try {
+            const response = await fetch(`/api/responses/acceptResponse`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify({ responseId, userId: user?.id }),
+            });
 
-        if (response.ok) {
-            setResponses((prevResponses) =>
-                prevResponses.map((resp) =>
-                    resp.id === responseId ? { ...resp, accepted: true } : resp
-                )
-            );
-        } else {
-            const errorData = await response.json();
+            if (response.ok) {
+                setResponses((prevResponses) =>
+                    prevResponses.map((resp) =>
+                        resp.id === responseId ? { ...resp, accepted: true } : resp
+                    )
+                );
+
+                // Открываем модальное окно с уведомлением об успешном принятии
+                setModalContent({
+                    type: 'success',
+                    message: 'Отклик успешно принят!',
+                });
+                setIsModalOpen(true); 
+            } else {
+                const errorData = await response.json();
+                setModalContent({
+                    type: 'error',
+                    message: `Ошибка при принятии отклика: ${errorData.message}`,
+                });
+                setIsModalOpen(true);
+            }
+        } catch (error) {
             setModalContent({
                 type: 'error',
-                message: `Ошибка при принятии отклика: ${errorData.message}`,
+                message: `Ошибка сети: ${error.message}`,
             });
             setIsModalOpen(true);
         }
     };
 
     const handleDeclineResponse = async (responseId) => {
-        const response = await fetch(`/api/responses/declineResponse`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-            body: JSON.stringify({ responseId }),
-        });
-
-        if (response.ok) {
-            setResponses((prevResponses) =>
-                prevResponses.map((resp) =>
-                    resp.id === responseId ? { ...resp, accepted: false } : resp
-                )
-            );
-            setModalContent({
-                type: 'success',
-                message: 'Отклик отклонён!',
+        try {
+            const response = await fetch(`/api/responses/declineResponse`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify({ responseId }),
             });
-        } else {
-            const errorData = await response.json();
+
+            if (response.ok) {
+                setResponses((prevResponses) =>
+                    prevResponses.map((resp) =>
+                        resp.id === responseId ? { ...resp, accepted: false } : resp
+                    )
+                );
+                setModalContent({
+                    type: 'success',
+                    message: 'Отклик отклонён!',
+                });
+                setIsModalOpen(true);
+            } else {
+                const errorData = await response.json();
+                setModalContent({
+                    type: 'error',
+                    message: `Ошибка при отклонении отклика: ${errorData.message}`,
+                });
+                setIsModalOpen(true);
+            }
+        } catch (error) {
             setModalContent({
                 type: 'error',
-                message: `Ошибка при отклонении отклика: ${errorData.message}`,
+                message: `Ошибка сети: ${error.message}`,
             });
+            setIsModalOpen(true);
         }
-        setIsModalOpen(true);
     };
 
     if (authLoading || loading) {
