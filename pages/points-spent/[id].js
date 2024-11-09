@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Layout from '../../components/Layout';
 
 export default function SpentPointsPage() {
     const router = useRouter();
@@ -39,7 +40,8 @@ export default function SpentPointsPage() {
     if (error) return <p className="text-red-500">{error}</p>;
 
     return (
-        <div className="container mx-auto p-4">
+        <Layout>
+
             <h1 className="text-2xl font-semibold mb-4">Потраченные баллы респондера {id}</h1>
 
             {pointsSpent.length > 0 ? (
@@ -51,7 +53,7 @@ export default function SpentPointsPage() {
                                 <th className="text-center">Дата</th>
                                 <th className="text-center">Потраченные баллы</th>
                                 <th className="text-center">На что потрачены</th>
-                               
+
                             </tr>
                         </thead>
                         <tbody>
@@ -61,7 +63,7 @@ export default function SpentPointsPage() {
                                     <td className="text-center">{new Date(record.spentAt).toLocaleDateString()}</td>
                                     <td className="text-center">{record.pointsUsed}</td> {/* Выводим потраченные баллы */}
                                     <td className="text-center">{record.listing ? record.listing.title : 'Не указано'}</td>
-                                    
+
                                 </tr>
                             ))}
                         </tbody>
@@ -70,6 +72,7 @@ export default function SpentPointsPage() {
             ) : (
                 <p>Респондент не потратил баллы.</p>
             )}
-        </div>
+
+        </Layout>
     );
 }

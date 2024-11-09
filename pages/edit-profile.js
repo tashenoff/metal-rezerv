@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import Notification from '../components/Notification';
-import ThemeToggle from '../components/ThemeToggle';
+
 import Form from '../components/Form';
 import Input from '../components/Input';
 import { useAuth } from '../contexts/AuthContext'; // Импортируем контекст аутентификации
@@ -92,7 +92,7 @@ const EditProfile = () => {
         <Layout>
                 <div className='flex items-center justify-between my-4 bg-base-200 p-4 rounded-md'>
                     <span>Настройка темы</span>
-                    <ThemeToggle />
+                    
                 </div>
 
                 <h1 className="text-2xl font-bold">Редактировать профиль: {profileName}</h1>

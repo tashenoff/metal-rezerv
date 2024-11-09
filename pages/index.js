@@ -37,9 +37,10 @@ export default function Home() {
   return (
     <Layout>
       <HeroSection />
+      <TargetAudience />
       <HowItWorks />
       <Features />
-      <TargetAudience />
+      
       {/* <Testimonials /> */}
       <CallToAction />
     </Layout>

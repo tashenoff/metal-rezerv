@@ -121,6 +121,8 @@ const Navbar = ({ handleLogout }) => {
                         >
                           Выход
                         </button>
+
+
                       </li>
                     </ul>
                   </div>
@@ -132,6 +134,8 @@ const Navbar = ({ handleLogout }) => {
               Вход
             </Link>
           )}
+
+
         </div>
 
         {/* Бургер-кнопка для мобильного меню */}

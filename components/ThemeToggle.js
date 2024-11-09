@@ -4,16 +4,24 @@ const ThemeToggle = () => {
   const [theme, setTheme] = useState('light'); // Начальная тема
 
   const toggleTheme = () => {
-    const newTheme = theme === 'nord' ? 'light' : 'nord'; // Переключение
+    const newTheme = theme === 'nord' ? 'light' : 'nord'; // Переключение между темами
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme); // Устанавливаем атрибут data-theme
+    document.documentElement.setAttribute('data-theme', newTheme); // Установка темы на уровне <html>
   };
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light'; // Сохраняем тему
-    setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme); // Применение темы на уровне <html>
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } else {
+      // Если темы нет в localStorage, использовать системную
+      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = prefersDarkScheme ? 'dark' : 'light';
+      setTheme(initialTheme);
+      document.documentElement.setAttribute('data-theme', initialTheme);
+    }
   }, []);
 
   return (
