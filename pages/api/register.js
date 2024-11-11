@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
-  const { name, email, password, companyName, companyBIN, phoneNumber, city, country, role } = req.body;
+  const { name, email, password, phoneNumber, city, country, role } = req.body;
 
   // Проверка на существование пользователя
   const existingUser = await prisma.user.findUnique({
@@ -38,8 +38,6 @@ export default async function handler(req, res) {
       email,
       password: hashedPassword,
       role,
-      companyName,
-      companyBIN,
       phoneNumber,
       city,
       country,

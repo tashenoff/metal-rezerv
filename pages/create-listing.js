@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../contexts/AuthContext'; // Импортируйте контекст аутентификации
+import { useAuth } from '../contexts/AuthContext'; // Импортируем контекст аутентификации
 import Layout from '../components/Layout';
 import Notification from '../components/Notification';
 import Input from '../components/Input';
@@ -14,6 +14,9 @@ const CreateListing = () => {
   const [deliveryDate, setDeliveryDate] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
   const [publicationPeriod, setPublicationPeriod] = useState('1d');
+  const [purchaseMethod, setPurchaseMethod] = useState(''); // Новый state для метода закупки
+  const [paymentTerms, setPaymentTerms] = useState(''); // Новый state для условий оплаты
+  const [type, setType] = useState('product'); // Новый state для типа объявления (товар или услуга)
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [categories, setCategories] = useState([]);
@@ -57,7 +60,17 @@ const CreateListing = () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title, content, deliveryDate, purchaseDate, expirationDate, categoryId: selectedCategoryId }),
+        body: JSON.stringify({
+          title,
+          content,
+          deliveryDate,
+          purchaseDate,
+          expirationDate,
+          categoryId: selectedCategoryId,
+          purchaseMethod, // Отправляем метод закупки
+          paymentTerms,   // Отправляем условия оплаты
+          type,           // Отправляем тип объявления
+        }),
       });
 
       if (response.ok) {
@@ -69,6 +82,9 @@ const CreateListing = () => {
         setPurchaseDate('');
         setPublicationPeriod('1d');
         setSelectedCategoryId('');
+        setPurchaseMethod(''); // Очистим поле метода закупки
+        setPaymentTerms('');   // Очистим поле условий оплаты
+        setType('product');    // Очистим тип объявления
       } else {
         const errorData = await response.json();
         setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
@@ -127,6 +143,33 @@ const CreateListing = () => {
               options={[
                 { value: '', label: 'Выберите категорию' },
                 ...categories.map(category => ({ value: category.id, label: category.name })),
+              ]}
+              required
+            />
+            <FormSelect
+              label="Метод закупки"
+              value={purchaseMethod}
+              onChange={(e) => setPurchaseMethod(e.target.value)}
+              options={[
+                { value: '', label: 'Выберите метод' },
+                { value: 'price-reduction', label: 'Понижение цены' },
+                { value: 'price-quote', label: 'Запрос ценового предложения' },
+              ]}
+              required
+            />
+            <Input
+              label="Условия оплаты"
+              value={paymentTerms}
+              onChange={(e) => setPaymentTerms(e.target.value)}
+              placeholder="Например, 50% предоплата"
+            />
+            <FormSelect
+              label="Тип объявления"
+              value={type}
+              onChange={(e) => setType(e.target.value)}
+              options={[
+                { value: 'product', label: 'Товар' },
+                { value: 'service', label: 'Услуга' },
               ]}
               required
             />

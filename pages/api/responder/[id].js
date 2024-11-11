@@ -28,10 +28,20 @@ export default async function handler(req, res) {
           name: true,
           email: true,
           phoneNumber: true,
-          companyName: true,
           role: true,
           city: true,
           level: true,
+          company: { // Добавляем информацию о компании
+            select: {
+              id: true,
+              name: true,
+              binOrIin: true,
+              region: true,
+              contacts: true,
+              director: true,
+              rating: true,
+            },
+          },
         },
       });
 

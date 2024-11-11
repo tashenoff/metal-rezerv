@@ -97,6 +97,12 @@ const ListingPage = () => {
                 type: 'error',
                 message: 'Отклики доступны только для авторизованных пользователей.',
             });
+        } else if (!user.company && !user.companyId) {
+            // Проверяем наличие компании по companyId, если объект company равен null
+            setModalContent({
+                type: 'error',
+                message: 'Вы не можете откликаться, так как у вас нет привязанной компании.',
+            });
         } else if (user.points <= 0) {
             setModalContent({
                 type: 'error',
@@ -110,6 +116,7 @@ const ListingPage = () => {
         }
         setIsModalOpen(true);
     };
+    
 
     const handleCloseModal = () => {
         setIsModalOpen(false);
@@ -189,7 +196,7 @@ const ListingPage = () => {
                     type: 'success',
                     message: 'Отклик успешно принят!',
                 });
-                setIsModalOpen(true); 
+                setIsModalOpen(true);
             } else {
                 const errorData = await response.json();
                 setModalContent({

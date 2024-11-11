@@ -4,42 +4,62 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  // Удаляем все отклики, объявления, пользователей и категории
-  await prisma.response.deleteMany({});
+  // Удаляем данные из всех зависимых таблиц в правильном порядке
   await prisma.pointsSpent.deleteMany({});
+  await prisma.response.deleteMany({});
+  await prisma.companyEmployee.deleteMany({});
   await prisma.listing.deleteMany({});
+  await prisma.company.deleteMany({});
   await prisma.user.deleteMany({});
   await prisma.category.deleteMany({});
 
   // Создаем категории
   const category1 = await prisma.category.create({ data: { name: 'Строительные материалы' } });
-  const category2 = await prisma.category.create({ data: { name: 'Металлы' } });
-  const category3 = await prisma.category.create({ data: { name: 'Инструменты' } });
 
   // Хэшируем пароли
   const hashedPasswordPublisher = await bcrypt.hash('publisherPassword', 10);
   const hashedPasswordResponder = await bcrypt.hash('responderPassword', 10);
 
-  // Создаем пользователя-публишера
+  // Создаем пользователя-публишера (администратора компании)
   const publisher = await prisma.user.create({
     data: {
       name: 'Алия Султанова',
       email: 'publisher@example.com',
       password: hashedPasswordPublisher,
       role: 'PUBLISHER',
-      points: null,
-      companyName: 'Publisher Company',
-      companyBIN: '222222222',
       phoneNumber: '7777654321',
       city: 'Астана',
       country: 'Казахстан',
       registrationDate: new Date(),
-      isCompanyVerified: false,
+      isCompanyVerified: true,
       level: 'NOVICE',
     },
   });
 
-  // Создаем объявление с категорией и установкой responseCost
+  // Создаем компанию, устанавливая создателя как администратора
+  const company = await prisma.company.create({
+    data: {
+      name: 'Publisher Company',
+      binOrIin: '222222222',
+      region: 'Астана',
+      contacts: 'Контактная информация компании',
+      director: 'Алия Султанова',
+      rating: 4.5,
+      ownerId: publisher.id, // Привязка к создателю как владельцу компании
+    },
+  });
+
+  // Добавляем запись о пользователе как сотруднике компании с ролью администратора
+  await prisma.companyEmployee.create({
+    data: {
+      userId: publisher.id,
+      companyId: company.id,
+      role: 'Администратор', // Роль создателя компании
+      joinedAt: new Date(),
+    },
+  });
+
+  // Создаем объявление с категорией, responseCost, paymentTerms, type и purchaseMethod
   const listing = await prisma.listing.create({
     data: {
       title: 'Требуется арматура для строительных работ в Астане',
@@ -51,21 +71,65 @@ async function main() {
       publishedAt: new Date(),
       purchaseDate: new Date('2024-10-01'),
       expirationDate: new Date(new Date().setMinutes(new Date().getMinutes() + 10)),
-      responseCost: 15, // Установка цены отклика
+      responseCost: 15,
+      purchaseMethod: 'Запрос ценовых предложений',
+      paymentTerms: '50% предоплата, 50% после доставки',
+      type: 'Товар',
     },
   });
 
-  // Создаем пользователя-респондента
+  // Логируем условия оплаты и тип
+  console.log('Условия оплаты для объявления: ', listing.paymentTerms);
+  console.log('Тип объявления: ', listing.type);
+
+  // Создаем пользователя-респондента с компанией
   const responder1 = await prisma.user.create({
     data: {
       name: 'Респондент 1',
       email: 'responder1@example.com',
       password: hashedPasswordResponder,
       role: 'RESPONDER',
-      points: 100, // Начальные баллы респондента
-      companyName: 'Responder Company 1',
-      companyBIN: '666666666',
+      points: 100,
       phoneNumber: '7771234567',
+      city: 'Астана',
+      country: 'Казахстан',
+      registrationDate: new Date(),
+      isCompanyVerified: true,
+      level: 'NOVICE',
+    },
+  });
+
+  const responderCompany = await prisma.company.create({
+    data: {
+      name: 'Responder Company',
+      binOrIin: '333333333',
+      region: 'Алматы',
+      contacts: 'Контактная информация респондента',
+      director: 'Респондент 1',
+      rating: 4.2,
+      ownerId: responder1.id, // Привязка к создателю как владельцу компании
+    },
+  });
+
+  // Добавляем запись о пользователе как сотруднике компании с ролью администратора
+  await prisma.companyEmployee.create({
+    data: {
+      userId: responder1.id,
+      companyId: responderCompany.id,
+      role: 'Администратор',
+      joinedAt: new Date(),
+    },
+  });
+
+  // Создаем второго респондента и добавляем его в компанию первого респондента
+  const responder2 = await prisma.user.create({
+    data: {
+      name: 'Респондент 2',
+      email: 'responder2@example.com',
+      password: hashedPasswordResponder,
+      role: 'RESPONDER',
+      points: 80,
+      phoneNumber: '7779876543',
       city: 'Астана',
       country: 'Казахстан',
       registrationDate: new Date(),
@@ -74,11 +138,32 @@ async function main() {
     },
   });
 
-  // Создаем отклик и списываем баллы
-  const response = await prisma.response.create({
+  // Добавляем второго респондента как сотрудника компании без прав администратора
+  await prisma.companyEmployee.create({
+    data: {
+      userId: responder2.id,
+      companyId: responderCompany.id,
+      role: 'Сотрудник',
+      joinedAt: new Date(),
+    },
+  });
+
+  // Создаем отклики для объявления
+  const response1 = await prisma.response.create({
     data: {
       responderId: responder1.id,
       message: 'Я могу предложить арматуру по выгодной цене.',
+      listingId: listing.id,
+      status: 'pending',
+      createdAt: new Date(),
+      accepted: null,
+    },
+  });
+
+  const response2 = await prisma.response.create({
+    data: {
+      responderId: responder2.id,
+      message: 'У нас есть в наличии арматура с доставкой.',
       listingId: listing.id,
       status: 'pending',
       createdAt: new Date(),
@@ -90,9 +175,19 @@ async function main() {
   await prisma.pointsSpent.create({
     data: {
       userId: responder1.id,
-      responseId: response.id,
-      pointsUsed: listing.responseCost, // Используем стоимость отклика из Listing
-      listingId: listing.id, // Добавление связи с Listing
+      responseId: response1.id,
+      pointsUsed: listing.responseCost,
+      listingId: listing.id,
+      spentAt: new Date(),
+    },
+  });
+
+  await prisma.pointsSpent.create({
+    data: {
+      userId: responder2.id,
+      responseId: response2.id,
+      pointsUsed: listing.responseCost,
+      listingId: listing.id,
       spentAt: new Date(),
     },
   });

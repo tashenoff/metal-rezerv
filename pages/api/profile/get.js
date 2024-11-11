@@ -1,4 +1,3 @@
-// pages/api/profile/get.js
 import { verify } from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
@@ -27,8 +26,17 @@ export default async function handler(req, res) {
         phoneNumber: true,
         city: true,
         country: true,
-        companyName: true,
-        companyBIN: true,
+        company: { // Включаем данные о компании
+          select: {
+            id: true,
+            name: true,
+            binOrIin: true,
+            region: true,
+            contacts: true,
+            director: true,
+            rating: true,
+          },
+        },
       },
     });
 

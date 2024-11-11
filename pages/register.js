@@ -7,8 +7,6 @@ export default function Register() {
         name: '',
         email: '',
         password: '',
-        companyName: '',
-        companyBIN: '',
         phoneNumber: '',
         city: '',
         country: '',
@@ -90,24 +88,6 @@ export default function Register() {
                         placeholder="Пароль"
                         onChange={handleChange}
                         required
-                        className="input input-bordered"
-                    />
-                </div>
-                <div className="form-control mb-4">
-                    <input
-                        type="text"
-                        name="companyName"
-                        placeholder="Название компании"
-                        onChange={handleChange}
-                        className="input input-bordered"
-                    />
-                </div>
-                <div className="form-control mb-4">
-                    <input
-                        type="text"
-                        name="companyBIN"
-                        placeholder="БИН компании"
-                        onChange={handleChange}
                         className="input input-bordered"
                     />
                 </div>

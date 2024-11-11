@@ -2,7 +2,7 @@
 import React from 'react';
 import Head from 'next/head';
 import Header from './Header'; // Вы можете создать свой Header компонент
-// import Footer from './Footer'; // Вы можете создать свой Footer компонент
+
 
 const Layout = ({ children, title = "My Next.js App" }) => {
   return (

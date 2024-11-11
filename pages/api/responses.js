@@ -41,12 +41,33 @@ export default async function handler(req, res) {
                 return res.status(400).json({ message: 'Неверный токен.' });
             }
 
-            const user = await prisma.user.findUnique({ where: { id: userId } });
+            // Получаем данные пользователя, включая информацию о компании
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                include: { company: true }
+            });
             console.log('User data:', user);
 
             if (!user) {
                 return res.status(404).json({ message: 'Пользователь не найден.' });
             }
+
+            // Проверяем, привязана ли к пользователю компания
+            let company = user.company;
+            if (!company && user.companyId) {
+                // Если у пользователя есть companyId, но связь с компанией не установлена, пытаемся загрузить компанию вручную
+                company = await prisma.company.findUnique({
+                    where: { id: user.companyId },
+                });
+                console.log('Loaded company data:', company);
+            }
+
+            if (!company) {
+                return res.status(403).json({ message: 'Вы не можете откликаться, так как у вас нет привязанной компании.' });
+            }
+
+            // Логирование информации о компании
+            console.log('User company:', company);
 
             const listing = await prisma.listing.findUnique({
                 where: { id: parseInt(listingId) },
@@ -62,6 +83,22 @@ export default async function handler(req, res) {
                 return res.status(403).json({ message: 'Владелец объявления не может отправлять отклики.' });
             }
 
+            // Проверка, откликался ли уже кто-то из этой компании на данное объявление
+            const existingCompanyResponse = await prisma.response.findFirst({
+                where: {
+                    listingId: parseInt(listingId),
+                    responder: {
+                        companyId: company.id, // Используем company.id, если она есть
+                    },
+                },
+            });
+            console.log('Existing company response:', existingCompanyResponse);
+
+            if (existingCompanyResponse) {
+                return res.status(400).json({ message: 'Сотрудник вашей компании уже откликался на это объявление.' });
+            }
+
+            // Проверка на наличие отклика самого пользователя
             const existingResponse = await prisma.response.findFirst({
                 where: {
                     responderId: userId,
@@ -116,8 +153,15 @@ export default async function handler(req, res) {
             const { id: listingId } = req.query;
             console.log('Fetching responses for listing ID:', listingId);
 
+            // Преобразуем listingId в число
+            const parsedListingId = parseInt(listingId);
+
+            if (isNaN(parsedListingId)) {
+                return res.status(400).json({ message: 'Неверный ID объявления.' });
+            }
+
             const responses = await prisma.response.findMany({
-                where: { listingId: parseInt(listingId) },
+                where: { listingId: parsedListingId },
                 include: {
                     responder: true,
                 },

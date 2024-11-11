@@ -30,6 +30,9 @@ export const AuthProvider = ({ children }) => {
                             username: userData.name,
                             id: userData.id,
                             responderId: userData.responderId,
+                            companyId: userData.companyId,
+                            company: userData.company,
+                            
                         });
                         dispatch(setUser(userData));
 

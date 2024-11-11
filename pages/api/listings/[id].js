@@ -11,17 +11,26 @@ export default async function handler(req, res) {
           id: parseInt(id), // Преобразуем id в число
         },
         include: {
-          author: { // Предполагается, что в модели есть связь с автором
+          author: {
             select: {
               id: true,
               name: true,
-              isCompanyVerified: true, // Поле для проверки верификации
+              isCompanyVerified: true,
               country: true,
               city: true,
               phoneNumber: true,
               email: true,
-              companyName: true,
-              
+              company: { // Включаем данные о компании, связанной с пользователем
+                select: {
+                  id: true,
+                  name: true,
+                  binOrIin: true,
+                  region: true,
+                  contacts: true,
+                  director: true,
+                  rating: true,
+                },
+              },
             },
           },
         },
@@ -47,7 +56,10 @@ export default async function handler(req, res) {
         ...listing,
         isExpired, // Добавляем информацию о том, истекло ли объявление
         message: isExpired ? 'Срок действия объявления истек.' : 'Объявление активно.',
-        author: listing.author, // Включаем информацию об авторе
+        author: {
+          ...listing.author,
+          company: listing.author.company, // Включаем информацию о компании
+        },
       });
     } catch (error) {
       console.error(error); // Для отладки

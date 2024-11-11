@@ -1,5 +1,5 @@
 datasource db {
-  provider = "mysql"  // Измените "sqlite" на "mysql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -8,30 +8,54 @@ generator client {
 }
 
 enum UserLevel {
-  NOVICE      // Новичок
-  EXPERIENCED // Опытный
-  EXPERT      // Эксперт
+  NOVICE
+  EXPERIENCED
+  EXPERT
 }
 
 model User {
-  id               Int       @id @default(autoincrement())
-  name             String?   // Имя пользователя
-  email            String    @unique
+  id               Int        @id @default(autoincrement())
+  name             String?
+  email            String     @unique
   password         String
-  role             String    // Строка для ролей
-  points           Int?      // Баллы
-  companyName      String?   // Название компании
-  companyBIN       String?   // БИН компании
-  phoneNumber      String?   // Номер телефона пользователя
-  listings         Listing[] // Связь с объявлениями
-  responses        Response[] // Отклики на объявления
-  city             String?   // Город пользователя
-  country          String?   // Страна пользователя
-  registrationDate DateTime  @default(now()) // Дата регистрации
-  isCompanyVerified Boolean  @default(false) // Подтверждена ли компания
-  level            UserLevel @default(NOVICE) // Уровень пользователя
-  pointsSpent      PointsSpent[] // Связь с моделью PointsSpent
-  pointsAdded      PointsAdded[]  // Связь с моделью PointsAdded (для истории пополнений)
+  role             String
+  points           Int?
+  phoneNumber      String?
+  city             String?
+  country          String?
+  registrationDate DateTime   @default(now())
+  isCompanyVerified Boolean   @default(false)
+  level            UserLevel  @default(NOVICE)
+  company          Company?   // Связь с моделью Company, без аргументов fields и references
+  companyId        Int?
+  listings         Listing[]
+  responses        Response[]
+  pointsSpent      PointsSpent[]
+  pointsAdded      PointsAdded[]
+  employees        CompanyEmployee[] // Связь с компанией через сотрудников
+}
+
+model Company {
+  id              Int        @id @default(autoincrement())
+  name            String
+  binOrIin        String
+  region          String
+  contacts        String?
+  director        String
+  rating          Float?
+  owner           User       @relation(fields: [ownerId], references: [id])
+  ownerId         Int        @unique // Уникальный владелец компании
+  employees       CompanyEmployee[] // Связь с сотрудниками компании
+}
+
+model CompanyEmployee {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  company     Company   @relation(fields: [companyId], references: [id])
+  companyId   Int
+  role        String    // Роль сотрудника (например, "менеджер", "ассистент")
+  joinedAt    DateTime  @default(now()) // Дата присоединения к компании
 }
 
 model PointsAdded {
@@ -40,8 +64,8 @@ model PointsAdded {
   userId     Int
   points     Int      // Количество добавленных баллов
   addedAt    DateTime @default(now()) // Дата и время пополнения
-  addedBy    String?  // Идентификатор администратора, который добавил баллы (может быть email или ID)
-  reason     String?  // Причина или комментарий к пополнению
+  addedBy    String?  // Идентификатор администратора, который добавил баллы
+  reason     String?  // Причина пополнения
   priceAtAdded Int?   // Стоимость балла на момент пополнения
 }
 
@@ -51,8 +75,8 @@ model PointsSpent {
   userId      Int
   response    Response @relation(fields: [responseId], references: [id])
   responseId  Int
-  listing   Listing  @relation(fields: [listingId], references: [id])
-  listingId Int      // Это поле будет хранить ID лота
+  listing     Listing  @relation(fields: [listingId], references: [id])
+  listingId   Int
   pointsUsed  Int      // Количество потраченных баллов
   spentAt     DateTime @default(now()) // Дата и время расхода баллов
 }
@@ -60,9 +84,9 @@ model PointsSpent {
 model PointsPrice {
   id         Int      @id @default(autoincrement())
   price      Int      // Стоимость одного балла
-  validFrom  DateTime @default(now())  // Дата начала действия стоимости
-  validUntil DateTime? // Дата окончания действия стоимости (если применимо)
-  history    PointPriceHistory[] @relation("PriceHistory") // История изменений стоимости
+  validFrom  DateTime @default(now())
+  validUntil DateTime?
+  history    PointPriceHistory[] @relation("PriceHistory")
 }
 
 model PointPriceHistory {
@@ -71,16 +95,16 @@ model PointPriceHistory {
   pointsPriceId Int
   oldPrice     Int      // Старая цена балла
   newPrice     Int      // Новая цена балла
-  changedAt    DateTime @default(now()) // Когда было изменение
+  changedAt    DateTime @default(now())
   changedBy    String   // Кто изменил цену
 }
 
 model PointsStatistics {
   id               Int      @id @default(autoincrement())
-  period           String   // Период статистики (например, "2024-11", "2024-12")
+  period           String   // Период статистики
   totalPointsAdded Int      // Общая сумма начисленных баллов за период
   totalPointsSpent Int      // Общая сумма потраченных баллов за период
-  statisticsDate   DateTime @default(now()) // Дата статистики
+  statisticsDate   DateTime @default(now())
 }
 
 model Listing {
@@ -94,28 +118,31 @@ model Listing {
   purchaseDate   DateTime?
   author         User      @relation(fields: [authorId], references: [id])
   authorId       Int
-  responses      Response[] // Связь с откликами
-  category       Category? @relation(fields: [categoryId], references: [id]) // Обратная связь
+  responses      Response[] 
+  category       Category? @relation(fields: [categoryId], references: [id])
   categoryId     Int
-  responseCost   Int       @default(10) // Цена отклика для этого объявления
-  pointsSpent PointsSpent[]  // Обратная связь с PointsSpent
+  responseCost   Int       @default(10)
+  pointsSpent    PointsSpent[]
+  purchaseMethod   String?   // Метод закупки, например, "понижение цены", "запрос ценового предложения"
+  paymentTerms     String?   // Условия оплаты (новое поле)
+  type          String   // Новый тип объявления: товар или услуга
 }
 
 model Response {
   id          Int      @id @default(autoincrement())
   responder   User     @relation(fields: [responderId], references: [id])
   responderId Int
-  message     String?  // Убедитесь, что это поле существует
+  message     String?
   listing     Listing  @relation(fields: [listingId], references: [id])
   listingId   Int
-  status      String   @default("pending") // Статус отклика (pending, approved, rejected)
+  status      String   @default("pending")
   createdAt   DateTime @default(now())
   accepted    Boolean?
-  pointsSpent PointsSpent[] // Связь с моделью PointsSpent
+  pointsSpent PointsSpent[]
 }
 
 model Category {
   id       Int       @id @default(autoincrement())
-  name     String    @unique // Название категории
-  listings Listing[] // Связь с объявлениями
+  name     String    @unique
+  listings Listing[]
 }

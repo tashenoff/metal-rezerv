@@ -25,9 +25,7 @@ export default async function handler(req, res) {
                 phoneNumber,
                 city,
                 country,
-                companyName,
-                companyBIN,
-                points,
+              
             } = req.body;
 
             const user = await prisma.user.findUnique({ where: { id: userId } });
