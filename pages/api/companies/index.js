@@ -55,7 +55,8 @@ export default async function handler(req, res) {
         },
       });
 
-      return res.status(201).json({ newCompany, companyId: newCompany.id });
+      // return res.status(201).json({ newCompany, companyId: newCompany.id });
+      return res.status(201).json({ company: newCompany });
     } catch (error) {
       return res.status(500).json({ error: 'Ошибка при создании компании' });
     }

@@ -53,17 +53,8 @@ const Listings = () => {
   return (
     <Layout>
       <Banner title='Публикуйте заявки, получайте лучшие предложения' />
-      <div className="py-5 grid lg:grid-cols-12 gap-5">
-        <div className='lg:col-span-9'>
-          <SearchBar onSearch={handleSearch} />
-        </div>
-        <div className='lg:col-span-3'>
-          <Dropdown
-            label="Выберите категории"
-            options={categories.map(category => category.name)} // Получаем имена категорий
-            onSelect={handleCategorySelect}
-          />
-        </div>
+      <div className="py-5 w-full">
+        <SearchBar onSearch={handleSearch} />
       </div>
 
       {loading ? ( // Индикатор загрузки

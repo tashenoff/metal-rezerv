@@ -18,7 +18,7 @@ const EffectivenessDisplay = ({ level }) => {
 
     return (
        
-            <div className='flex justify-between py-2 px-5 rounded-full items-center bg-base-100'>
+            <div className='flex justify-between py-2 px-5 rounded-lg items-center bg-base-100'>
                 <span className='mr-2'>Ваш уровень:</span>
                 <strong className={getLevelColor(level)}>{level}</strong> {/* Применяем цвет к уровню */}
             </div>

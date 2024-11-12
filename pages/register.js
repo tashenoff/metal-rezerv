@@ -1,6 +1,15 @@
 // pages/register.js
 import { useState } from 'react';
 
+// Данные стран и их городов
+const countryCityMap = {
+    Россия: ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань'],
+    Казахстан: ['Нур-Султан', 'Алматы', 'Шымкент'],
+    Беларусь: ['Минск', 'Гомель', 'Могилёв'],
+    Украина: ['Киев', 'Харьков', 'Одесса'],
+    Узбекистан: ['Ташкент', 'Самарканд', 'Бухара']
+};
+
 export default function Register() {
     const [formData, setFormData] = useState({
         role: 'PUBLISHER', // по умолчанию "Пользователь"
@@ -12,11 +21,25 @@ export default function Register() {
         country: '',
     });
 
+    const [cities, setCities] = useState([]);
+
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        const { name, value } = e.target;
+
+        if (name === 'country') {
+            // Обновляем список городов при выборе страны
+            setCities(countryCityMap[value] || []);
+            setFormData({
+                ...formData,
+                [name]: value,
+                city: '' // Сбрасываем выбранный город при смене страны
+            });
+        } else {
+            setFormData({
+                ...formData,
+                [name]: value,
+            });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -100,24 +123,48 @@ export default function Register() {
                         className="input input-bordered"
                     />
                 </div>
+
+                {/* Выбор страны */}
                 <div className="form-control mb-4">
-                    <input
-                        type="text"
-                        name="city"
-                        placeholder="Город"
-                        onChange={handleChange}
-                        className="input input-bordered"
-                    />
-                </div>
-                <div className="form-control mb-4">
-                    <input
-                        type="text"
+                    <label className="label">
+                        <span className="label-text">Страна</span>
+                    </label>
+                    <select
                         name="country"
-                        placeholder="Страна"
+                        value={formData.country}
                         onChange={handleChange}
-                        className="input input-bordered"
-                    />
+                        className="select select-bordered"
+                    >
+                        <option value="">Выберите страну</option>
+                        {Object.keys(countryCityMap).map((country) => (
+                            <option key={country} value={country}>
+                                {country}
+                            </option>
+                        ))}
+                    </select>
                 </div>
+
+                {/* Выбор города */}
+                <div className="form-control mb-4">
+                    <label className="label">
+                        <span className="label-text">Город</span>
+                    </label>
+                    <select
+                        name="city"
+                        value={formData.city}
+                        onChange={handleChange}
+                        className="select select-bordered"
+                        disabled={!formData.country}
+                    >
+                        <option value="">Выберите город</option>
+                        {cities.map((city) => (
+                            <option key={city} value={city}>
+                                {city}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+
                 <button type="submit" className="btn btn-primary w-full">
                     Зарегистрироваться
                 </button>

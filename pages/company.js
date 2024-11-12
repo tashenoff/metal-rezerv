@@ -83,45 +83,55 @@ const MyCompany = () => {
     };
 
     const handleCompanySubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-
-        try {
-            const response = await fetch('/api/companies', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: companyName,
-                    binOrIin: binOrIin,
-                    region: region,
-                    contacts: contacts,
-                    director, // Устанавливаем выбранного директора
-                    ownerId: user.id, // Используем user.id как ownerId
-                }),
-            });
-
-            if (response.ok) {
-                const newCompany = await response.json();  // Получаем данные новой компании
-                setMessage('Компания успешно создана!');
-                setMessageType('success');
-                // Обновляем состояние компании и ее ID
-                setCompany(newCompany.company);  // Обновляем данные компании
-                setEmployees([]);  // Обнуляем список сотрудников, так как они будут обновлены
-                fetchEmployees(newCompany.company.id);  // Перезапрашиваем сотрудников по ID новой компании
-            } else {
-                const errorData = await response.json();
-                setMessage(`Ошибка: ${errorData.error}`);
-                setMessageType('error');
-            }
-        } catch (error) {
-            setMessage('Произошла ошибка при создании компании.');
-            setMessageType('error');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+      e.preventDefault();
+      setIsLoading(true);
+  
+      try {
+          const response = await fetch('/api/companies', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  name: companyName,
+                  binOrIin: binOrIin,
+                  region: region,
+                  contacts: contacts,
+                  director, // Устанавливаем выбранного директора
+                  ownerId: user.id, // Используем user.id как ownerId
+              }),
+          });
+  
+          const responseData = await response.json();
+          console.log('Full Response:', responseData);  // Логируем полный ответ
+  
+          if (response.ok) {
+              // Проверяем наличие объекта компании в ответе
+              if (responseData && responseData.company) {
+                  const newCompany = responseData.company;  // Получаем данные новой компании
+                  setMessage('Компания успешно создана!');
+                  setMessageType('success');
+                  setCompany(newCompany);  // Обновляем данные компании
+                  setEmployees([]);  // Обнуляем список сотрудников
+                  fetchEmployees(newCompany.id);  // Перезапрашиваем сотрудников
+              } else {
+                  setMessage('Ошибка: Сервер не вернул корректные данные о компании.');
+                  setMessageType('error');
+              }
+          } else {
+              // Ошибка на сервере, выводим подробности
+              setMessage(`Ошибка: ${responseData.error || 'Неизвестная ошибка'}`);
+              setMessageType('error');
+          }
+      } catch (error) {
+          console.error('Ошибка при создании компании:', error);  // Логируем ошибку
+          setMessage('Произошла ошибка при создании компании.');
+          setMessageType('error');
+      } finally {
+          setIsLoading(false);
+      }
+  };
+  
 
     const resetForm = () => {
         setCompanyName('');
@@ -140,48 +150,119 @@ const MyCompany = () => {
     }
 
     return (
-        <Layout>
-            {message && <Notification message={message} type={messageType} />}
-            <div className="form-container">
-                {!company ? (
-                    <form className="company-form" onSubmit={handleCompanySubmit}>
-                        <h2>Создание компании</h2>
-                        <Input label="Название компании" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
-                        <Input label="BIN/IIN" value={binOrIin} onChange={(e) => setBinOrIin(e.target.value)} required />
-                        <Input label="Регион" value={region} onChange={(e) => setRegion(e.target.value)} required />
-                        <Input label="Контакты" value={contacts} onChange={(e) => setContacts(e.target.value)} />
-                        <Input label="Директор" value={director} onChange={(e) => setDirector(e.target.value)} required />
-                        <Button type="submit">Создать компанию</Button>
-                    </form>
-                ) : (
-                    <div>
-                        <h2>Моя компания</h2>
-                        <p><strong>Название:</strong> {company.name}</p>
-                        <p><strong>BIN/IIN:</strong> {company.binOrIin}</p>
-                        <p><strong>Регион:</strong> {company.region}</p>
-                        <p><strong>Контакты:</strong> {company.contacts}</p>
-                        <p><strong>Директор:</strong> {company.director}</p>
-
-                        <h3>Сотрудники компании</h3>
-                        <ul>
-                            {employees.length > 0 ? (
-                                employees.map((employee) => (
-                                    <li key={employee.id}>
-                                        <p><strong>Имя:</strong> {employee.user.name}</p>
-                                        <p><strong>Должность:</strong> {employee.role}</p>
-                                        <p><strong>Электронная почта:</strong> {employee.user.email}</p>
-                                    </li>
-                                ))
-                            ) : (
-                                <p>Нет сотрудников в компании.</p>
-                            )}
-                        </ul>
-
-                        <Button onClick={() => router.push('/create-employee')}>Перейти к добавлению сотрудников</Button>
-                    </div>
-                )}
+      <Layout>
+      {message && <Notification message={message} type={messageType} />}
+      <div className=" mx-auto py-6  rounded-lg shadow-md">
+        {!company ? (
+          <form className="space-y-6 p-5 rounded-lg bg-base-100" onSubmit={handleCompanySubmit}>
+            <h2 className="text-2xl font-semibold text-center text-primary">Создание компании</h2>
+            <div className="space-y-4">
+              <Input
+                label="Название компании"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                required
+                className="w-full p-3 border border-neutral rounded-lg"
+              />
+              <Input
+                label="BIN/IIN"
+                value={binOrIin}
+                onChange={(e) => setBinOrIin(e.target.value)}
+                required
+                className="w-full p-3 border border-neutral rounded-lg"
+              />
+              <Input
+                label="Регион"
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                required
+                className="w-full p-3 border border-neutral rounded-lg"
+              />
+              <Input
+                label="Контакты"
+                value={contacts}
+                onChange={(e) => setContacts(e.target.value)}
+                className="w-full p-3 border border-neutral rounded-lg"
+              />
+              <Input
+                label="Директор"
+                value={director}
+                onChange={(e) => setDirector(e.target.value)}
+                required
+                className="w-full p-3 border border-neutral rounded-lg"
+              />
             </div>
-        </Layout>
+            <Button type="submit" className="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-focus">
+              Создать компанию
+            </Button>
+          </form>
+        ) : (
+          <div className="space-y-6 ">
+            <h2 className="text-xl font-semibold">Моя компания</h2>
+
+            <div className="overflow-x-auto bg-base-100 ">
+              <table className="table w-full table-compact">
+                <thead>
+                  <tr>
+                    <th className="text-center">Название</th>
+                    <th className="text-center">BIN/IIN</th>
+                    <th className="text-center">Регион</th>
+                    <th className="text-center">Контакты</th>
+                    <th className="text-center">Директор</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="hover">
+                    <td className="text-center">{company.name}</td>
+                    <td className="text-center">{company.binOrIin}</td>
+                    <td className="text-center">{company.region}</td>
+                    <td className="text-center">{company.contacts}</td>
+                    <td className="text-center">{company.director}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="text-xl font-semibold mt-6">Сотрудники компании</h3>
+            <div className="overflow-x-auto bg-base-100">
+              <table className="table w-full table-compact">
+                <thead>
+                  <tr>
+                    <th className="text-center">Имя</th>
+                    <th className="text-center">Должность</th>
+                    <th className="text-center">Электронная почта</th>
+                    <th className="text-center">дата добавления</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {employees.length > 0 ? (
+                    employees.map((employee) => (
+                      <tr key={employee.id} className="hover">
+                        <td className="text-center">{employee.user.name}</td>
+                        <td className="text-center">{employee.role}</td>
+                        <td className="text-center">{employee.user.email}</td>
+                        <td className="text-center">{employee.user.joinedAt}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="3" className="text-center">Нет сотрудников в компании.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <Button
+              onClick={() => router.push('/create-employee')}
+              className="w-full py-3 bg-accent text-white rounded-lg hover:bg-accent-focus mt-6"
+            >
+              Перейти к добавлению сотрудников
+            </Button>
+          </div>
+        )}
+      </div>
+    </Layout>
     );
 };
 

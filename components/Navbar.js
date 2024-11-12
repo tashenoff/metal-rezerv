@@ -49,6 +49,11 @@ const Navbar = ({ handleLogout }) => {
             <Link href="/listings" className="link link-hover text-primary font-bold">
               Заявки
             </Link>
+
+            <Link href="/company" className="link link-hover font-bold">
+              Моя компания
+            </Link>
+
             {user?.isLoggedIn && user.role !== 'PUBLISHER' && (
               <>
                 <Link href="/responses" className="link link-hover">
