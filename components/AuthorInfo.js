@@ -34,7 +34,7 @@ const AuthorInfo = ({ author, responses, userId }) => {
                    <div className="w-full justify-between flex"> <strong className="mr-2">Автор:</strong> <span>{author.name}</span></div>
 
 
-                   <div className="w-full justify-between flex"><strong className="mr-2">Компания:</strong> {author.companyName}</div>
+                   <div className="w-full justify-between flex"><strong className="mr-2">Компания:</strong> {author.company.name}</div>
                    <div className="w-full justify-between flex"> <strong className="mr-2">Телефон:</strong> {author.phoneNumber}</div>
 
                    <div className="w-full justify-between flex"> <strong className="mr-2">Email:</strong> {author.email}</div>

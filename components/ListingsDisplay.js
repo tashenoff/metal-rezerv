@@ -12,7 +12,7 @@ const ListingsDisplay = ({ listings, onListingClick }) => {
                 <li key={listing.id}> {/* Оборачиваем в li для лучшей семантики */}
                     <Card
                         title={listing.title}
-                        link={`/listing/${listing.id}`}
+                        link={`/listings/${listing.id}`}
                         onClick={() => onListingClick(listing)}
                     >
                         <p className='py-5'>

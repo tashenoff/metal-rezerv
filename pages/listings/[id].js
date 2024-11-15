@@ -33,6 +33,8 @@ const ListingPage = () => {
         }
     }, [user]);
 
+    
+
     useEffect(() => {
         const fetchData = async () => {
             if (!router.isReady || !id) return; // Ждем, пока router станет готовым и id станет доступным

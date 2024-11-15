@@ -50,10 +50,6 @@ const Navbar = ({ handleLogout }) => {
               Заявки
             </Link>
 
-            <Link href="/company" className="link link-hover font-bold">
-              Моя компания
-            </Link>
-
             {user?.isLoggedIn && user.role !== 'PUBLISHER' && (
               <>
                 <Link href="/responses" className="link link-hover">
@@ -69,6 +65,13 @@ const Navbar = ({ handleLogout }) => {
                 Мои заявки
               </Link>
             )}
+            
+            {/* Ссылка на профиль */}
+            {user?.isLoggedIn && (
+              <Link href={`/profile/${user?.id}`} className="link link-hover">
+                Профиль
+              </Link>
+            )}
           </nav>
         </div>
 
@@ -78,12 +81,9 @@ const Navbar = ({ handleLogout }) => {
             <>
               <PointsDisplay points={user.points} role={user.role} />
               {user.role === 'PUBLISHER' && (
-
-                <Link href="/create-listing" className="btn btn-primary btn-sm">
+                <Link href="/listings/create-listing" className="btn btn-primary btn-sm">
                   Создать Заявку
                 </Link>
-
-
               )}
 
               <div className='hidden lg:block'>
@@ -92,14 +92,11 @@ const Navbar = ({ handleLogout }) => {
 
               {/* Выпадающее меню только для авторизованных пользователей */}
               <div className="relative inline-block" ref={dropdownRef}>
-
                 <button
                   className="flex items-center cursor-pointer"
                   onClick={toggleDropdown}
                   aria-expanded={isDropdownOpen}
                 >
-
-
                   <svg
                     className={`w-4 h-4 hidden lg:block ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
                     xmlns="http://www.w3.org/2000/svg"
@@ -115,8 +112,13 @@ const Navbar = ({ handleLogout }) => {
                   <div className="absolute right-0 mt-2 w-48 bg-base-100 border border-base-200 rounded-md shadow-lg z-10">
                     <ul className="menu">
                       <li>
-                        <Link href="/edit-profile" className="block px-4 py-2 hover:bg-base-300">
+                        <Link href="/profile/edit-profile" className="block px-4 py-2 hover:bg-base-300">
                           Редактировать профиль
+                        </Link>
+                      </li>
+                      <li>
+                        <Link href="/company" className="link link-hover font-bold">
+                          Моя компания
                         </Link>
                       </li>
                       <li>
@@ -187,7 +189,7 @@ const Navbar = ({ handleLogout }) => {
             {user?.isLoggedIn && (
               <>
                 <li>
-                  <Link href="/edit-profile" className="link link-hover">
+                  <Link href="/profile/edit-profile" className="link link-hover">
                     Редактировать профиль
                   </Link>
                 </li>

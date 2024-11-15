@@ -56,6 +56,7 @@ export default async function handler(req, res) {
         ...listing,
         isExpired, // Добавляем информацию о том, истекло ли объявление
         message: isExpired ? 'Срок действия объявления истек.' : 'Объявление активно.',
+        responseCost: listing.responseCost, // Добавляем поле responseCost
         author: {
           ...listing.author,
           company: listing.author.company, // Включаем информацию о компании

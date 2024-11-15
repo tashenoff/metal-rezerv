@@ -114,7 +114,7 @@ const ResponsesPage = () => {
                         <p className="my-4 bg-base-200 card p-2">
                             <TruncatedText text={selectedResponse.listing.content} maxLength={100} />
                             <p className="my-2">
-                                <Link href={`/listing/${selectedResponse.listing.id}`} className='link link-primary flex space-x-2 items-center'>
+                                <Link href={`/listings/${selectedResponse.listing.id}`} className='link link-primary flex space-x-2 items-center'>
                                     <LinkIcon className="size-4" />
                                     <span>Посмотреть объявление</span>
                                 </Link>

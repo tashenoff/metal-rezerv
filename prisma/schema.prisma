@@ -33,6 +33,8 @@ model User {
   pointsSpent      PointsSpent[]
   pointsAdded      PointsAdded[]
   employees        CompanyEmployee[] // Связь с компанией через сотрудников
+  relatedModels RelatedModel[] // Добавьте это поле для обратной связи
+  
 }
 
 model Company {
@@ -43,24 +45,24 @@ model Company {
   contacts        String?
   director        String
   rating          Float?
-  owner           User       @relation(fields: [ownerId], references: [id])
+  owner           User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId         Int        @unique // Уникальный владелец компании
   employees       CompanyEmployee[] // Связь с сотрудниками компании
 }
 
 model CompanyEmployee {
   id          Int       @id @default(autoincrement())
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade) // Добавляем onDelete: Cascade
   userId      Int
-  company     Company   @relation(fields: [companyId], references: [id])
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId   Int
-  role        String    // Роль сотрудника (например, "менеджер", "ассистент")
+  role        String    // Роль сотрудника (например, "менеджер", "директор отдела продаж")
   joinedAt    DateTime  @default(now()) // Дата присоединения к компании
 }
 
 model PointsAdded {
   id         Int      @id @default(autoincrement())
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Добавляем onDelete: Cascade
   userId     Int
   points     Int      // Количество добавленных баллов
   addedAt    DateTime @default(now()) // Дата и время пополнения
@@ -69,17 +71,19 @@ model PointsAdded {
   priceAtAdded Int?   // Стоимость балла на момент пополнения
 }
 
+
 model PointsSpent {
   id          Int      @id @default(autoincrement())
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Добавляем onDelete: Cascade
   userId      Int
-  response    Response @relation(fields: [responseId], references: [id])
+  response    Response @relation(fields: [responseId], references: [id], onDelete: Cascade)
   responseId  Int
-  listing     Listing  @relation(fields: [listingId], references: [id])
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
   listingId   Int
   pointsUsed  Int      // Количество потраченных баллов
   spentAt     DateTime @default(now()) // Дата и время расхода баллов
 }
+
 
 model PointsPrice {
   id         Int      @id @default(autoincrement())
@@ -91,7 +95,7 @@ model PointsPrice {
 
 model PointPriceHistory {
   id           Int      @id @default(autoincrement())
-  pointsPrice  PointsPrice @relation("PriceHistory", fields: [pointsPriceId], references: [id])
+  pointsPrice  PointsPrice @relation("PriceHistory", fields: [pointsPriceId], references: [id], onDelete: Cascade)
   pointsPriceId Int
   oldPrice     Int      // Старая цена балла
   newPrice     Int      // Новая цена балла
@@ -116,7 +120,7 @@ model Listing {
   publishedAt    DateTime  @default(now())
   expirationDate DateTime?
   purchaseDate   DateTime?
-  author         User      @relation(fields: [authorId], references: [id])
+  author         User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId       Int
   responses      Response[] 
   category       Category? @relation(fields: [categoryId], references: [id])
@@ -130,10 +134,10 @@ model Listing {
 
 model Response {
   id          Int      @id @default(autoincrement())
-  responder   User     @relation(fields: [responderId], references: [id])
+  responder   User     @relation(fields: [responderId], references: [id], onDelete: Cascade) // Добавляем onDelete: Cascade
   responderId Int
   message     String?
-  listing     Listing  @relation(fields: [listingId], references: [id])
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
   listingId   Int
   status      String   @default("pending")
   createdAt   DateTime @default(now())
@@ -146,3 +150,10 @@ model Category {
   name     String    @unique
   listings Listing[]
 }
+
+model RelatedModel {
+  id        Int    @id @default(autoincrement())
+  ownerId   Int?
+  owner     User?  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+}
+

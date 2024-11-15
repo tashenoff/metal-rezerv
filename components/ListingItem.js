@@ -32,7 +32,7 @@ const ListingItem = ({ listing, responseCountsByStatus, isExpired, handlePublish
     return (
         <div className='card bg-base-100 p-5'>
             <div className='flex items-center  border-b border-base-200 w-full py-5'>
-                <Link className='card-title' href={`/listing/${listing.id}`}>{listing.title}</Link>
+                <Link className='card-title' href={`/listings/${listing.id}`}>{listing.title}</Link>
             </div>
 
 

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import Layout from '../components/Layout';
-import ListingsDisplay from '../components/ListingsDisplay';
-import Dropdown from '../components/Dropdown';
-import SearchBar from '../components/SearchBar';
-import Banner from '../components/Banner';
+import Layout from '../../components/Layout';
+import ListingsDisplay from '../../components/ListingsDisplay';
+import Dropdown from '../../components/Dropdown';
+import SearchBar from '../../components/SearchBar';
+import Banner from '../../components/Banner';
 
 const Listings = () => {
   const [listings, setListings] = useState([]);
