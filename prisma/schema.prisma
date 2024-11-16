@@ -34,7 +34,8 @@ model User {
   pointsAdded      PointsAdded[]
   employees        CompanyEmployee[] // Связь с компанией через сотрудников
   relatedModels RelatedModel[] // Добавьте это поле для обратной связи
-  
+  reviews          Review[]   // Это связь с моделью Review
+
 }
 
 model Company {
@@ -48,7 +49,23 @@ model Company {
   owner           User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId         Int        @unique // Уникальный владелец компании
   employees       CompanyEmployee[] // Связь с сотрудниками компании
+  reviews         Review[]   // Связь с отзывами компании
 }
+
+
+model Review {
+  id           Int      @id @default(autoincrement())
+  company      Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId    Int
+  reviewer     User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewerId   Int
+  rating       Int      // Рейтинг (например, от 1 до 5)
+  comment      String?  // Текстовый отзыв, если есть
+  createdAt    DateTime @default(now())
+}
+
+
+
 
 model CompanyEmployee {
   id          Int       @id @default(autoincrement())

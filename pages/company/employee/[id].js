@@ -93,7 +93,7 @@ const EmployeePage = () => {
                     <div className='col-span-4'>
                         {/* Карточка с данными сотрудника */}
                         <div className="card bg-base-100 shadow-md">
-                        <h3 className="card-title">Информация о сотруднике</h3>
+                        
                             <div className="card-body">
                                 <p><strong>ID:</strong> {employee.id || 'ID не указан'}</p>
                                 <p><strong>Имя:</strong> {employee.name || 'Имя не указано'}</p>
@@ -118,7 +118,7 @@ const EmployeePage = () => {
                     <div className='col-span-8'>
                         {/* Вывод откликов и потраченных баллов */}
                         {pointsSpent.length > 0 && (
-                            <div className="mt-6">
+                            <div className="mt-6 bg-base-100 p-5">
                                 <h3 className="text-xl font-semibold">Отклики и потраченные баллы</h3>
                                 <div className="mt-4 overflow-x-auto">
                                     <table className="table table-zebra w-full">
