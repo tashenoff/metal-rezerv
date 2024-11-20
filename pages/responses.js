@@ -130,7 +130,7 @@ const ResponsesPage = () => {
                                     </li>
                                     <li className='flex items-center mb-1'>
                                         <BuildingOffice2Icon className="w-5 h-5 mr-2 text-gray-600" />
-                                        <strong>Компания:</strong> {selectedResponse.listing.author.companyName}
+                                        <strong className='mr-2'>Компания:</strong> {selectedResponse.listing.author.company?.name}
                                     </li>
                                     <li className='flex items-center mb-1'>
                                         <PhoneIcon className="w-5 h-5 mr-2 text-gray-600" />
@@ -138,7 +138,7 @@ const ResponsesPage = () => {
                                     </li>
                                     <li className='flex items-center mb-1'>
                                         <IdentificationIcon className="w-5 h-5 mr-2 text-gray-600" />
-                                        <strong>BIN:</strong> {selectedResponse.listing.author.companyBIN}
+                                        <strong className='mr-2'>BIN:</strong> {selectedResponse.listing.author.company?.binOrIin}
                                     </li>
                                     <li className='flex items-center mb-1'>
                                         <AtSymbolIcon className="w-5 h-5 mr-2 text-gray-600" />

@@ -35,21 +35,63 @@ model User {
   employees        CompanyEmployee[] // Связь с компанией через сотрудников
   relatedModels RelatedModel[] // Добавьте это поле для обратной связи
   reviews          Review[]   // Это связь с моделью Review
+  pointTransfers   PointTransfer[]   // Обратная связь с моделью PointTransfer
+  
 
 }
 
 model Company {
-  id              Int        @id @default(autoincrement())
-  name            String
-  binOrIin        String
-  region          String
-  contacts        String?
-  director        String
-  rating          Float?
-  owner           User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId         Int        @unique // Уникальный владелец компании
-  employees       CompanyEmployee[] // Связь с сотрудниками компании
-  reviews         Review[]   // Связь с отзывами компании
+  id                    Int                          @id @default(autoincrement())
+  name                  String
+  binOrIin              String
+  region                String
+  contacts              String?
+  director              String
+  rating                Float?
+  balance               Int                          @default(1000) // Баланс компании для управления баллами
+  owner                 User                         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId               Int                          @unique // Уникальный владелец компании
+  employees             CompanyEmployee[]            // Связь с сотрудниками компании
+  reviews               Review[]                     // Связь с отзывами компании
+  pointTransfers        PointTransfer[]              // Связь с переводами баллов
+  balanceTransactions   CompanyBalanceTransaction[]  // Обратная связь с историей транзакций
+  moderationStatus      ModerationStatus             @default(PENDING) // Статус модерации компании
+}
+
+
+enum ModerationStatus {
+  PENDING   // На модерации
+  APPROVED  // Одобрено
+  REJECTED  // Отклонено
+}
+
+// Включаем перечисление для типов транзакций
+enum TransactionType {
+  REPLENISHMENT  // Пополнение
+  DEBIT          // Списание
+}
+
+model CompanyBalanceTransaction {
+  id               Int             @id @default(autoincrement())
+  company          Company         @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId        Int
+  amount           Int             // Количество добавленных или вычтенных баллов (положительное — пополнение, отрицательное — списание)
+  transactionType  TransactionType // Ссылаемся на перечисление
+  description      String?         // Описание операции (например, причина пополнения)
+  adminId          Int?            // Идентификатор администратора, выполнившего операцию
+  transactionDate  DateTime        @default(now()) // Дата и время операции
+}
+
+
+model PointTransfer {
+  id             Int       @id @default(autoincrement())
+  company        Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId      Int       // Идентификатор компании, которая выполняет перевод
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         Int       // Идентификатор пользователя, который получает баллы
+  points         Int       // Количество баллов, переданных пользователю
+  transferDate   DateTime  @default(now()) // Дата и время перевода
+  description    String?   // Описание перевода (например, "Бонус за выполнение задачи")
 }
 
 
@@ -62,6 +104,8 @@ model Review {
   rating       Int      // Рейтинг (например, от 1 до 5)
   comment      String?  // Текстовый отзыв, если есть
   createdAt    DateTime @default(now())
+  isModerated  Boolean  @default(false) // Флаг для модерации отзыва
+  
 }
 
 

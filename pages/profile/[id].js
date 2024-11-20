@@ -7,13 +7,14 @@ const ProfilePage = () => {
     const { user, loading, logout } = useAuth();  // Получаем данные пользователя из контекста
     const [profile, setProfile] = useState(null);
     const [deleting, setDeleting] = useState(false);  // Состояние для удаления аккаунта
-    const [isLoading, setIsLoading] = useState(true);  // Состояние для отслеживания загрузки профиля
+    const [fetchingProfile, setFetchingProfile] = useState(true);  // Состояние для загрузки профиля
     const router = useRouter();
     const { id } = router.query; // Получаем id из URL
 
     useEffect(() => {
         if (!loading && user?.isLoggedIn && id) {
             const fetchProfile = async () => {
+                setFetchingProfile(true);  // Начинаем загрузку профиля
                 try {
                     console.log('Fetching profile for ID:', id);  // Логируем, какой ID запрашиваем
                     const res = await fetch(`/api/profile/${id}`, {
@@ -32,23 +33,13 @@ const ProfilePage = () => {
                 } catch (error) {
                     console.error('Ошибка при получении профиля:', error);
                 } finally {
-                    setIsLoading(false);  // Завершаем загрузку
+                    setFetchingProfile(false);  // Завершаем загрузку профиля
                 }
             };
 
             fetchProfile();  // Загружаем профиль при рендере
         }
     }, [user, id, loading]);
-
-    if (isLoading) {
-        return (
-            <Layout>
-                <div className="flex justify-center items-center min-h-screen">
-                    <div className="loader">Загрузка...</div> {/* Прелоадер */}
-                </div>
-            </Layout>
-        );
-    }
 
     if (loading) return <div>Загрузка...</div>;
 
@@ -85,13 +76,17 @@ const ProfilePage = () => {
         <Layout>
             <div className="max-w-3xl mx-auto mt-8 p-6">
                 <h1 className="text-3xl font-bold text-center text-gray-800">Профиль пользователя</h1>
-                {profile ? (
+                {fetchingProfile ? (
+                    <div className="flex justify-center mt-6">
+                        <span className="loading loading-bars loading-lg"></span>  {/* Индикатор загрузки */}
+                    </div>
+                ) : profile ? (
                     <div className="mt-6">
                         <div className="space-y-4">
                             {/* Карточка с данными пользователя */}
                             <div className="card bg-base-100 shadow-md">
                                 <div className="card-body">
-                                    <p><strong>Мой ID:</strong> {profile.user?.id || 'Email не указан'}</p>
+                                    <p><strong>Мой ID:</strong> {profile.user?.id || 'ID не указан'}</p>
                                 </div>
                             </div>
 

@@ -3,19 +3,19 @@ import { useState, useEffect } from 'react';
 export default function AddPointsForm() {
     const [userId, setUserId] = useState('');
     const [points, setPoints] = useState('');
+    const [companyId, setCompanyId] = useState('');
     const [addedBy, setAddedBy] = useState('');
     const [reason, setReason] = useState('');
     const [message, setMessage] = useState('');
-    const [pricePerPoint, setPricePerPoint] = useState(0);  // Стоимость одного балла
-    const [totalCost, setTotalCost] = useState(0);  // Общая стоимость за баллы
+    const [pricePerPoint, setPricePerPoint] = useState(0);
+    const [totalCost, setTotalCost] = useState(0);
 
-    // Функция для получения актуальной цены баллов
     const fetchPricePerPoint = async () => {
         try {
             const response = await fetch('/api/points-price');
             const data = await response.json();
             if (response.ok) {
-                setPricePerPoint(data.price);  // Устанавливаем цену за балл из API
+                setPricePerPoint(data.price);
             } else {
                 setMessage('Не удалось получить цену баллов');
             }
@@ -24,49 +24,81 @@ export default function AddPointsForm() {
         }
     };
 
-    // Получаем цену баллов при монтировании компонента
     useEffect(() => {
         fetchPricePerPoint();
     }, []);
 
-    // Функция для расчета общей стоимости
     const calculateTotalCost = (points) => {
         if (!pricePerPoint || isNaN(points)) return;
         setTotalCost(points * pricePerPoint);
     };
 
-    // Отправка формы
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
 
-        try {
-            const response = await fetch('/api/addPoints', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    userId: parseInt(userId),
-                    points: parseInt(points),
-                    addedBy,
-                    reason,
-                    totalCost,  // Добавляем расчетную стоимость в запрос
-                }),
-            });
+        if (companyId) {
+            try {
+                const parsedCompanyId = parseInt(companyId, 10); // Преобразуем в число
 
-            const data = await response.json();
-            if (response.ok) {
-                setMessage('Баланс успешно пополнен.');
-            } else {
-                setMessage(`Ошибка: ${data.message}`);
+                console.log("Отправка запроса на:", `/api/companies/${parsedCompanyId}/addBalance`);
+                console.log("Данные запроса:", {
+                    amount: parseInt(points, 10),
+                    description: reason,
+                    adminId: addedBy,
+                });
+
+                const response = await fetch(`/api/companies/${parsedCompanyId}/addBalance`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        companyId: parsedCompanyId, // Преобразуем companyId в число
+                        points: parseInt(points, 10),
+                        addedBy,
+                        reason,
+                        totalCost,
+                    }),
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    setMessage('Баланс компании успешно пополнен.');
+                } else {
+                    setMessage(`Ошибка: ${data.message}`);
+                }
+            } catch (error) {
+                setMessage(`Ошибка: ${error.message}`);
             }
-        } catch (error) {
-            setMessage(`Ошибка: ${error.message}`);
+        } else {
+            try {
+                const response = await fetch('/api/addPoints', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        userId: parseInt(userId, 10),
+                        points: parseInt(points, 10),
+                        addedBy,
+                        reason,
+                        totalCost,
+                    }),
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    setMessage('Баланс пользователя успешно пополнен.');
+                } else {
+                    setMessage(`Ошибка: ${data.message}`);
+                }
+            } catch (error) {
+                setMessage(`Ошибка: ${error.message}`);
+            }
         }
     };
 
-    // Обработчик изменений количества баллов
     const handlePointsChange = (e) => {
         setPoints(e.target.value);
         calculateTotalCost(e.target.value);
@@ -74,7 +106,7 @@ export default function AddPointsForm() {
 
     return (
         <div className="max-w-md mx-auto bg-base-100 p-6 rounded shadow">
-            <h2 className="text-xl font-semibold mb-4">Добавить баллы пользователю</h2>
+            <h2 className="text-xl font-semibold mb-4">Добавить баллы</h2>
             <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                     <label className="block text-gray-700 font-medium">ID пользователя</label>
@@ -83,7 +115,19 @@ export default function AddPointsForm() {
                         value={userId}
                         onChange={(e) => setUserId(e.target.value)}
                         className="w-full p-2 border rounded mt-1"
-                        required
+                        required={!companyId}
+                        disabled={!!companyId}
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-gray-700 font-medium">ID компании</label>
+                    <input
+                        type="number"
+                        value={companyId}
+                        onChange={(e) => setCompanyId(e.target.value)}
+                        className="w-full p-2 border rounded mt-1"
+                        required={!userId}
+                        disabled={!!userId}
                     />
                 </div>
                 <div className="mb-4">
@@ -114,8 +158,7 @@ export default function AddPointsForm() {
                         className="w-full p-2 border rounded mt-1"
                     />
                 </div>
-                
-                {/* Отображаем стоимость баллов */}
+
                 {pricePerPoint > 0 && points && (
                     <div className="mb-4 text-sm text-gray-700">
                         <p>Стоимость {points} баллов: {totalCost} тенге</p>

@@ -4,64 +4,71 @@ import { useAuth } from '../../../contexts/AuthContext';
 import Layout from '../../../components/Layout';
 
 const EmployeePage = () => {
-    const { user, loading } = useAuth();  // Получаем данные пользователя из контекста
+    const { user, loading } = useAuth();
     const [employee, setEmployee] = useState(null);
-    const [pointsSpent, setPointsSpent] = useState([]); // Массив потраченных баллов
-    const [isLoading, setIsLoading] = useState(true);  // Состояние для отслеживания загрузки данных
-    const [error, setError] = useState(null);  // Состояние для ошибок
+    const [pointsSpent, setPointsSpent] = useState([]); // История расходов
+    const [pointsAdded, setPointsAdded] = useState([]); // История пополнений
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [activeTab, setActiveTab] = useState('expenses'); // Текущая вкладка
     const router = useRouter();
-    const { id } = router.query;  // Получаем id из URL
+    const { id } = router.query;
 
     useEffect(() => {
         if (!loading && user?.isLoggedIn && id) {
             const fetchEmployee = async () => {
                 try {
-                    console.log('Fetching employee data for ID:', id);  // Логируем, какой ID запрашиваем
                     const res = await fetch(`/api/employees/${id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`,  // Токен из localStorage
-                        },
-                    });
-                    const data = await res.json();
-                    console.log('Employee data response:', data);  // Логируем ответ от сервера
-
-                    if (res.status === 200) {
-                        setEmployee(data.employee);  // Сохраняем данные сотрудника
-                    } else {
-                        setError(data.message || 'Неизвестная ошибка');
-                    }
-                } catch (error) {
-                    console.error('Ошибка при получении данных сотрудника:', error);
-                    setError(error.message || 'Ошибка при получении данных');
-                } finally {
-                    setIsLoading(false);  // Завершаем загрузку
-                }
-            };
-
-            const fetchPointsSpent = async () => {
-                try {
-                    // Используем ваш существующий API для получения потраченных баллов
-                    const res = await fetch(`/api/pointsSpent?userId=${id}`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         },
                     });
                     const data = await res.json();
-                    console.log('Points spent data:', data);
 
                     if (res.status === 200) {
-                        setPointsSpent(data);  // Сохраняем потраченные баллы
+                        setEmployee(data.employee);
                     } else {
                         setError(data.message || 'Неизвестная ошибка');
                     }
                 } catch (error) {
-                    console.error('Ошибка при получении данных о потраченных баллах:', error);
                     setError(error.message || 'Ошибка при получении данных');
+                } finally {
+                    setIsLoading(false);
                 }
             };
 
-            fetchEmployee();  // Загружаем данные сотрудника при рендере
-            fetchPointsSpent();  // Загружаем данные о потраченных баллах
+            const fetchPointsData = async () => {
+                try {
+                    // Получение расходов
+                    const resSpent = await fetch(`/api/pointsSpent?userId=${id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        },
+                    });
+                    const dataSpent = await resSpent.json();
+                    if (resSpent.status === 200) {
+                        setPointsSpent(dataSpent);
+                    }
+
+                    // Получение пополнений
+                    const resAdded = await fetch(`/api/balance/balanceAddhistory?userId=${id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        },
+                    });
+                    const dataAdded = await resAdded.json();
+                    console.log('Ответ от API для пополнений:', dataAdded); // Логирование ответа
+
+                    if (resAdded.status === 200) {
+                        setPointsAdded(dataAdded.additions); // Извлекаем ключ additions
+                    }
+                } catch (error) {
+                    setError(error.message || 'Ошибка при загрузке данных о баллах');
+                }
+            };
+
+            fetchEmployee();
+            fetchPointsData();
         }
     }, [user, id, loading]);
 
@@ -69,7 +76,7 @@ const EmployeePage = () => {
         return (
             <Layout>
                 <div className="flex justify-center items-center min-h-screen">
-                    <div className="loader">Загрузка...</div> {/* Прелоадер */}
+                    <div className="loader">Загрузка...</div>
                 </div>
             </Layout>
         );
@@ -90,36 +97,39 @@ const EmployeePage = () => {
             <h1 className="text-3xl font-bold text-center text-gray-800">Информация о сотруднике</h1>
             {employee ? (
                 <div className="space-y-4 grid grid-cols-12 gap-4">
-                    <div className='col-span-4'>
-                        {/* Карточка с данными сотрудника */}
+                    <div className="col-span-4">
+                        {/* Карточка сотрудника */}
                         <div className="card bg-base-100 shadow-md">
-                        
                             <div className="card-body">
                                 <p><strong>ID:</strong> {employee.id || 'ID не указан'}</p>
                                 <p><strong>Имя:</strong> {employee.name || 'Имя не указано'}</p>
-                                <p><strong>email:</strong> {employee.email || 'Имя не указано'}</p>
+                                <p><strong>Email:</strong> {employee.email || 'Email не указан'}</p>
                                 <p><strong>Роль:</strong> {employee.role || 'Роль не указана'}</p>
-                                <p><strong>Дата присоединения:</strong> {employee.joinedAt || 'Дата не указана'}</p>
                             </div>
                         </div>
-
-                        {/* Информация о компании */}
-                        {employee.company && (
-                            <div className="card bg-base-100 shadow-md">
-                                <div className="card-body">
-                                    <h3 className="card-title">Компания</h3>
-                                    <p><strong>Название компании:</strong> {employee.company.name || 'Не указано'}</p>
-                                    <p><strong>Адрес компании:</strong> {employee.company.address || 'Не указан'}</p>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
-                    <div className='col-span-8'>
-                        {/* Вывод откликов и потраченных баллов */}
-                        {pointsSpent.length > 0 && (
+                    <div className="col-span-8">
+                        {/* Вкладки */}
+                        <div className="tabs">
+                            <a
+                                className={`tab tab-bordered ${activeTab === 'expenses' ? 'tab-active' : ''}`}
+                                onClick={() => setActiveTab('expenses')}
+                            >
+                                История расходов
+                            </a>
+                            <a
+                                className={`tab tab-bordered ${activeTab === 'additions' ? 'tab-active' : ''}`}
+                                onClick={() => setActiveTab('additions')}
+                            >
+                                История пополнений
+                            </a>
+                        </div>
+
+                        {/* Содержимое вкладок */}
+                        {activeTab === 'expenses' && pointsSpent.length > 0 ? (
                             <div className="mt-6 bg-base-100 p-5">
-                                <h3 className="text-xl font-semibold">Отклики и потраченные баллы</h3>
+                                <h3 className="text-xl font-semibold">История расходов</h3>
                                 <div className="mt-4 overflow-x-auto">
                                     <table className="table table-zebra w-full">
                                         <thead>
@@ -141,6 +151,36 @@ const EmployeePage = () => {
                                     </table>
                                 </div>
                             </div>
+                        ) : (
+                            <p className="mt-4 text-center text-gray-500">Нет данных о расходах</p>
+                        )}
+
+                        {activeTab === 'additions' && pointsAdded.length > 0 ? (
+                            <div className="mt-6 bg-base-100 p-5">
+                                <h3 className="text-xl font-semibold">История пополнений</h3>
+                                <div className="mt-4 overflow-x-auto">
+                                    <table className="table table-zebra w-full">
+                                        <thead>
+                                            <tr>
+                                                <th>Компания</th>
+                                                <th>Добавленные баллы</th>
+                                                <th>Дата пополнения</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {pointsAdded.map((added) => (
+                                                <tr key={added.id}>
+                                                    <td>{added.company.name}</td>
+                                                    <td>{added.points}</td>
+                                                    <td>{new Date(added.transferDate).toLocaleDateString()}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className="mt-4 text-center text-gray-500">Нет данных о пополнениях</p>
                         )}
                     </div>
                 </div>

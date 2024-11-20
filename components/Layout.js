@@ -2,7 +2,7 @@
 import React from 'react';
 import Head from 'next/head';
 import Header from './Header'; // Вы можете создать свой Header компонент
-
+import Footer from './Footer'; // В
 
 const Layout = ({ children, title = "My Next.js App" }) => {
   return (
@@ -20,8 +20,7 @@ const Layout = ({ children, title = "My Next.js App" }) => {
         {children}
       </main>
 
-      {/* Футер, который всегда будет прижат к низу */}
-      {/* <Footer /> */}
+      <Footer />
     </div>
   );
 };

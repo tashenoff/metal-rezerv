@@ -148,6 +148,8 @@ export default async function handler(req, res) {
                 data: { points: user.points - responseCost },
             });
 
+
+
             return res.status(201).json(response);
         } else if (req.method === 'GET') {
             const { id: listingId } = req.query;
@@ -163,9 +165,21 @@ export default async function handler(req, res) {
             const responses = await prisma.response.findMany({
                 where: { listingId: parsedListingId },
                 include: {
-                    responder: true,
+                    responder: {  // Включаем информацию о респонденте
+                        include: { company: true } // Включаем информацию о компании респондента
+                    },
                 },
             });
+
+            // Логируем информацию о companyId для каждого отклика
+            responses.forEach(response => {
+                if (response.responder && response.responder.company) {
+                    console.log("Response data:", response.responder.companyId);  // Логируем companyId
+                } else {
+                    console.log("No company info for responder:", response.responderId); // Если компании нет
+                }
+            });
+
 
             return res.status(200).json(responses);
         }

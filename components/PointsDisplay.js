@@ -6,7 +6,7 @@ const PointsDisplay = ({ points, role }) => {
         <div>
             {role === 'RESPONDER' && (
                 <button className="btn">
-                    Баланс
+                    Мой баланс
                     <div className="badge badge-secondary"> {points}</div>
                 </button>
             )}

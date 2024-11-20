@@ -24,6 +24,7 @@ const ResponseItem = ({
 
     console.log('acceptedResponses:', Array.from(acceptedResponses));
     console.log('response:', response);
+    console.log('Responder data being passed:', acceptedResponseData[response.responder.id]?.responder);
 
     return (
         <Card title={response.responder ? response.responder.name : 'Неизвестный'}
@@ -78,7 +79,8 @@ const ResponseItem = ({
                             Отклик принят
                         </div>
                     )}
-                    <ResponderInfo responderData={acceptedResponseData[response.id]} />
+                   <ResponderInfo responderData={response.responder} />
+
                 </Modal>
             )}
         </Card>

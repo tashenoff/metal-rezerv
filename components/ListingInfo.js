@@ -3,6 +3,7 @@ import DateDisplay from './DateDisplay';
 import Link from 'next/link';
 
 const ListingInfo = ({ listing }) => {
+    
     return (
         <Link href={`/listings/${listing.id}`}>
             <div className='card rounded-lg bg-base-100 p-5' key={listing.id}>

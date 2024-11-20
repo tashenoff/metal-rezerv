@@ -8,6 +8,8 @@ export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { name, binOrIin, region, contacts, director, ownerId } = req.body;
 
+    console.log('Полученные данные:', req.body);  // Логируем данные для отладки
+
     if (!name || !binOrIin || !region || !director || !ownerId) {
       return res.status(400).json({ error: 'Все обязательные поля должны быть заполнены' });
     }
@@ -36,6 +38,7 @@ export default async function handler(req, res) {
           contacts,
           director,
           ownerId,
+          moderationStatus: 'PENDING', // Устанавливаем начальный статус модерации
         },
       });
 
@@ -55,9 +58,9 @@ export default async function handler(req, res) {
         },
       });
 
-      // return res.status(201).json({ newCompany, companyId: newCompany.id });
       return res.status(201).json({ company: newCompany });
     } catch (error) {
+      console.error('Ошибка при создании компании:', error);  // Логируем ошибку
       return res.status(500).json({ error: 'Ошибка при создании компании' });
     }
   } else {
