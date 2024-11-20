@@ -9,8 +9,9 @@ import PublisherControls from '../../../components/PublisherControls';
 import ClientControls from '../../../components/ClientControls';
 import Modal from '../../../components/Modal';
 import ResponseForm from '../../../components/ResponseForm';
+import { unpublishListing } from '../../../utils/unpublishListing';
+import publishListing from '../../../utils/publishListing';
 
-import { onUnpublish, onPublish } from './listingHandlers'; // импортируем функции
 
 
 
@@ -23,7 +24,7 @@ const ListingPage = () => {
     const [error, setError] = useState(null);
     const [userId, setUserId] = useState(null); // Идентификатор пользователя
     const [loadingModal, setLoadingModal] = useState(false); // Индикатор загрузки в модальном окне
-    
+
 
 
     const router = useRouter();
@@ -64,7 +65,7 @@ const ListingPage = () => {
                 // Получаем companyId из данных о компании (author.company.id)
                 const companyId = listingData.author?.company?.id;
 
-          
+
                 // Загрузка откликов
                 const responsesResponse = await fetch(`/api/responses?id=${id}`);
                 if (!responsesResponse.ok) throw new Error(`Ошибка загрузки откликов: ${responsesResponse.statusText}`);
@@ -82,7 +83,7 @@ const ListingPage = () => {
                     console.log("Responder Company ID:", responderCompanyId); // Выводим companyId респондера
                 });
 
-                
+
 
 
                 // Сохраняем отклики с добавленным companyId
@@ -100,10 +101,29 @@ const ListingPage = () => {
     }, [id, router.isReady]); // Зависимости для useEffect
 
 
+    const onUnpublish = async (listingId, setListing, setError) => {
+        try {
+            const updatedListing = await unpublishListing(listingId);
+            setListing(updatedListing);
+        } catch (err) {
+            setError(err.message); // обработка ошибки с setError
+        }
+    };
+
+
+    const onPublish = async (listingId, setListing, setError) => {
+        try {
+            const updatedListing = await publishListing(listingId);
+            setListing(updatedListing);
+        } catch (err) {
+            setError(err.message); // обработка ошибки с setError
+        }
+    };
+
 
 
     const handleOpenResponseForm = () => {
-        
+
         if (!user) {
             setModalContent({
                 type: 'error',
@@ -122,7 +142,7 @@ const ListingPage = () => {
             });
         } else if (user.company?.moderationStatus !== 'APPROVED') {
             // Логируем модерацию компании перед проверкой
-           
+
             setModalContent({
                 type: 'error',
                 message: 'Вы не можете откликаться, так как ваша компания еще не прошла модерацию.',
@@ -135,8 +155,8 @@ const ListingPage = () => {
         }
         setIsModalOpen(true);
     };
-    
-    
+
+
 
 
     const handleCloseModal = () => {
@@ -300,7 +320,7 @@ const ListingPage = () => {
                         responses={responses}
                         user={user}
                         listing={listing}
-                  
+
                         handleAcceptResponse={handleAcceptResponse}
                         handleDeclineResponse={handleDeclineResponse}
 
@@ -326,7 +346,7 @@ const ListingPage = () => {
                             isExpired={isExpired}
                         />
                     )}
-                    
+
                 </div>
             </div>
 
