@@ -1,15 +1,25 @@
-// pages/api/companies.js
-
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { name, binOrIin, region, contacts, director, ownerId } = req.body;
+    const { 
+      name, 
+      binOrIin, 
+      region, 
+      contacts, 
+      director, 
+      description, // новое поле
+      website, // новое поле
+      workingHours, // новое поле
+      address, // новое поле
+      ownerId 
+    } = req.body;
 
     console.log('Полученные данные:', req.body);  // Логируем данные для отладки
 
+    // Валидация обязательных полей
     if (!name || !binOrIin || !region || !director || !ownerId) {
       return res.status(400).json({ error: 'Все обязательные поля должны быть заполнены' });
     }
@@ -29,7 +39,7 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: 'Компания с таким названием или BIN/IIN уже существует' });
       }
 
-      // Создание новой компании
+      // Создание новой компании с новыми полями
       const newCompany = await prisma.company.create({
         data: {
           name,
@@ -37,6 +47,10 @@ export default async function handler(req, res) {
           region,
           contacts,
           director,
+          description, // добавляем описание
+          website, // добавляем сайт
+          workingHours, // добавляем график работы
+          address, // добавляем адрес
           ownerId,
           moderationStatus: 'PENDING', // Устанавливаем начальный статус модерации
         },

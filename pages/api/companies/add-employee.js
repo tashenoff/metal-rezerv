@@ -24,7 +24,10 @@ export default async function handler(req, res) {
 
       console.log('Parsed values:', { userIdInt, companyIdInt });
 
-      const user = await prisma.user.findUnique({ where: { id: userIdInt } });
+      const user = await prisma.user.findUnique({ 
+        where: { id: userIdInt },
+        include: { company: true } // Добавляем компанию в ответ
+      });
       const company = await prisma.company.findUnique({ where: { id: companyIdInt } });
 
       if (!user || !company) {
@@ -62,12 +65,13 @@ export default async function handler(req, res) {
       const updatedUser = await prisma.user.update({
         where: { id: user.id },
         data: { companyId: company.id },
+        include: { company: true } // Добавляем компанию в ответ
       });
 
       console.log('Created companyEmployee:', companyEmployee);
       console.log('Updated user with companyId:', updatedUser);
 
-      return res.status(200).json({ message: 'Сотрудник успешно добавлен', companyEmployee });
+      return res.status(200).json({ message: 'Сотрудник успешно добавлен', updatedUser });
     } catch (error) {
       console.error('Ошибка на сервере:', error);
       return res.status(500).json({ error: 'Ошибка при добавлении сотрудника', details: error.message });

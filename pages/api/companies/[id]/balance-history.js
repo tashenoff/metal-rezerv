@@ -4,11 +4,20 @@ const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
+    const { id } = req.query;  // Получаем параметр id из запроса
+
+    if (!id) {
+      return res.status(400).json({ message: 'ID компании не указан.' });
+    }
+
     try {
-      // Запрос на получение истории перевода баллов
+      // Запрос на получение истории перевода баллов для конкретной компании
       const transfers = await prisma.pointTransfer.findMany({
+        where: {
+          companyId: parseInt(id),  // Фильтруем по id компании
+        },
         orderBy: {
-          transferDate: 'desc', // Сортируем по дате, начиная с последнего перевода
+          transferDate: 'desc',  // Сортируем по дате перевода (от последнего к первому)
         },
         include: {
           company: true,  // Включаем информацию о компании

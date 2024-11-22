@@ -140,7 +140,7 @@ const ListingPage = () => {
                 type: 'error',
                 message: 'У вас недостаточно баллов для отправки отклика.',
             });
-        } else if (user.company?.moderationStatus !== 'APPROVED') {
+        } else if ((user.company?.moderationStatus || "").trim() !== "APPROVED") {
             // Логируем модерацию компании перед проверкой
 
             setModalContent({

@@ -56,6 +56,10 @@ model Company {
   pointTransfers        PointTransfer[]              // Связь с переводами баллов
   balanceTransactions   CompanyBalanceTransaction[]  // Обратная связь с историей транзакций
   moderationStatus      ModerationStatus             @default(PENDING) // Статус модерации компании
+  description           String?                      // Описание компании
+  website               String?                      // Сайт компании
+  workingHours          String?                      // График работы
+  address               String?                      // Адрес компании
 }
 
 
