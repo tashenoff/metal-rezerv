@@ -1,3 +1,5 @@
+// hooks/useBalanceHistory.js
+
 import { useState, useEffect } from 'react';
 import { getBalanceHistory } from '../services/api'; // Импортируем функцию из api.js
 
@@ -19,7 +21,7 @@ const useBalanceHistory = (companyId) => {
         const data = await getBalanceHistory(companyId); // Используем функцию из api.js
         setTransfers(data.transfers); // Получаем данные и сохраняем их в state
       } catch (err) {
-        setError(err.message || 'Ошибка при загрузке данных.'); // Обрабатываем ошибку
+        setError(err.message || 'Ошибка при загрузке данных.'); // Ошибка уже обработана в api.js
       } finally {
         setLoading(false); // Завершаем загрузку
       }

@@ -112,18 +112,35 @@ model Review {
   
 }
 
-
-
+enum EmployeeRoleEnum {
+  MANAGER
+  SALES
+  DEVELOPER
+  DESIGNER
+  HR
+  ADMIN
+}
 
 model CompanyEmployee {
-  id          Int       @id @default(autoincrement())
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade) // Добавляем onDelete: Cascade
+  id          Int                @id @default(autoincrement())
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
-  company     Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company     Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId   Int
-  role        String    // Роль сотрудника (например, "менеджер", "директор отдела продаж")
-  joinedAt    DateTime  @default(now()) // Дата присоединения к компании
+  roleId      Int                // Внешний ключ для связи с EmployeeRole
+  joinedAt    DateTime           @default(now()) // Дата присоединения
+
+  // Связь с EmployeeRole
+  roleDetails EmployeeRole       @relation(fields: [roleId], references: [id]) 
 }
+
+model EmployeeRole {
+  id          Int                @id @default(autoincrement())
+  name        String             @unique
+  description String?
+  employees   CompanyEmployee[]  // Связь с сотрудниками
+}
+
 
 model PointsAdded {
   id         Int      @id @default(autoincrement())

@@ -48,11 +48,11 @@ export default async function handler(req, res) {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Получаем отклики сотрудников за последние 7 дней
+    // Получаем отклики всех сотрудников за последние 7 дней
     const responses = await prisma.response.findMany({
       where: {
-        responderId: { in: employeeIds },
-        createdAt: { gte: sevenDaysAgo },
+        responderId: { in: employeeIds },  // Отклики всех сотрудников компании
+        createdAt: { gte: sevenDaysAgo },  // Отклики за последние 7 дней
       },
       select: { createdAt: true },
     });

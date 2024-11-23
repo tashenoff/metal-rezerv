@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import Notification from '../../components/Notification';
+import { useAuth } from '../../contexts/AuthContext'; // Импортируем хук для контекста
+import { topUpBalance, getEmployees } from '../../services/api'; // Импортируем функцию из API
+import { handleApiError } from '../../services/errors'; // Импортируем обработчик ошибок
 
 const BalanceTopUpPage = () => {
   const [employees, setEmployees] = useState([]);
@@ -10,22 +13,34 @@ const BalanceTopUpPage = () => {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [addedBy] = useState('admin'); // Можно передавать ID администратора, если необходимо
 
+  // Используем контекст для получения информации о компании
+  const { user, loading: authLoading } = useAuth();
+
   useEffect(() => {
+    if (authLoading || !user) {
+      return; // Дожидаемся загрузки данных пользователя
+    }
+
     const fetchEmployees = async () => {
       try {
-        const companyId = 60002; // Пример, нужно получить актуальный ID компании
-        const response = await fetch(`/api/companies/${companyId}/employees`);
-        const data = await response.json();
+        const companyId = user.companyId; // Получаем companyId из контекста
+        if (!companyId) {
+          console.error('Компания не указана');
+          return;
+        }
+
+        const data = await getEmployees(companyId); // Используем функцию из api
         console.log('Полученные сотрудники:', data); // Логирование для проверки данных
         setEmployees(data);
       } catch (error) {
-        console.error('Ошибка при получении сотрудников:', error);
+        const handledError = handleApiError(error); // Обработка ошибки
+        setNotification({ type: 'error', message: handledError.message });
       }
     };
-  
+
     fetchEmployees();
-  }, []);
-  
+  }, [user, authLoading]); // Запрос только после загрузки пользователя
+
   // Обработка пополнения баланса
   const handleBalanceTopUp = async () => {
     if (selectedEmployeeId === null || points <= 0) {
@@ -35,29 +50,26 @@ const BalanceTopUpPage = () => {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/balance/top-up', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: selectedEmployeeId, // ID выбранного сотрудника
-          points, // Количество баллов для пополнения
-          addedBy, // Кто добавляет (администратор или другой пользователь)
-        }),
+      const companyId = user.companyId; // Получаем companyId из контекста
+
+      const data = await topUpBalance({
+        companyId,
+        userId: selectedEmployeeId,
+        points,
+        addedBy,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (data.type === 'success') {
         setNotification({ type: 'success', message: data.message });
         setPoints(0);
         setSelectedEmployeeId(null);
       } else {
         setNotification({ type: 'error', message: data.message });
       }
+
     } catch (error) {
-      setNotification({ type: 'error', message: 'Ошибка при пополнении баланса.' });
+      const handledError = handleApiError(error); // Обработка ошибки
+      setNotification({ type: 'error', message: handledError.message });
     } finally {
       setLoading(false);
     }
@@ -108,7 +120,6 @@ const BalanceTopUpPage = () => {
       >
         {loading ? 'Загружается...' : 'Пополнить баланс'}
       </button>
-
     </Layout>
   );
 };

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Layout from '../../components/Layout';
 import Notification from '../../components/Notification';
+import { createCompany } from '../../services/api'; // Импортируем функцию создания компании
+import { handleApiError } from '../../services/errors'; // Импортируем функцию обработки ошибок
 
 const CreateCompany = () => {
   const { user } = useAuth();
@@ -10,10 +12,10 @@ const CreateCompany = () => {
   const [region, setRegion] = useState('');
   const [contacts, setContacts] = useState('');
   const [director, setDirector] = useState('');
-  const [description, setDescription] = useState(''); // Описание компании
-  const [website, setWebsite] = useState(''); // Сайт компании
-  const [workingHours, setWorkingHours] = useState(''); // График работы
-  const [address, setAddress] = useState(''); // Адрес компании
+  const [description, setDescription] = useState('');
+  const [website, setWebsite] = useState('');
+  const [workingHours, setWorkingHours] = useState('');
+  const [address, setAddress] = useState('');
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,39 +48,30 @@ const CreateCompany = () => {
         ownerId: user.id,
       });
 
-      const response = await fetch('/api/companies', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: companyName,
-          binOrIin,
-          region,
-          contacts,
-          director,
-          description,
-          website,
-          workingHours,
-          address,
-          ownerId: user.id,
-        }),
-      });
+      const companyData = {
+        name: companyName,
+        binOrIin,
+        region,
+        contacts,
+        director,
+        description,
+        website,
+        workingHours,
+        address,
+        ownerId: user.id,
+      };
 
-      console.log('Ответ от сервера на создание компании:', response);
+      // Вызов API функции
+      const responseData = await createCompany(companyData);
 
-      const responseData = await response.json();
+      console.log('Ответ от сервера на создание компании:', responseData);
 
-      if (response.ok) {
-        console.log('Компания успешно создана:', responseData);
-        setMessage('Компания успешно создана!');
-        setMessageType('success');
-      } else {
-        console.error('Ошибка при создании компании:', responseData);
-        setMessage('Ошибка при создании компании!');
-        setMessageType('error');
-      }
+      setMessage('Компания успешно создана!');
+      setMessageType('success');
     } catch (error) {
-      console.error('Ошибка при запросе на создание компании:', error);
-      setMessage('Произошла ошибка при создании компании!');
+      const handledError = handleApiError(error); // Обработка ошибки
+      console.error('Ошибка при запросе на создание компании:', handledError);
+      setMessage(handledError.message); // Отображение сообщения об ошибке
       setMessageType('error');
     } finally {
       setIsLoading(false);
@@ -93,6 +86,7 @@ const CreateCompany = () => {
         <p className="text-center text-lg">Загрузка...</p>
       ) : (
         <form onSubmit={handleCompanySubmit} className="max-w-2xl mx-auto p-6 space-y-4 bg-white rounded-lg shadow-lg">
+          {/* Поля формы для создания компании */}
           <div className="form-control">
             <label className="label">Название компании:</label>
             <input
@@ -149,7 +143,7 @@ const CreateCompany = () => {
           </div>
 
           <div className="form-control">
-            <label className="label">Описание компании:</label>
+            <label className="label">Описание:</label>
             <textarea
               className="textarea textarea-bordered"
               value={description}
@@ -158,9 +152,9 @@ const CreateCompany = () => {
           </div>
 
           <div className="form-control">
-            <label className="label">Сайт компании:</label>
+            <label className="label">Вебсайт:</label>
             <input
-              type="url"
+              type="text"
               className="input input-bordered"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
@@ -168,7 +162,7 @@ const CreateCompany = () => {
           </div>
 
           <div className="form-control">
-            <label className="label">График работы:</label>
+            <label className="label">Часы работы:</label>
             <input
               type="text"
               className="input input-bordered"
@@ -178,7 +172,7 @@ const CreateCompany = () => {
           </div>
 
           <div className="form-control">
-            <label className="label">Адрес компании:</label>
+            <label className="label">Адрес:</label>
             <input
               type="text"
               className="input input-bordered"

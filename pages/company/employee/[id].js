@@ -2,73 +2,43 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../../contexts/AuthContext';
 import Layout from '../../../components/Layout';
+import {
+    getEmployeeById,
+    getPointsSpentByEmployee,
+    getPointsAddedByEmployee,
+} from '../../../services/api';
 
 const EmployeePage = () => {
     const { user, loading } = useAuth();
     const [employee, setEmployee] = useState(null);
-    const [pointsSpent, setPointsSpent] = useState([]); // История расходов
-    const [pointsAdded, setPointsAdded] = useState([]); // История пополнений
+    const [pointsSpent, setPointsSpent] = useState([]);
+    const [pointsAdded, setPointsAdded] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [activeTab, setActiveTab] = useState('expenses'); // Текущая вкладка
+    const [activeTab, setActiveTab] = useState('expenses');
     const router = useRouter();
     const { id } = router.query;
 
     useEffect(() => {
         if (!loading && user?.isLoggedIn && id) {
-            const fetchEmployee = async () => {
+            const fetchData = async () => {
                 try {
-                    const res = await fetch(`/api/employees/${id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        },
-                    });
-                    const data = await res.json();
+                    const employeeData = await getEmployeeById(id);
+                    setEmployee(employeeData);
 
-                    if (res.status === 200) {
-                        setEmployee(data.employee);
-                    } else {
-                        setError(data.message || 'Неизвестная ошибка');
-                    }
-                } catch (error) {
-                    setError(error.message || 'Ошибка при получении данных');
+                    const pointsSpentData = await getPointsSpentByEmployee(id);
+                    setPointsSpent(pointsSpentData);
+
+                    const pointsAddedData = await getPointsAddedByEmployee(id);
+                    setPointsAdded(pointsAddedData.additions || []);
+                } catch (err) {
+                    setError(err.message || 'Ошибка при загрузке данных');
                 } finally {
                     setIsLoading(false);
                 }
             };
 
-            const fetchPointsData = async () => {
-                try {
-                    // Получение расходов
-                    const resSpent = await fetch(`/api/pointsSpent?userId=${id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        },
-                    });
-                    const dataSpent = await resSpent.json();
-                    if (resSpent.status === 200) {
-                        setPointsSpent(dataSpent);
-                    }
-
-                    // Получение пополнений
-                    const resAdded = await fetch(`/api/balance/balanceAddhistory?userId=${id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        },
-                    });
-                    const dataAdded = await resAdded.json();
-                    console.log('Ответ от API для пополнений:', dataAdded); // Логирование ответа
-
-                    if (resAdded.status === 200) {
-                        setPointsAdded(dataAdded.additions); // Извлекаем ключ additions
-                    }
-                } catch (error) {
-                    setError(error.message || 'Ошибка при загрузке данных о баллах');
-                }
-            };
-
-            fetchEmployee();
-            fetchPointsData();
+            fetchData();
         }
     }, [user, id, loading]);
 
@@ -102,13 +72,12 @@ const EmployeePage = () => {
                         <div className="card bg-base-100 shadow-md">
                             <div className="card-body">
                                 <p><strong>ID:</strong> {employee.id || 'ID не указан'}</p>
-                                <p><strong>Имя:</strong> {employee.name || 'Имя не указано'}</p>
-                                <p><strong>Email:</strong> {employee.email || 'Email не указан'}</p>
+                                <p><strong>Имя:</strong> {employee?.name || 'Имя не указано'}</p>
+                                <p><strong>Email:</strong> {employee?.user?.email || 'Email не указан'}</p>
                                 <p><strong>Роль:</strong> {employee.role || 'Роль не указана'}</p>
                             </div>
                         </div>
                     </div>
-
                     <div className="col-span-8">
                         {/* Вкладки */}
                         <div className="tabs">

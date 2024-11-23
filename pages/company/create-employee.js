@@ -1,94 +1,88 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext'; // Импортируем useAuth из контекста
+import { useAuth } from '../../contexts/AuthContext';
 import Layout from '../../components/Layout';
 import Notification from '../../components/Notification';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { useRouter } from 'next/router';
+import { addEmployee } from '../../services/api'; // Импортируем функцию
 
 const AddEmployee = () => {
-  const { user, loading } = useAuth(); // Получаем user из контекста
+  const { user, loading } = useAuth();
   const [userId, setUserId] = useState('');
-  const [role, setRole] = useState('');
+  const [roleId, setRoleId] = useState('');
+  const [roles, setRoles] = useState([]);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  // Проверка, если пользователь не авторизован, перенаправляем на страницу логина
   useEffect(() => {
     if (loading) return;
     if (!user) {
       router.push('/login');
     }
+
+    const fetchRoles = async () => {
+      try {
+        const response = await fetch('/api/companies/roles');
+        if (response.ok) {
+          const data = await response.json();
+          setRoles(data);
+        } else {
+          setMessage('Не удалось загрузить роли');
+          setMessageType('error');
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки ролей:', error);
+        setMessage('Ошибка при загрузке ролей');
+        setMessageType('error');
+      }
+    };
+
+    fetchRoles();
   }, [user, loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
-    // Логируем данные перед отправкой
-    console.log('Отправка данных:', { userId, role, companyId: user?.companyId });
-
-    // Преобразуем userId и companyId в числа, если это необходимо
+  
     const userIdInt = parseInt(userId, 10);
     const companyIdInt = user?.companyId;
-
-
-    // Проверка на то, что userId это число
+  
     if (isNaN(userIdInt)) {
       setMessage('Ошибка: ID пользователя должен быть числом');
       setMessageType('error');
       setIsLoading(false);
       return;
     }
-
-
-
-    if (!userIdInt || !role || !companyIdInt) {
+  
+    if (!userIdInt || !roleId || !companyIdInt) {
       setMessage('Ошибка: Все поля обязательны для заполнения');
       setMessageType('error');
       setIsLoading(false);
       return;
     }
-
+  
     try {
-      const response = await fetch('/api/companies/add-employee', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: userIdInt, companyId: companyIdInt, role }), // Передаем как числа
+      // Передаем roleId вместо role
+      await addEmployee({
+        userId: userIdInt,
+        companyId: companyIdInt,
+        roleId: parseInt(roleId, 10),  // Передаем roleId
       });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Успешное добавление сотрудника
-        setMessage('Сотрудник успешно добавлен!');
-        setMessageType('success');
-        // Очистить форму или выполнить другие действия после успеха (например, обновить список сотрудников)
-        setUserId('');
-        setRole('');
-      } else {
-        // Обработка ошибки с кодом 409 или других ошибок
-        if (response.status === 409) {
-          setMessage('Этот пользователь уже является сотрудником компании');
-        } else {
-          setMessage(`Ошибка: ${data.error}`);
-        }
-        setMessageType('error');
-      }
+      setMessage('Сотрудник успешно добавлен!');
+      setMessageType('success');
+      setUserId('');
+      setRoleId('');
     } catch (error) {
-      setMessage('Произошла ошибка при добавлении сотрудника.');
+      setMessage(error.message || 'Произошла ошибка при добавлении сотрудника.');
       setMessageType('error');
     } finally {
       setIsLoading(false);
     }
   };
-
-
-  // Логируем текущий user
-  console.log('Текущий пользователь:', user);
-
+  
   return (
     <Layout>
       {message && <Notification message={message} type={messageType} />}
@@ -103,15 +97,17 @@ const AddEmployee = () => {
             required
           />
           <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
+            value={roleId}
+            onChange={(e) => setRoleId(e.target.value)}
             required
             className="select select-bordered mb-5 w-full"
           >
             <option value="">Выберите роль</option>
-            <option value="менеджер">Менеджер</option>
-            <option value="директор отдела продаж">Директор отдела продаж</option>
-            <option value="логист">Логист</option>
+            {roles.map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.name} {role.description ? `(${role.description})` : ''}
+              </option>
+            ))}
           </select>
 
           <Button type="submit" disabled={isLoading}>

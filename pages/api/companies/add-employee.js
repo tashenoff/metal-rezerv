@@ -6,11 +6,11 @@ const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { userId, companyId, role } = req.body;
+    const { userId, companyId, roleId } = req.body;  // Используем roleId, а не role
 
-    console.log('Received data:', { userId, companyId, role });
+    console.log('Received data:', { userId, companyId, roleId });
 
-    if (!userId || !companyId || !role) {
+    if (!userId || !companyId || !roleId) {  // Проверяем, что все поля переданы
       return res.status(400).json({ error: 'Все поля обязательны для заполнения' });
     }
 
@@ -56,7 +56,7 @@ export default async function handler(req, res) {
         data: {
           userId: user.id,
           companyId: company.id,
-          role: role,
+          roleId,  // Используем roleId
           joinedAt: new Date(),
         },
       });
@@ -65,7 +65,7 @@ export default async function handler(req, res) {
       const updatedUser = await prisma.user.update({
         where: { id: user.id },
         data: { companyId: company.id },
-        include: { company: true } // Добавляем компанию в ответ
+        include: { company: true } // Добавляем компанию в ответ не работает
       });
 
       console.log('Created companyEmployee:', companyEmployee);

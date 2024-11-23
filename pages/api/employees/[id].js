@@ -17,66 +17,65 @@ export default async function handler(req, res) {
     try {
       // Извлекаем токен из заголовка
       const token = authorization.split(' ')[1];
-
-      // Декодируем токен
-      const decoded = jwt.verify(token, 'your_jwt_secret');  // Замените на свой секретный ключ
+      const decoded = jwt.verify(token, 'your_jwt_secret'); // Замените на свой секретный ключ
       const userId = decoded.id;
 
-      // Получаем информацию о пользователе
+      // Получаем текущего пользователя с привязкой к компании
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        include: { company: true },
+        include: {
+          company: true,
+        },
       });
 
       if (!user) {
         return res.status(404).json({ message: 'Пользователь не найден' });
       }
 
-      // Проверяем, связан ли пользователь с компанией
       if (!user.company) {
         return res.status(403).json({ message: 'Пользователь не связан с компанией' });
       }
 
-      // Получаем информацию о сотруднике и его роли в компании
+      // Проверяем, что пользователь администратор компании
+      const isAdmin = user.company.ownerId === userId;
+
+      if (!isAdmin) {
+        return res
+          .status(403)
+          .json({ message: 'Нет прав доступа для просмотра данных сотрудников' });
+      }
+
+      // Находим данные сотрудника
       const companyEmployee = await prisma.companyEmployee.findFirst({
         where: {
-          AND: [
-            { userId: parseInt(id) }, // ID сотрудника
-            { companyId: user.companyId }, // ID компании
-          ],
+          userId: parseInt(id), // ID сотрудника
+          companyId: user.company.id, // ID компании
         },
         include: {
-          user: true, // Включаем информацию о пользователе (сотруднике)
-          company: true, // Включаем информацию о компании
+          user: true, // Включаем данные пользователя
+          roleDetails: true, // Включаем роль (EmployeeRole)
         },
       });
 
       if (!companyEmployee) {
-        return res.status(404).json({ message: 'Сотрудник не найден в этой компании' });
+        return res.status(404).json({ message: 'Сотрудник не найден в компании' });
       }
 
-      // Проверяем, является ли пользователь администратором своей компании
-      const isAdmin = userId === user.company.ownerId || companyEmployee.role === 'Администратор';
-
-      if (!isAdmin) {
-        return res.status(403).json({ message: 'Нет доступа к данным сотрудников компании' });
-      }
-
-      // Если сотрудник существует и у пользователя есть права администратора, возвращаем его данные
+      // Возвращаем данные сотрудника
       return res.status(200).json({
         employee: {
           name: companyEmployee.user.name,
           email: companyEmployee.user.email,
-          role: companyEmployee.role,
+          role: companyEmployee.roleDetails.name, // Имя роли
           joinedAt: companyEmployee.joinedAt,
         },
       });
     } catch (error) {
-      console.error('Ошибка при проверке токена:', error);
+      console.error('Ошибка при обработке запроса:', error);
       return res.status(500).json({ message: 'Ошибка сервера' });
     }
   } else {
     res.setHeader('Allow', ['GET']);
-    res.status(405).end(`Метод ${req.method} не разрешён`);
+    return res.status(405).end(`Метод ${req.method} не разрешён`);
   }
 }
