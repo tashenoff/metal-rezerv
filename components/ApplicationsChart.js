@@ -31,7 +31,7 @@ const ApplicationsChart = ({ data }) => {
     },
   };
 
-  return <Line data={chartData} options={options} height={60} />;
+  return <Line data={chartData} options={options} height={40} />;
 };
 
 export default ApplicationsChart;

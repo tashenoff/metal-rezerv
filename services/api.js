@@ -89,17 +89,132 @@ export const getEmployeeApplicationsStats = async (employeeId) => {
 
 export const addEmployee = async (data) => {
     const response = await fetch('/api/companies/add-employee', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
     });
-  
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Ошибка при добавлении сотрудника');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Ошибка при добавлении сотрудника');
     }
-  
+
     return await response.json();
-  };
+};
+
+
+// Получение информации об объявлении
+export const fetchListing = async (id) => {
+    if (!id) throw new Error('ID объявления не указан');
+    return apiRequest('GET', `/api/listings/${id}`);
+};
+
+// Получение откликов
+export const fetchResponses = async (id) => {
+    if (!id) throw new Error('ID объявления не указан');
+    return apiRequest('GET', `/api/responses?id=${id}`);
+};
+
+// Публикация объявления
+export const publishListing = async (id) => {
+    if (!id) throw new Error('ID объявления не указан');
+    return apiRequest('POST', `/api/listings/${id}/publish`);
+};
+
+// Снятие объявления с публикации
+export const unpublishListing = async (id) => {
+    if (!id) throw new Error('ID объявления не указан');
+    return apiRequest('POST', `/api/listings/${id}/unpublish`);
+};
+
+// Отправка отклика
+export const submitResponse = async (data) => {
+    return apiRequest('POST', '/api/responses', data);
+};
+
+// Принятие отклика
+export const acceptResponse = async (responseId, userId) => {
+    if (!responseId || !userId) throw new Error('ID отклика или пользователя не указан');
+    return apiRequest('POST', '/api/responses/acceptResponse', { responseId, userId });
+};
+
+// Отклонение отклика
+export const declineResponse = async (responseId) => {
+    if (!responseId) throw new Error('ID отклика не указан');
+    return apiRequest('POST', '/api/responses/declineResponse', { responseId });
+};
+
+export const fetchListings = async () => {
+    const response = await fetch('/api/listings');
+    if (!response.ok) {
+        throw new Error('Ошибка загрузки объявлений');
+    }
+    const data = await response.json();
+    return data.filter((listing) => listing.published);
+};
+
+export const fetchCategories = async () => {
+    const response = await fetch('/api/categories');
+    if (!response.ok) {
+        throw new Error('Ошибка загрузки категорий');
+    }
+    const data = await response.json();
+    return data;
+};
+
+
+export const createListing = async (listingData, token) => {
+    try {
+        const response = await fetch('/api/listings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(listingData),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Ошибка при добавлении объявления.');
+        }
+
+        // Логируем успешный ответ
+        const responseData = await response.json();
+        console.log("Listing created:", responseData);
+
+        return responseData;
+    } catch (error) {
+        console.error("Error in createListing:", error);
+        throw error;
+    }
+};
+
+
+
+
+
+// Функция для получения объявлений компании
+export async function fetchCompanyListings(companyId) {
+    try {
+        const response = await fetch(`/api/companies/${companyId}/publisher/listings`);
+        if (!response.ok) {
+            throw new Error('Ошибка при получении данных');
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Ошибка в fetchCompanyListings:', error);
+        throw error;
+    }
+}
+
+
+// Получение роли сотрудника
+export const getEmployeeRole = async (employeeId) => {
+    if (!employeeId) throw new Error('ID сотрудника не указан');
+    return apiRequest('GET', `/api/employees/${employeeId}/role`);
+};

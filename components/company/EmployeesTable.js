@@ -1,6 +1,6 @@
-import Table from './Table';
+import Table from '../ui/Table';
 import DateDisplay from "../DateDisplay";
-import Button from "../Button";
+import Button from "../ui/Button";
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
@@ -17,7 +17,7 @@ const EmployeesTable = ({ employees, handleDeleteEmployee, rowLimit = Infinity }
           {employee.user.name}
         </Link>
       </td>
-      <td className="text-center">{employee.role}</td>
+      <td className="text-center">{employee.roleDetails.name}</td>
       <td className="text-center">{employee.user.email}</td>
       <td className="text-center">
         <DateDisplay date={employee.joinedAt} />

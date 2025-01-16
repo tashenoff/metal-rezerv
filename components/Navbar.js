@@ -3,12 +3,17 @@ import Link from 'next/link';
 import UsernameDisplay from './UsernameDisplay';
 import PointsDisplay from './PointsDisplay';
 import { useAuth } from '../contexts/AuthContext';
-
+import { getEmployeeRole } from '../services/api'; // Добавьте getCompanyDetails
+import { useTranslation } from 'next-i18next';
 const Navbar = ({ handleLogout }) => {
+  const { t } = useTranslation('common'); // Подключаем переводы из файла common.json
   const { user, loading } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [role, setRole] = useState(null);
+  const [companyProfile, setCompanyProfile] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
@@ -29,6 +34,30 @@ const Navbar = ({ handleLogout }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileMenuOpen]);
 
+
+  useEffect(() => {
+    if (user?.isLoggedIn) {
+      const checkAccess = async () => {
+        try {
+          const roleData = await getEmployeeRole(user.id);
+
+          // Log the permissions id from the fetched role data
+          console.log(roleData?.permissions?.[0]?.id); // Access the first permission's ID
+
+          // Update the role state with the fetched data
+          setRole(roleData.role);
+        } catch (error) {
+          console.error('Ошибка при проверке роли:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      checkAccess();
+    }
+  }, [user]);
+
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-4">
@@ -47,29 +76,29 @@ const Navbar = ({ handleLogout }) => {
         <div className="hidden lg:flex w-full items-center space-x-6">
           <nav className="flex items-start ml-5 space-x-4">
             <Link href="/listings" className="link link-hover text-primary font-bold">
-              Заявки
+              {t('navbar.requests')}
             </Link>
 
             {user?.isLoggedIn && user.role !== 'PUBLISHER' && (
               <>
                 <Link href="/responses" className="link link-hover">
-                  Мои отклики
+                  {t('navbar.my_responses')}
                 </Link>
                 <Link href="/activity" className="link link-hover">
-                  Активность
+                  {t('navbar.activity')}
                 </Link>
               </>
             )}
             {user?.isLoggedIn && user.role === 'PUBLISHER' && (
               <Link href="/publisher" className="link link-hover">
-                Мои заявки
+             {t('navbar.my_requests')}
               </Link>
             )}
-            
+
             {/* Ссылка на профиль */}
             {user?.isLoggedIn && (
               <Link href={`/profile/${user?.id}`} className="link link-hover">
-                Профиль
+                {t('navbar.profile')}
               </Link>
             )}
           </nav>
@@ -82,7 +111,7 @@ const Navbar = ({ handleLogout }) => {
               <PointsDisplay points={user.points} role={user.role} />
               {user.role === 'PUBLISHER' && (
                 <Link href="/listings/create-listing" className="btn btn-primary btn-sm">
-                  Создать Заявку
+               {t('navbar.create_request')}
                 </Link>
               )}
 
@@ -113,20 +142,35 @@ const Navbar = ({ handleLogout }) => {
                     <ul className="menu">
                       <li>
                         <Link href="/profile/edit-profile" className="block px-4 py-2 hover:bg-base-300">
-                          Редактировать профиль
+                        {t('navbar.edit_profile')}
                         </Link>
                       </li>
                       <li>
-                        <Link href="/company" className="link link-hover font-bold">
-                          Моя компания
-                        </Link>
+                        {user?.isLoggedIn && role?.permissions?.some(permission => permission.id === 1) ? (
+                          <Link href="/company" className="link link-hover">
+                               {t('navbar.admin_panel')}
+                          </Link>
+                        ) : user?.isLoggedIn && role?.permissions?.some(permission => permission.id === 60001) ? (
+                          <Link href={`/company/profile/${user?.companyEmployee?.companyId ?? ''}`} className="link link-hover">
+                            {t('navbar.company_profile')}
+                          </Link>
+                        ) : (
+                          <Link href="company/create-company" className="link link-hover">
+                            Создать компанию
+                            {t('navbar.create_company')}
+                          </Link>
+                        )}
+
+
+
+
                       </li>
                       <li>
                         <button
                           onClick={handleLogout}
                           className="block w-full text-left px-4 py-2 hover:bg-base-300"
                         >
-                          Выход
+                              {t('navbar.logout')}
                         </button>
                       </li>
                     </ul>

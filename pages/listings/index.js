@@ -1,36 +1,35 @@
 import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
-import ListingsDisplay from '../../components/ListingsDisplay';
-import Dropdown from '../../components/Dropdown';
+import ListingsDisplay from '../../components/listing/ListingsDisplay';
 import SearchBar from '../../components/SearchBar';
 import Banner from '../../components/Banner';
-
+import { fetchListings, fetchCategories } from '../../services/api'; // Импортируем API функции
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 const Listings = () => {
   const [listings, setListings] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategories, setSelectedCategories] = useState([]);
+  // const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true); // Состояние загрузки
 
   useEffect(() => {
-    const fetchListings = async () => {
-      setLoading(true); // Устанавливаем состояние загрузки в true
-      const response = await fetch('/api/listings');
-      const data = await response.json();
-      const publishedListings = data.filter((listing) => listing.published);
-      setListings(publishedListings);
-      setFilteredResults(publishedListings);
-      setLoading(false); // Завершаем состояние загрузки
+    const loadData = async () => {
+      try {
+        setLoading(true); // Устанавливаем состояние загрузки в true
+
+        const listingsData = await fetchListings();
+        const categoriesData = await fetchCategories();
+
+        setListings(listingsData);
+        setFilteredResults(listingsData);
+        // setCategories(categoriesData);
+      } catch (error) {
+        console.error(error.message);
+      } finally {
+        setLoading(false); // Завершаем состояние загрузки
+      }
     };
 
-    const fetchCategories = async () => {
-      const response = await fetch('/api/categories'); // Эндпоинт для получения категорий
-      const data = await response.json();
-      setCategories(data);
-    };
-
-    fetchListings();
-    fetchCategories();
+    loadData();
   }, []);
 
   const handleSearch = (term) => {
@@ -41,14 +40,6 @@ const Listings = () => {
     setFilteredResults(filtered);
   };
 
-  const handleCategorySelect = (selectedCategories) => {
-    setSelectedCategories(selectedCategories);
-
-    const filteredByCategory = listings.filter((listing) =>
-      selectedCategories.length === 0 || selectedCategories.includes(listing.category.name) // Предположим, что у вас есть поле category.name
-    );
-    setFilteredResults(filteredByCategory);
-  };
 
   return (
     <Layout>
@@ -71,3 +62,13 @@ const Listings = () => {
 };
 
 export default Listings;
+
+
+export async function getServerSideProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])), // Загружаем переводы для страницы
+    },
+  };
+}
+

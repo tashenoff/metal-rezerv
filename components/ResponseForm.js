@@ -1,7 +1,7 @@
 // components/ResponseForm.js
 import { useState } from 'react';
-import Form from './Form';
-import Textarea from './Textarea'; // Импортируем компонент Textarea
+import Form from './ui/Form';
+import Textarea from './ui/Textarea'; // Импортируем компонент Textarea
 
 const ResponseForm = ({ onSubmit, feedback }) => {
     const [responseMessage, setResponseMessage] = useState('');

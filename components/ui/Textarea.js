@@ -11,7 +11,7 @@ const Textarea = ({ value, onChange, placeholder }) => {
       value={value}
       onChange={onChange} // onChange принимает строку, а не событие
       placeholder={placeholder}
-      className="textarea textarea-bordered h-80 textarea-lg w-full bg-white text-black"
+      className="textarea textarea-bordered h-80 textarea-lg w-full bg-base-200 "
       modules={{
         toolbar: [
           [{ 'header': [1, 2, false] }],

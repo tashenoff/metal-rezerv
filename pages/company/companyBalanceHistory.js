@@ -1,6 +1,6 @@
 import { useAuth } from '../../contexts/AuthContext';
 import Layout from '../../components/Layout';
-import Notification from '../../components/Notification';
+import Notification from '../../components/ui/Notification';
 import BalanceTable from '../../components/company/BalanceTable';
 import useBalanceHistory from '../../hooks/useBalanceHistory';
 

@@ -139,6 +139,23 @@ model EmployeeRole {
   name        String             @unique
   description String?
   employees   CompanyEmployee[]  // Связь с сотрудниками
+  permissions EmployeeRolePermission[] // Связь с разрешениями
+}
+
+// Промежуточная модель для связи ролей и разрешений
+model EmployeeRolePermission {
+  id          Int         @id @default(autoincrement())
+  roleId      Int
+  permissionId Int
+  role        EmployeeRole @relation(fields: [roleId], references: [id])
+  permission  Permission   @relation(fields: [permissionId], references: [id])
+}
+
+model Permission {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique // Имя разрешения, например "manage_company"
+  description String?    // Описание разрешения
+  roles       EmployeeRolePermission[]
 }
 
 

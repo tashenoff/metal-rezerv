@@ -1,9 +1,9 @@
 // pages/profile/edit-profile.js
 import { useEffect, useState } from 'react';
 import Layout from '../../components/Layout';
-import Notification from '../../components/Notification';
-import Form from '../../components/Form';
-import Input from '../../components/Input';
+import Notification from '../../components/ui/Notification';
+import Form from '../../components/ui/Form';
+import Input from '../../components/ui/Input';
 import { useAuth } from '../../contexts/AuthContext'; // Импортируем контекст аутентификации
 
 const EditProfile = () => {

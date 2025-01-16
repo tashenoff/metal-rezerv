@@ -1,4 +1,4 @@
-import ListingInfo from '../../../components/ListingInfo';
+import ListingInfo from '../../../components/publisher/listing/ListingInfo';
 import Link from 'next/link';
 
 const Info = ({ listing }) => {

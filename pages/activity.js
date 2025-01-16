@@ -5,6 +5,7 @@ import ActivityTimeline from '../components/ActivityTimeline/ActivityTimeline';
 import ResponseSummary from '../components/ResponseSummary';
 import EffectivenessDisplay from '../components/EffectivenessDisplay';
 import { useAuth } from '../contexts/AuthContext';
+import { getTranslations } from '../utils/getTranslations';
 
 const UserActivityTimeline = () => {
     const [responses, setResponses] = useState([]);
@@ -85,4 +86,14 @@ const UserActivityTimeline = () => {
     );
 };
 
+export async function getServerSideProps({ locale }) {
+    return {
+        props: {
+            ...(await getTranslations(locale, ['common', 'activity'])), // Используем функцию
+            // ... другие props, если есть
+        },
+    };
+}
+
 export default UserActivityTimeline;
+

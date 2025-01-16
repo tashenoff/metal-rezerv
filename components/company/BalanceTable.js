@@ -1,4 +1,4 @@
-import Table from './Table';
+import Table from '../ui/Table';
 
 const BalanceTable = ({ transfers = [], rowLimit }) => {
   const headers = ["Дата", "Баллы", "Описание", "Пользователь"];

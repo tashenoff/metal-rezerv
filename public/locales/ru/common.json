@@ -1,0 +1,47 @@
+{
+    "login": {
+        "title": "Авторизация",
+        "email": "Email",
+        "password": "Пароль",
+        "login_button": "Войти",
+        "language_ru": "Русский",
+        "language_en": "Английский",
+        "language_label": "Язык интерфейса"
+    },
+    "activity": {
+        "u_level": "Ваш уровень",
+        "total_responses": "Общее количество откликов",
+        "Accepted_feedback": "Принятые",
+        "Rejected_responses": "Отклоненные",
+        "Under_review": "На рассмотрении"
+    },
+    "navbar": {
+        "greeting":"Привет",
+        "home": "Главная",
+        "requests": "Заявки",
+        "my_responses": "Мои Заявки",
+        "contact": "Контакты",
+        "login": "Войти",
+        "my_requests": "Мои запросы",
+        "create_request": "Создатть заявку",
+        "edit_profile": "редактировать профиль",
+        "register": "Регистрация",
+        "profile": "профиль",
+        "admin_panel": "админ панель",
+        "company_profile": "профиль компании",
+        "create_company": "создать компанию",
+        "logout": "выйти",
+        "activity": "активность",
+        "language": "Язык",
+        "language_ru": "Русский",
+        "language_en": "Английский"
+    },
+
+    "listing":{
+        "more": "подробнее",
+        "search": "Поиск",
+        "date_publication": "Дата публикации",
+        "date_delivery": "Дата доставки"
+    }
+    
+}

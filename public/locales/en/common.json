@@ -1,0 +1,46 @@
+{
+    "login": {
+        "title": "loginss",
+        "email": "Email",
+        "password": "Пароль",
+        "login_button": "join",
+        "language_ru": "Русский",
+        "language_en": "Английский",
+        "language_label": "language interface"
+    },
+    "activity": {
+        "u_level": "Your level",
+        "total_responses": "Total number of responses",
+        "Accepted_feedback": "Accepted feedback",
+        "Rejected_responses": "Rejected responses",
+        "Under_review": "Under review"
+    },
+    "navbar": {
+        "greeting":"Hello",
+        "home": "Главная",
+        "requests": "Requests",
+        "my_responses": "my responses",
+        "contact": "Контакты",
+        "login": "Войти",
+        "my_requests": "my requests",
+        "create_request": "Create a request",
+        "edit_profile": "edit profile",
+        "register": "Регистрация",
+        "profile": "profile",
+        "admin_panel": "admin panel",
+        "company_profile": "company profile",
+        "create_company": "Create a company",
+        "logout": "logout",
+        "activity": "activity",
+        "language": "Язык",
+        "language_ru": "Русский",
+        "language_en": "Английский"
+    },
+    "listing":{
+        "more": "more",
+        "search": "search",
+        "date_publication": "date publication",
+        "date_delivery": "date delivery"
+    }
+    
+}

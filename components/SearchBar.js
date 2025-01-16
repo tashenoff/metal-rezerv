@@ -1,8 +1,9 @@
 // components/SearchBar.js
-
+import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 
 const SearchBar = ({ onSearch }) => {
+    const { t } = useTranslation('common'); // Подключаем переводы из файла common.json
     const [searchTerm, setSearchTerm] = useState('');
 
     const handleChange = (event) => {
@@ -12,11 +13,12 @@ const SearchBar = ({ onSearch }) => {
     };
 
     return (
+        
         <label className="input w-full mr-5 input-bordered flex items-center gap-2">
             <input
                 type="text"
                 className="grow"
-                placeholder="Поиск объявлений"
+                placeholder={t('listing.search')}
                 value={searchTerm}
                 onChange={handleChange} // Обновляем состояние поискового запроса
             />

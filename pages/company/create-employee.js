@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Layout from '../../components/Layout';
-import Notification from '../../components/Notification';
-import Input from '../../components/Input';
-import Button from '../../components/Button';
+import Notification from '../../components/ui/Notification';
+import Input from '../../components/ui/Input';
+import Button from '../../components/ui/Button';
 import { useRouter } from 'next/router';
 import { addEmployee } from '../../services/api'; // Импортируем функцию
 

@@ -21,7 +21,11 @@ export default async function handler(req, res) {
           id: parseInt(companyId),
         },
         include: {
-          employees: true, // Включаем сотрудников
+          employees: {
+            include: {
+              roleDetails: true, // Включаем детали роли
+            },
+          },
         },
       });
 

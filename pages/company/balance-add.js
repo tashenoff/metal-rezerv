@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import Notification from '../../components/Notification';
+import Notification from '../../components/ui/Notification';
 import { useAuth } from '../../contexts/AuthContext'; // Импортируем хук для контекста
 import { topUpBalance, getEmployees } from '../../services/api'; // Импортируем функцию из API
 import { handleApiError } from '../../services/errors'; // Импортируем обработчик ошибок

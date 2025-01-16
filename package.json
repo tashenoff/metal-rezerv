@@ -6,8 +6,10 @@
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.6",
     "daisyui": "^4.12.13",
+    "framer-motion": "^11.15.0",
     "jsonwebtoken": "^9.0.2",
     "next": "^14.2.15",
+    "next-i18next": "^15.4.1",
     "prisma": "^5.20.0",
     "quill": "^2.0.2",
     "react": "^18.3.1",
@@ -16,7 +18,8 @@
     "react-icons": "^5.3.0",
     "react-quill": "^2.0.0",
     "react-redux": "^9.1.2",
-    "redux-thunk": "^3.1.0"
+    "redux-thunk": "^3.1.0",
+    "three": "^0.171.0"
   },
   "scripts": {
     "seed": "node prisma/seed.js",

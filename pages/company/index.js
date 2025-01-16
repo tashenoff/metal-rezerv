@@ -1,101 +1,106 @@
-// pages/company/MyCompany.js
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
 import Layout from '../../components/Layout';
 import CompanyDetails from '../../components/company/CompanyDetails';
-import EmployeesTable from '../../components/company/EmployeesTable';
 import ApplicationsChart from '../../components/ApplicationsChart';
-import ResponseStatsChart from '../../components/ResponseStatsChart';
+import EmployeesTable from '../../components/company/EmployeesTable';
+import CompanyActions from '../company/CompanyActions';
 import BalanceTable from '../../components/company/BalanceTable';
 import useBalanceHistory from '../../hooks/useBalanceHistory';
-import { getCompanyDetails, getApplicationsStats, getResponseStats, getEmployees, deleteEmployee } from '../../services/api'; // Импортируем сервисы
+import LatestListingsTable from '../../components/company/publisher/LatestListingsTable';
+import { 
+  getCompanyDetails, 
+  getApplicationsStats, 
+  fetchCompanyListings, 
+  getEmployees, 
+  deleteEmployee 
+} from '../../services/api';
+import { BanknotesIcon } from '@heroicons/react/24/solid';
 
 const MyCompany = () => {
   const { user } = useAuth();
   const router = useRouter();
 
   const [company, setCompany] = useState(null);
-  const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [applicationsData, setApplicationsData] = useState([]);
-  const [responseStatsData, setResponseStatsData] = useState({});
+  const [listings, setListings] = useState([]);
+  const [companyApplicationsData, setCompanyApplicationsData] = useState([]); // Новое состояние
   const companyId = user?.companyId || company?.id;
   const { transfers, loading: transfersLoading, error: transfersError } = useBalanceHistory(companyId);
+  const [employees, setEmployees] = useState([]);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login');
-      return;
-    }
+    // if (!user) {
+    //   router.push('/login');
+    //   return;
+    // }
 
-    fetchUserCompany();
-    fetchApplicationsData(user.companyId);
-    fetchResponseStats(user.companyId);
+    fetchUserCompany(); // Загружаем данные компании
   }, [user]);
+
+  useEffect(() => {
+    if (companyId) {
+      fetchCompanyListingsData(companyId); // Загружаем объявления компании
+      fetchCompanyApplicationsData(companyId); // Загружаем отклики компании
+    }
+  }, [companyId]);
 
   const fetchUserCompany = async () => {
     setIsLoading(true);
     try {
       if (!user.companyId) {
         setCompany(null);
-        setEmployees([]);
         return;
       }
 
-      const data = await getCompanyDetails(user.companyId); // Используем сервис
+      const data = await getCompanyDetails(user.companyId);
       setCompany(data.company);
-      fetchEmployees(data.company.id);
+      fetchEmployees(data.company.id); // Загружаем сотрудников
     } catch (error) {
+      console.error('Ошибка загрузки данных компании:', error.message);
       setCompany(null);
-      setEmployees([]);
-      console.error(error.message);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const fetchApplicationsData = async (companyId) => {
-    try {
-      const data = await getApplicationsStats(companyId); // Используем сервис
-      setApplicationsData(data.stats);
-    } catch (error) {
-      console.error('Ошибка загрузки данных графика:', error);
-    }
-  };
-
-  const fetchResponseStats = async (companyId) => {
-    try {
-      const data = await getResponseStats(companyId); // Используем сервис
-      setResponseStatsData(data.stats);
-    } catch (error) {
-      console.error('Ошибка загрузки данных статистики откликов:', error);
     }
   };
 
   const fetchEmployees = async (companyId) => {
-    setIsLoading(true);
     try {
-      const employeesData = await getEmployees(companyId); // Используем сервис
-      setEmployees(employeesData);
-    } catch {
-      setEmployees([]);
-    } finally {
-      setIsLoading(false);
+      const data = await getEmployees(companyId);
+      setEmployees(data);
+    } catch (error) {
+      console.error('Ошибка загрузки сотрудников:', error);
     }
   };
 
-  const handleDeleteEmployee = async (userId) => {
-    const confirmDelete = window.confirm('Вы уверены, что хотите удалить этого сотрудника?');
-    if (confirmDelete) {
-      setIsLoading(true);
-      try {
-        await deleteEmployee(company.id, userId); // Используем сервис для удаления
-        fetchEmployees(company.id);
-      } finally {
-        setIsLoading(false);
-      }
+  const fetchCompanyListingsData = async (companyId) => {
+    try {
+      const data = await fetchCompanyListings(companyId);
+      setListings(data);
+    } catch (error) {
+      console.error('Ошибка загрузки объявлений:', error);
+    }
+  };
+
+  const fetchCompanyApplicationsData = async (companyId) => {
+    try {
+      const data = await getApplicationsStats(companyId); // API для откликов компании
+      setCompanyApplicationsData(data.stats || []); // Обновляем состояние
+    } catch (error) {
+      console.error('Ошибка загрузки данных откликов компании:', error);
+    }
+  };
+
+  const MAX_BALANCE = 1000;
+  const balancePercentage = company?.balance ? (company.balance / MAX_BALANCE) * 100 : 0;
+
+  const handleDeleteEmployee = async (employeeId) => {
+    try {
+      await deleteEmployee(employeeId);
+      setEmployees((prevEmployees) => prevEmployees.filter((emp) => emp.id !== employeeId));
+    } catch (error) {
+      console.error('Ошибка удаления сотрудника:', error);
     }
   };
 
@@ -105,36 +110,60 @@ const MyCompany = () => {
         <p>Загрузка...</p>
       ) : company ? (
         <>
-          <div className="bg-base-100 p-2 flex items-center justify-between rounded-lg">
-            <span>Баланс компании: {company.balance}</span>
-            <button className="btn btn-accent">Пополнить</button>
-          </div>
-
           <CompanyDetails user={user} company={company} />
 
           <div className="my-5">
-            {user?.role !== 'PUBLISHER' && (
-              <>
-                <div className="grid grid-cols-12 gap-4">
-                  <div className="bg-base-100 col-span-10 rounded-lg p-5">
-                    <ApplicationsChart data={applicationsData} />
-                  </div>
+            <div className="grid grid-cols-12 gap-4">
+              <div className="bg-base-100 col-span-12 rounded-lg p-5">
+                <h3 className="text-lg font-bold">Отклики компании за последние 7 дней</h3>
+                <ApplicationsChart data={companyApplicationsData} /> {/* Используем данные компании */}
+              </div>
+            </div>
 
-                  <div className="bg-base-100 col-span-2 rounded-lg p-5">
-                    <ResponseStatsChart data={responseStatsData} />
+            {user?.role === 'RESPONDER' && (
+              <div className="grid grid-cols-12 gap-4 my-10">
+                <div className="flex flex-col col-span-4">
+                  <div className="bg-base-100 rounded-lg p-2">
+                    <span className="flex items-center space-x-3">
+                      <span className="bg-base-200 p-2 rounded-full w-10 h-10 flex items-center justify-center mr-2">
+                        <BanknotesIcon className="w-5 h-5 rounded-full text-base-50" />
+                      </span>
+                      <h3 className="text-xl font-semibold my-6">Баланс компании:</h3>
+                    </span>
+
+                    <div className="flex w-full items-center space-x-2 my-5">
+                      <span className="text-sm text-gray-600">{company.balance}</span>
+                      <div className="w-full bg-base-200 rounded-full h-4 mt-2">
+                        <div
+                          className="bg-green-500 h-4 rounded-full"
+                          style={{ width: `${balancePercentage}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-sm text-gray-600">{MAX_BALANCE}</span>
+                    </div>
+
+                    <button
+                      className="btn w-full btn-outline"
+                      onClick={() => router.push('/company/balance-add')}
+                    >
+                      Пополнить баланс
+                    </button>
                   </div>
                 </div>
 
-                <div className="bg-base-200 overflow-hidden rounded-lg my-5">
+                <div className="bg-base-200 overflow-hidden rounded-lg col-span-8">
                   <div className="w-full p-5 flex items-center justify-between bg-base-100">
                     <h3 className="text-xl font-semibold my-6">История пополнений</h3>
-
                     <div>
-                      <button className="btn btn-primary btn-outline" onClick={() => router.push('/company/balance-add')}>
+                      <button
+                        className="btn btn-primary btn-outline"
+                        onClick={() => router.push('/company/balance-add')}
+                      >
                         Пополнить баланс сотрудника
                       </button>
                     </div>
                   </div>
+
                   {transfersLoading ? (
                     <p className="text-center">Загрузка истории...</p>
                   ) : transfersError ? (
@@ -144,19 +173,29 @@ const MyCompany = () => {
                   )}
 
                   <div className="flex items-center justify-center space-x-5 p-5">
-                    <button className="underline" onClick={() => router.push('/company/companyBalanceHistory')}>
+                    <button
+                      className="underline"
+                      onClick={() => router.push('/company/companyBalanceHistory')}
+                    >
                       посмотреть все
                     </button>
                   </div>
                 </div>
-              </>
+              </div>
             )}
-          </div>
 
-          <EmployeesTable employees={employees} handleDeleteEmployee={handleDeleteEmployee} />
+            {user?.role === 'PUBLISHER' && (
+              <div className="my-5">
+                <h3 className="text-xl font-semibold my-6">Объявления компании</h3>
+                <LatestListingsTable listings={listings} />
+              </div>
+            )}
+
+            <EmployeesTable employees={employees} handleDeleteEmployee={handleDeleteEmployee} />
+          </div>
         </>
       ) : (
-        <button onClick={() => router.push('/company/create-company')}>Создать компанию</button>
+        <CompanyActions />
       )}
     </Layout>
   );

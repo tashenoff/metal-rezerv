@@ -1,5 +1,5 @@
 // components/ListingInfo.js
-import DateDisplay from './DateDisplay';
+import DateDisplay from '../../DateDisplay';
 import Link from 'next/link';
 
 const ListingInfo = ({ listing }) => {

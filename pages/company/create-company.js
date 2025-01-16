@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import Layout from '../../components/Layout';
-import Notification from '../../components/Notification';
-import { createCompany } from '../../services/api'; // Импортируем функцию создания компании
-import { handleApiError } from '../../services/errors'; // Импортируем функцию обработки ошибок
+import Notification from '../../components/ui/Notification';
+import Steps from '../../components/ui/Steps';
+import Input from '../../components/ui/Input';
+import Textarea from '../../components/ui/Textarea';
+import Button from '../../components/ui/Button';
 
 const CreateCompany = () => {
   const { user } = useAuth();
@@ -19,14 +21,107 @@ const CreateCompany = () => {
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  const steps = [
+    {
+      label: 'Основная информация',
+      content: (
+        <div>
+          <Input
+            label="Название компании"
+            name="companyName"
+            value={companyName}
+            onChange={(e) => setCompanyName(e.target.value)}
+            required
+          />
+          <Input
+            label="БИН или ИИН"
+            name="binOrIin"
+            value={binOrIin}
+            onChange={(e) => setBinOrIin(e.target.value)}
+            required
+          />
+          <Button
+            className="btn-primary mt-4"
+            onClick={() => setCurrentStep(currentStep + 1)}
+          >
+            Далее
+          </Button>
+        </div>
+      ),
+    },
+    {
+      label: 'Дополнительная информация',
+      content: (
+        <div>
+          <Textarea
+            value={description}
+            onChange={setDescription} // ReactQuill передает строку
+            placeholder="Описание компании"
+          />
+          <Input
+            label="Сайт компании"
+            type="url"
+            name="website"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+          />
+          <Input
+            label="График работы"
+            name="workingHours"
+            value={workingHours}
+            onChange={(e) => setWorkingHours(e.target.value)}
+          />
+          <Input
+            label="Адрес компании"
+            name="address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+          <Button
+            className="btn-primary mt-4"
+            onClick={() => setCurrentStep(currentStep + 1)}
+          >
+            Далее
+          </Button>
+        </div>
+      ),
+    },
+    {
+      label: 'Контакты и директор',
+      content: (
+        <div>
+          <Input
+            label="Регион"
+            name="region"
+            value={region}
+            onChange={(e) => setRegion(e.target.value)}
+            required
+          />
+          <Input
+            label="Контакты"
+            name="contacts"
+            value={contacts}
+            onChange={(e) => setContacts(e.target.value)}
+            required
+          />
+          <Input
+            label="Директор"
+            name="director"
+            value={director}
+            onChange={(e) => setDirector(e.target.value)}
+            required
+          />
+        </div>
+      ),
+    },
+  ];
 
   const handleCompanySubmit = async (e) => {
     e.preventDefault();
-    console.log('Попытка создать компанию...');
 
-    // Валидация обязательных полей
     if (!companyName || !binOrIin || !region || !contacts || !director) {
-      console.error('Ошибка: Все поля должны быть заполнены');
       setMessage('Все поля должны быть заполнены');
       setMessageType('error');
       return;
@@ -35,43 +130,34 @@ const CreateCompany = () => {
     setIsLoading(true);
 
     try {
-      console.log('Данные для создания компании:', {
-        name: companyName,
-        binOrIin,
-        region,
-        contacts,
-        director,
-        description,
-        website,
-        workingHours,
-        address,
-        ownerId: user.id,
+      const response = await fetch('/api/companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: companyName,
+          binOrIin,
+          region,
+          contacts,
+          director,
+          description,
+          website,
+          workingHours,
+          address,
+          ownerId: user.id,
+        }),
       });
 
-      const companyData = {
-        name: companyName,
-        binOrIin,
-        region,
-        contacts,
-        director,
-        description,
-        website,
-        workingHours,
-        address,
-        ownerId: user.id,
-      };
+      const responseData = await response.json();
 
-      // Вызов API функции
-      const responseData = await createCompany(companyData);
-
-      console.log('Ответ от сервера на создание компании:', responseData);
-
-      setMessage('Компания успешно создана!');
-      setMessageType('success');
+      if (response.ok) {
+        setMessage('Компания успешно создана!');
+        setMessageType('success');
+      } else {
+        setMessage('Ошибка при создании компании!');
+        setMessageType('error');
+      }
     } catch (error) {
-      const handledError = handleApiError(error); // Обработка ошибки
-      console.error('Ошибка при запросе на создание компании:', handledError);
-      setMessage(handledError.message); // Отображение сообщения об ошибке
+      setMessage('Произошла ошибка при создании компании!');
       setMessageType('error');
     } finally {
       setIsLoading(false);
@@ -81,110 +167,42 @@ const CreateCompany = () => {
   return (
     <Layout>
       {message && <Notification message={message} type={messageType} />}
-
       {isLoading ? (
         <p className="text-center text-lg">Загрузка...</p>
       ) : (
-        <form onSubmit={handleCompanySubmit} className="max-w-2xl mx-auto p-6 space-y-4 bg-white rounded-lg shadow-lg">
-          {/* Поля формы для создания компании */}
-          <div className="form-control">
-            <label className="label">Название компании:</label>
-            <input
-              type="text"
-              className="input input-bordered"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              required
-            />
+        <>
+          <div className="py-5">
+            <h1>Регистрация компании</h1>
           </div>
+          <div className="grid grid-cols-2">
+            <div className="bg-base-100 p-5 rounded-lg">
+              Для регистрации на платформе необходимо предоставить корректную
+              информацию. При регистрации компании требуется предоставить
+              полное название, БИН или ИИН, а также информацию о руководителе
+              компании. Платформа имеет право отклонить регистрацию, если
+              предоставленная информация будет неполной или не соответствует
+              действительности. Для использования платформы важно согласие с
+              условиями политики конфиденциальности и пользовательским
+              соглашением.
+            </div>
+            <form
+              onSubmit={handleCompanySubmit}
+              className="max-w-2xl mx-auto p-6 space-y-4 bg-base-100 rounded-lg shadow-lg"
+            >
+              <Steps
+                steps={steps}
+                currentStep={currentStep}
+                onStepChange={setCurrentStep}
+              />
 
-          <div className="form-control">
-            <label className="label">БИН или ИИН:</label>
-            <input
-              type="text"
-              className="input input-bordered"
-              value={binOrIin}
-              onChange={(e) => setBinOrIin(e.target.value)}
-              required
-            />
+              {currentStep === steps.length - 1 && (
+                <Button type="submit" className="btn-primary w-full">
+                  Создать компанию
+                </Button>
+              )}
+            </form>
           </div>
-
-          <div className="form-control">
-            <label className="label">Регион:</label>
-            <input
-              type="text"
-              className="input input-bordered"
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">Контакты:</label>
-            <input
-              type="text"
-              className="input input-bordered"
-              value={contacts}
-              onChange={(e) => setContacts(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">Директор:</label>
-            <input
-              type="text"
-              className="input input-bordered"
-              value={director}
-              onChange={(e) => setDirector(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">Описание:</label>
-            <textarea
-              className="textarea textarea-bordered"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">Вебсайт:</label>
-            <input
-              type="text"
-              className="input input-bordered"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">Часы работы:</label>
-            <input
-              type="text"
-              className="input input-bordered"
-              value={workingHours}
-              onChange={(e) => setWorkingHours(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">Адрес:</label>
-            <input
-              type="text"
-              className="input input-bordered"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-            />
-          </div>
-
-          <button type="submit" className="btn btn-primary w-full">
-            Создать компанию
-          </button>
-        </form>
+        </>
       )}
     </Layout>
   );

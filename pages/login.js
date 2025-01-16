@@ -1,91 +1,148 @@
-import { useState } from 'react'; // Импортируем useState для управления состоянием
-import { useRouter } from 'next/router'; // Импортируем useRouter для навигации
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { motion } from 'framer-motion'; // Импортируем framer-motion
+import { EnvelopeIcon, LockClosedIcon, GlobeAltIcon } from '@heroicons/react/24/solid'; // Импортируем иконки
 
 export default function Login() {
-  const [email, setEmail] = useState(''); // Состояние для хранения email
-  const [password, setPassword] = useState(''); // Состояние для хранения пароля
-  const router = useRouter(); // Хук для навигации
+  const { t, i18n } = useTranslation('common');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailFocus, setEmailFocus] = useState(false);
+  const [passwordFocus, setPasswordFocus] = useState(false);
+  const router = useRouter();
+
+  const changeLanguage = (lng) => {
+    router.push(router.pathname, router.asPath, { locale: lng });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Предотвращаем стандартное поведение формы
+    e.preventDefault();
     const res = await fetch('/api/auth', {
-      method: 'POST', // Используем метод POST для аутентификации
-      headers: {
-        'Content-Type': 'application/json', // Указываем заголовок для JSON
-      },
-      body: JSON.stringify({ email, password }), // Отправляем email и пароль в теле запроса
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     });
 
-    if (res.ok) { // Если ответ успешный
-      const { token, role } = await res.json(); // Извлекаем токен и роль из ответа
-      localStorage.setItem('token', token); // Сохраняем токен в localStorage
-
-      // Перенаправляем пользователя на нужную страницу в зависимости от роли
-      if (role === 'RESPONDER') {
-        router.push('/activity'); // Если роль - RESPONDER, перенаправляем на страницу активности
-      } else {
-        router.push('/listings'); // В противном случае перенаправляем на страницу объявлений
-      }
+    if (res.ok) {
+      const { token, role } = await res.json();
+      localStorage.setItem('token', token);
+      if (role === 'RESPONDER') router.push('/activity');
+      else router.push('/listings');
     } else {
-      const { message } = await res.json(); // Извлекаем сообщение об ошибке
-      alert(message); // Показываем сообщение об ошибке
+      const { message } = await res.json();
+      alert(message);
     }
   };
 
   return (
-    <div data-theme="nord" className="flex flex-col items-center justify-center h-screen">
-      <div className="bg-white shadow-md rounded-lg p-8 max-w-sm w-full">
-        <h1 className="text-2xl font-semibold text-center text-gray-700 mb-6">Авторизация</h1>
-        <form onSubmit={handleSubmit}> {/* Обработчик отправки формы */}
-          <div className="mb-4">
-            <label className="input input-bordered flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className="h-4 w-4 opacity-70">
-                <path
-                  d="M2.5 3A1.5 1.5 0 0 0 1 4.5v.793c.026.009.051.02.076.032L7.674 8.51c.206.1.446.1.652 0l6.598-3.185A.755.755 0 0 1 15 5.293V4.5A1.5 1.5 0 0 0 13.5 3h-11Z" />
-                <path
-                  d="M15 6.954 8.978 9.86a2.25 2.25 0 0 1-1.956 0L1 6.954V11.5A1.5 1.5 0 0 0 2.5 13h11a1.5 1.5 0 0 0 1.5-1.5V6.954Z" />
-              </svg>
-              <input
-                type="email" // Поле для ввода email
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)} // Обновляем состояние при вводе
-                required
-                className="grow input w-full"
-              />
-            </label>
+    <div className="h-screen grid bg-white grid-cols-1 md:grid-cols-2">
+      {/* Левая колонка (картинка) */}
+      <div
+        className="hidden md:block bg-cover bg-center"
+        style={{ backgroundImage: 'url(https://cdn.pixabay.com/photo/2015/05/31/13/45/working-791849_1280.jpg)' }}
+      ></div>
+
+      {/* Правая колонка (форма) */}
+      <div className="flex flex-col items-center justify-center p-6">
+        <motion.div
+          className="bg-white shadow-md rounded-lg p-8 w-full max-w-sm"
+          initial={{ opacity: 0, y: 50 }} // Начальная позиция
+          animate={{ opacity: 1, y: 0 }} // Конечная позиция
+          transition={{ duration: 0.5 }} // Время анимации
+        >
+          <div className='flex items-center'>
+            <h1 className="text-[42px] text-primary font-bold">INEED</h1>
+            <sup className='text-[18px]'>®</sup>
           </div>
-          <div className="mb-6">
-            <label className="input input-bordered flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className="h-4 w-4 opacity-70">
-                <path
-                  fillRule="evenodd"
-                  d="M14 6a4 4 0 0 1-4.899 3.899l-1.955 1.955a.5.5 0 0 1-.353.146H5v1.5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-2.293a.5.5 0 0 1 .146-.353l3.955-3.955A4 4 0 1 1 14 6Zm-4-2a.75.75 0 0 0 0 1.5.5.5 0 0 1 .5.5.75.75 0 0 0 1.5 0 2 2 0 0 0-2-2Z"
-                  clipRule="evenodd" />
-              </svg>
-              <input
-                type="password" // Поле для ввода пароля
-                placeholder="Пароль"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)} // Обновляем состояние при вводе
-                required
-                className="grow input w-full"
-              />
-            </label>
-          </div>
-          <button type="submit" className="btn btn-primary w-full"> {/* Кнопка для отправки формы */}
-            Войти
-          </button>
-        </form>
+          <h1 className="text-1xl font-semibold uppercase text-gray-700 mb-6">
+            new b2b experience
+          </h1>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-4">
+              <label className="input input-bordered flex items-center gap-2">
+                {/* Анимация иконки с изменением цвета */}
+                <motion.div
+                  initial={{ scale: 1, color: '#6B7280' }} // Начальный цвет и размер
+                  animate={{
+                    scale: emailFocus ? 1.2 : 1,
+                    color: emailFocus ? '#4CAF50' : '#6B7280', // Зеленый цвет при фокусе
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <EnvelopeIcon className="h-5 w-5" />
+                </motion.div>
+                <input
+                  type="email"
+                  placeholder={t('email')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  onFocus={() => setEmailFocus(true)} // Фокус на поле
+                  onBlur={() => setEmailFocus(false)}  // Потеря фокуса
+                  className="grow input w-full bg-white"
+                />
+              </label>
+            </div>
+            <div className="mb-6">
+              <label className="input input-bordered flex items-center gap-2">
+                {/* Анимация иконки с изменением цвета */}
+                <motion.div
+                  initial={{ scale: 1, color: '#6B7280' }} // Начальный цвет и размер
+                  animate={{
+                    scale: passwordFocus ? 1.2 : 1,
+                    color: passwordFocus ? '#4CAF50' : '#6B7280', // Зеленый цвет при фокусе
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <LockClosedIcon className="h-5 w-5" />
+                </motion.div>
+                <input
+                  type="password"
+                  placeholder={t('password')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  onFocus={() => setPasswordFocus(true)} // Фокус на поле
+                  onBlur={() => setPasswordFocus(false)}  // Потеря фокуса
+                  className="grow input w-full"
+                />
+              </label>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm text-gray-700 mb-2">{t('login.language_label')}</label>
+
+              <label className="input input-bordered flex items-center gap-2 w-full">
+                <GlobeAltIcon className="h-5 w-5 text-gray-500" />
+                <select
+                  onChange={(e) => changeLanguage(e.target.value)}
+                  className="select select-bordered w-full pl-8" // Отступ для иконки
+                >
+                  <option value="ru">
+                    {t('login.language_ru')}
+                  </option>
+                  <option value="en">{t('login.language_en')}</option>
+                </select>
+              </label>
+            </div>
+
+            <button type="submit" className="btn btn-primary w-full">
+              {t('login.login_button')}
+            </button>
+          </form>
+        </motion.div>
       </div>
     </div>
   );
+}
+
+// Добавляем функцию для получения переводов на сервере
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };
 }

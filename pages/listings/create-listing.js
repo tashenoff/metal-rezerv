@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext'; // Импортируем контекст аутентификации
 import Layout from '../../components/Layout';
-import Notification from '../../components/Notification';
-import Input from '../../components/Input';
-import FormSelect from '../../components/FormSelect';
-import Textarea from '../../components/Textarea';
+import Notification from '../../components/ui/Notification';
+import Input from '../../components/ui/Input';
+import FormSelect from '../../components/ui/FormSelect';
+import Textarea from '../../components/ui/Textarea';
+import { fetchCategories, createListing } from '../../services/api'; // Импортируем API функции
 
 const CreateListing = () => {
   const { user, loading } = useAuth(); // Получаем информацию о пользователе
@@ -18,7 +19,7 @@ const CreateListing = () => {
   const [paymentTerms, setPaymentTerms] = useState(''); // Новый state для условий оплаты
   const [type, setType] = useState('product'); // Новый state для типа объявления (товар или услуга)
   const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState('');
+  const [messageType, setMessageType] = useState(''); // Тип сообщения (успех или ошибка)
   const [categories, setCategories] = useState([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const router = useRouter();
@@ -29,22 +30,26 @@ const CreateListing = () => {
       router.push('/login');
     }
 
+    // Проверяем, есть ли у пользователя компания
+    if (user && !user.companyId) {
+      setMessage('Для создания объявления необходимо сначала создать компанию.');
+      setMessageType('error');
+      return;
+    }
+
     // Получаем категории, если пользователь аутентифицирован
     if (user) {
-      fetchCategories();
+      fetchCategoriesData();
     }
   }, [user, loading]);
 
-  const fetchCategories = async () => {
+  const fetchCategoriesData = async () => {
     try {
-      const response = await fetch('/api/categories');
-      if (!response.ok) {
-        throw new Error('Ошибка при загрузке категорий');
-      }
-      const data = await response.json();
+      const data = await fetchCategories();
       setCategories(data);
     } catch (error) {
-      console.error('Ошибка при получении категорий:', error);
+      setMessage('Ошибка при загрузке категорий');
+      setMessageType('error');
     }
   };
 
@@ -53,47 +58,39 @@ const CreateListing = () => {
     const token = localStorage.getItem('token');
     const expirationDate = calculateExpirationDate(publicationPeriod);
 
-    try {
-      const response = await fetch('/api/listings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title,
-          content,
-          deliveryDate,
-          purchaseDate,
-          expirationDate,
-          categoryId: selectedCategoryId,
-          purchaseMethod, // Отправляем метод закупки
-          paymentTerms,   // Отправляем условия оплаты
-          type,           // Отправляем тип объявления
-        }),
-      });
+    const listingData = {
+      title,
+      content,
+      deliveryDate,
+      purchaseDate,
+      expirationDate,
+      categoryId: selectedCategoryId,
+      purchaseMethod,
+      paymentTerms,
+      type,
+    };
 
-      if (response.ok) {
-        setMessage('Объявление успешно добавлено!');
-        setMessageType('success');
-        setTitle('');
-        setContent('');
-        setDeliveryDate('');
-        setPurchaseDate('');
-        setPublicationPeriod('1d');
-        setSelectedCategoryId('');
-        setPurchaseMethod(''); // Очистим поле метода закупки
-        setPaymentTerms('');   // Очистим поле условий оплаты
-        setType('product');    // Очистим тип объявления
-      } else {
-        const errorData = await response.json();
-        setMessage(`Ошибка: ${errorData.error}` || 'Ошибка при добавлении объявления.');
-        setMessageType('error');
-      }
+    try {
+      await createListing(listingData, token);
+      setMessage('Объявление успешно добавлено!');
+      setMessageType('success');
+      resetForm();
     } catch (error) {
-      setMessage('Произошла ошибка при добавлении объявления.');
+      setMessage(error.message || 'Произошла ошибка при добавлении объявления.');
       setMessageType('error');
     }
+  };
+
+  const resetForm = () => {
+    setTitle('');
+    setContent('');
+    setDeliveryDate('');
+    setPurchaseDate('');
+    setPublicationPeriod('1d');
+    setSelectedCategoryId('');
+    setPurchaseMethod('');
+    setPaymentTerms('');
+    setType('product');
   };
 
   const calculateExpirationDate = (period) => {
@@ -140,20 +137,17 @@ const CreateListing = () => {
               label="Категория"
               value={selectedCategoryId}
               onChange={(e) => setSelectedCategoryId(e.target.value)}
-              options={[
-                { value: '', label: 'Выберите категорию' },
-                ...categories.map(category => ({ value: category.id, label: category.name })),
-              ]}
+              options={[{ value: '', label: 'Выберите категорию' }, ...categories.map(category => ({ value: category.id, label: category.name }))]}
               required
             />
             <FormSelect
               label="Метод закупки"
               value={purchaseMethod}
               onChange={(e) => setPurchaseMethod(e.target.value)}
-              options={[
+              options={[ 
                 { value: '', label: 'Выберите метод' },
                 { value: 'price-reduction', label: 'Понижение цены' },
-                { value: 'price-quote', label: 'Запрос ценового предложения' },
+                { value: 'price-quote', label: 'Запрос ценового предложения' }
               ]}
               required
             />

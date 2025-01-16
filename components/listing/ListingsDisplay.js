@@ -1,11 +1,13 @@
 // components/ListingsDisplay.js
-import Card from './Card';
-import DateDisplay from './DateDisplay';
-import TruncatedText from '../components/TruncatedText';
+import Card from '../Card';
+import DateDisplay from '../DateDisplay';
+import TruncatedText from '../TruncatedText';
 import { ArrowRightCircleIcon } from '@heroicons/react/24/solid';
+import { useTranslation } from 'next-i18next';
 import Link from 'next/link';
 
 const ListingsDisplay = ({ listings, onListingClick }) => {
+    const { t } = useTranslation('common'); // Подключаем переводы из файла common.json
     return (
         <ul className="space-y-4"> {/* Добавим отступы между элементами списка */}
             {listings.map((listing) => (
@@ -21,15 +23,15 @@ const ListingsDisplay = ({ listings, onListingClick }) => {
                         <div className="flex lg:flex-row flex-col items-center justify-between w-full py-2">
                             <div className='flex lg:flex-row flex-col lg:space-x-5'>
                                 <div className="bg-base-300 px-5 py-2 rounded-full">
-                                    <DateDisplay label="Дата публикации" date={listing.publishedAt} />
+                                    <DateDisplay label= {t('listing.date_publication')} date={listing.publishedAt} />
                                 </div>
                                 <div className="bg-base-300 px-5 py-2 mt-3 lg:mt-0 rounded-full">
-                                    <DateDisplay label="Дата доставки" date={listing.deliveryDate} />
+                                    <DateDisplay label={t('listing.date_delivery')} date={listing.deliveryDate} />
                                 </div>
                             </div>
                             <Link className='mt-5 lg:w-auto w-full flex' href={`/listing/${listing.id}`}>
                                 <button className="btn btn-outline btn-primary justify-between lg:w-auto w-full">
-                                    Подробнее
+                                {t('listing.more')}
                                     <ArrowRightCircleIcon className='w-5 h-5' /> {/* Добавим высоту для иконки */}
                                 </button>
                             </Link>

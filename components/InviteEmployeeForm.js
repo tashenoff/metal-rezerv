@@ -74,7 +74,7 @@ const InviteEmployeeForm = ({ companyId, onInvite }) => {
           type="submit"
           className="w-full py-2 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
         >
-          Пригласить
+          Пригласить1
         </button>
       </form>
     </div>
