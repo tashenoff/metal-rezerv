@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../../../contexts/AuthContext'; // Импортируем контекст аутентификации
 import Layout from '../../../../components/Layout';
-import Table from '../../../../components/Table'; // Импортируем компонент таблицы
+import Table from '../../../../components/ui/Table'; // Импортируем компонент таблицы
 import { fetchPublisherListings } from '../../../../services/api'; // Импортируем функцию для получения данных
 
 const PublisherListings = () => {
