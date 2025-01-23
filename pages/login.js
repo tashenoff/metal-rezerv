@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { motion } from 'framer-motion'; // Импортируем framer-motion
-import { EnvelopeIcon, LockClosedIcon, GlobeAltIcon } from '@heroicons/react/24/solid'; // Импортируем иконки
+import { motion } from 'framer-motion';
+import { EnvelopeIcon, LockClosedIcon, GlobeAltIcon } from '@heroicons/react/24/solid';
+import TetrisGame from '../components/TetrisGame';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 
 export default function Login() {
   const { t, i18n } = useTranslation('common');
@@ -11,6 +13,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [emailFocus, setEmailFocus] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hCaptchaToken, setHCaptchaToken] = useState(null); // Состояние для токена hCaptcha
   const router = useRouter();
 
   const changeLanguage = (lng) => {
@@ -19,10 +23,18 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+
+    if (!hCaptchaToken) {
+      alert('Please complete the hCaptcha challenge');
+      setIsLoading(false);
+      return;
+    }
+
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, hCaptchaToken }),
     });
 
     if (res.ok) {
@@ -34,23 +46,24 @@ export default function Login() {
       const { message } = await res.json();
       alert(message);
     }
+
+    setIsLoading(false);
   };
 
   return (
     <div className="h-screen grid bg-white grid-cols-1 md:grid-cols-2">
-      {/* Левая колонка (картинка) */}
-      <div
-        className="hidden md:block bg-cover bg-center"
-        style={{ backgroundImage: 'url(https://cdn.pixabay.com/photo/2015/05/31/13/45/working-791849_1280.jpg)' }}
-      ></div>
+      {/* Левая колонка (тетрис) */}
+      <div className="hidden md:flex items-center justify-center bg-gray-900">
+        <TetrisGame />
+      </div>
 
       {/* Правая колонка (форма) */}
       <div className="flex flex-col items-center justify-center p-6">
         <motion.div
           className="bg-white shadow-md rounded-lg p-8 w-full max-w-sm"
-          initial={{ opacity: 0, y: 50 }} // Начальная позиция
-          animate={{ opacity: 1, y: 0 }} // Конечная позиция
-          transition={{ duration: 0.5 }} // Время анимации
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
         >
           <div className='flex items-center'>
             <h1 className="text-[42px] text-primary font-bold">INEED</h1>
@@ -62,12 +75,11 @@ export default function Login() {
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
               <label className="input input-bordered flex items-center gap-2">
-                {/* Анимация иконки с изменением цвета */}
                 <motion.div
-                  initial={{ scale: 1, color: '#6B7280' }} // Начальный цвет и размер
+                  initial={{ scale: 1, color: '#6B7280' }}
                   animate={{
                     scale: emailFocus ? 1.2 : 1,
-                    color: emailFocus ? '#4CAF50' : '#6B7280', // Зеленый цвет при фокусе
+                    color: emailFocus ? '#4CAF50' : '#6B7280',
                   }}
                   transition={{ duration: 0.2 }}
                 >
@@ -79,20 +91,19 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  onFocus={() => setEmailFocus(true)} // Фокус на поле
-                  onBlur={() => setEmailFocus(false)}  // Потеря фокуса
+                  onFocus={() => setEmailFocus(true)}
+                  onBlur={() => setEmailFocus(false)}
                   className="grow input w-full bg-white"
                 />
               </label>
             </div>
             <div className="mb-6">
               <label className="input input-bordered flex items-center gap-2">
-                {/* Анимация иконки с изменением цвета */}
                 <motion.div
-                  initial={{ scale: 1, color: '#6B7280' }} // Начальный цвет и размер
+                  initial={{ scale: 1, color: '#6B7280' }}
                   animate={{
                     scale: passwordFocus ? 1.2 : 1,
-                    color: passwordFocus ? '#4CAF50' : '#6B7280', // Зеленый цвет при фокусе
+                    color: passwordFocus ? '#4CAF50' : '#6B7280',
                   }}
                   transition={{ duration: 0.2 }}
                 >
@@ -104,8 +115,8 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  onFocus={() => setPasswordFocus(true)} // Фокус на поле
-                  onBlur={() => setPasswordFocus(false)}  // Потеря фокуса
+                  onFocus={() => setPasswordFocus(true)}
+                  onBlur={() => setPasswordFocus(false)}
                   className="grow input w-full"
                 />
               </label>
@@ -118,7 +129,7 @@ export default function Login() {
                 <GlobeAltIcon className="h-5 w-5 text-gray-500" />
                 <select
                   onChange={(e) => changeLanguage(e.target.value)}
-                  className="select select-bordered w-full pl-8" // Отступ для иконки
+                  className="select select-bordered w-full pl-8"
                 >
                   <option value="ru">
                     {t('login.language_ru')}
@@ -128,8 +139,20 @@ export default function Login() {
               </label>
             </div>
 
-            <button type="submit" className="btn btn-primary w-full">
-              {t('login.login_button')}
+            {/* Добавляем hCaptcha */}
+            <div className="mb-4">
+              <HCaptcha
+                sitekey="b4c2e1be-c808-41e0-8fac-e2a4654cc068" // Замените на ваш Site Key
+                onVerify={(token) => setHCaptchaToken(token)} // Сохраняем токен
+              />
+            </div>
+
+            <button type="submit" className="btn btn-primary w-full" disabled={isLoading}>
+              {isLoading ? (
+                <span className="loading loading-bars loading-lg"></span>
+              ) : (
+                t('login.login_button')
+              )}
             </button>
           </form>
         </motion.div>
@@ -138,7 +161,6 @@ export default function Login() {
   );
 }
 
-// Добавляем функцию для получения переводов на сервере
 export async function getStaticProps({ locale }) {
   return {
     props: {

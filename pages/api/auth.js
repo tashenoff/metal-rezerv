@@ -4,10 +4,24 @@ import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = 'your_jwt_secret'; // Замените на более безопасный секрет
-
+const HCAPTCHA_SECRET = 'ES_0fec4c8770184733a146036310a036cc'; // Замените на ваш Secret Key
 export default async function handler(req, res) {
   if (req.method === 'POST') {
-    const { email, password } = req.body;
+    const { email, password, hCaptchaToken  } = req.body;
+
+       // Проверка hCaptcha
+       const hcaptchaUrl = `https://hcaptcha.com/siteverify`;
+       const hcaptchaRes = await fetch(hcaptchaUrl, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+         body: `secret=${HCAPTCHA_SECRET}&response=${hCaptchaToken}`,
+       });
+
+       const hcaptchaData = await hcaptchaRes.json();
+
+       if (!hcaptchaData.success) {
+         return res.status(400).json({ message: 'hCaptcha validation failed' });
+       }
 
     const user = await prisma.user.findUnique({
       where: { email },
