@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -15,7 +15,20 @@ export default function Login() {
   const [passwordFocus, setPasswordFocus] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hCaptchaToken, setHCaptchaToken] = useState(null); // Состояние для токена hCaptcha
+  const [failedAttempts, setFailedAttempts] = useState(0); // Счетчик неудачных попыток
+  const [showCaptcha, setShowCaptcha] = useState(false); // Показывать ли капчу
   const router = useRouter();
+
+  // При загрузке страницы проверяем localStorage на наличие неудачных попыток
+  useEffect(() => {
+    const attempts = localStorage.getItem('failedAttempts');
+    if (attempts) {
+      setFailedAttempts(Number(attempts));
+      if (Number(attempts) >= 2) {
+        setShowCaptcha(true);
+      }
+    }
+  }, []);
 
   const changeLanguage = (lng) => {
     router.push(router.pathname, router.asPath, { locale: lng });
@@ -25,7 +38,15 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
 
-    if (!hCaptchaToken) {
+    // Если капча не показана, но есть неудачные попытки, показываем капчу
+    if (!showCaptcha && failedAttempts >= 2) {
+      setShowCaptcha(true);
+      setIsLoading(false);
+      return;
+    }
+
+    // Если капча показана, но токен не заполнен
+    if (showCaptcha && !hCaptchaToken) {
       alert('Please complete the hCaptcha challenge');
       setIsLoading(false);
       return;
@@ -40,11 +61,20 @@ export default function Login() {
     if (res.ok) {
       const { token, role } = await res.json();
       localStorage.setItem('token', token);
+      localStorage.removeItem('failedAttempts'); // Сбрасываем счетчик неудачных попыток
+      setFailedAttempts(0); // Сбрасываем счетчик
+      setShowCaptcha(false); // Скрываем капчу
       if (role === 'RESPONDER') router.push('/activity');
       else router.push('/listings');
     } else {
       const { message } = await res.json();
       alert(message);
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      localStorage.setItem('failedAttempts', newAttempts); // Сохраняем счетчик в localStorage
+      if (newAttempts >= 2) {
+        setShowCaptcha(true); // Показываем капчу после 2 неудачных попыток
+      }
     }
 
     setIsLoading(false);
@@ -139,13 +169,15 @@ export default function Login() {
               </label>
             </div>
 
-            {/* Добавляем hCaptcha */}
-            <div className="mb-4">
-              <HCaptcha
-                sitekey="b4c2e1be-c808-41e0-8fac-e2a4654cc068" // Замените на ваш Site Key
-                onVerify={(token) => setHCaptchaToken(token)} // Сохраняем токен
-              />
-            </div>
+            {/* Показываем капчу только после 2 неудачных попыток */}
+            {showCaptcha && (
+              <div className="mb-4">
+                <HCaptcha
+                  sitekey="b4c2e1be-c808-41e0-8fac-e2a4654cc068" // Замените на ваш Site Key
+                  onVerify={(token) => setHCaptchaToken(token)} // Сохраняем токен
+                />
+              </div>
+            )}
 
             <button type="submit" className="btn btn-primary w-full" disabled={isLoading}>
               {isLoading ? (
