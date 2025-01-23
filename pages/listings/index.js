@@ -4,7 +4,7 @@ import ListingsDisplay from '../../components/listing/ListingsDisplay';
 import SearchBar from '../../components/SearchBar';
 import Banner from '../../components/Banner';
 import { fetchListings, fetchCategories } from '../../services/api'; // Импортируем API функции
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { getTranslations } from '../../utils/getTranslations';
 const Listings = () => {
   const [listings, setListings] = useState([]);
   const [filteredResults, setFilteredResults] = useState([]);
@@ -61,14 +61,17 @@ const Listings = () => {
   );
 };
 
+export async function getServerSideProps({ locale }) {
+  return {
+      props: {
+          ...(await getTranslations(locale, ['common', 'activity'])), // Используем функцию
+          // ... другие props, если есть
+      },
+  };
+}
+
 export default Listings;
 
 
-export async function getServerSideProps({ locale }) {
-  return {
-    props: {
-      ...(await serverSideTranslations(locale, ['common'])), // Загружаем переводы для страницы
-    },
-  };
-}
+
 

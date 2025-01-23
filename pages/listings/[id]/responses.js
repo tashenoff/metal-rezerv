@@ -2,7 +2,8 @@ import UserResponses from '../../../components/UserResponses';
 import ResponsesList from '../../../components/ResponsesList';
 
 const Responses = ({ responses, user, listing, reviews, handleAcceptResponse, handleDeclineResponse, handleReviewSubmit }) => {
-    const hasResponded = responses.some(response => response.responderId === user?.id);
+    const hasResponded = Array.isArray(responses) && responses.some(response => response.responderId === user?.id);
+
 
     return (
         <div>

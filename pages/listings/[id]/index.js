@@ -11,6 +11,8 @@ import Modal from '../../../components/Modal';
 import ResponseForm from '../../../components/ResponseForm';
 import { unpublishListing } from '../../../utils/unpublishListing';
 import publishListing from '../../../utils/publishListing';
+import { getTranslations } from '../../../utils/getTranslations';
+
 import {
     fetchListing,
     fetchResponses,
@@ -271,5 +273,15 @@ const ListingPage = () => {
         </Layout>
     );
 };
+
+export async function getServerSideProps({ locale }) {
+    return {
+        props: {
+            ...(await getTranslations(locale, ['common', 'activity'])), // Используем функцию
+            // ... другие props, если есть
+        },
+    };
+}
+
 
 export default ListingPage;

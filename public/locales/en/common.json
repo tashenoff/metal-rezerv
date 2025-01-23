@@ -34,7 +34,8 @@
         "activity": "activity",
         "language": "Язык",
         "language_ru": "Русский",
-        "language_en": "Английский"
+        "language_en": "Английский",
+        "my_points": "My balance"
     },
     "listing":{
         "more": "more",
