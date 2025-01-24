@@ -118,7 +118,7 @@ const Navbar = ({ handleLogout }) => {
                   </div>
 
                   {/* Выпадающее меню только для авторизованных пользователей */}
-                  <div className="relative inline-block" ref={dropdownRef}>
+                  <div className="relative hidden lg:inline-block" ref={dropdownRef}>
                     <button
                       className="flex items-center cursor-pointer hover:bg-base-200 p-2 rounded-full transition-colors duration-200"
                       onClick={toggleDropdown}
@@ -179,7 +179,7 @@ const Navbar = ({ handleLogout }) => {
             </div>
 
             {/* Бургер-кнопка для мобильного меню */}
-            <div className="lg:hidden">
+            <div className="lg:hidden px-2">
               <label htmlFor="my-drawer-4" className="drawer-button btn btn-ghost hover:bg-base-200 p-2 rounded-full transition-colors duration-200">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -195,19 +195,19 @@ const Navbar = ({ handleLogout }) => {
         <label htmlFor="my-drawer-4" aria-label="close sidebar" className="drawer-overlay"></label>
         <ul className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
           {/* Кнопка "Назад" */}
-          <li>
-            <label htmlFor="my-drawer-4" className="flex items-center p-2 cursor-pointer hover:bg-base-300 transition-colors duration-200">
+          <li className='py-3 border-b border-white/20'>
+            <label htmlFor="my-drawer-4" className="flex justify-between items-center p-2 cursor-pointer hover:bg-base-300 transition-colors duration-200">
               <ArrowLeftIcon className="w-5 h-5 mr-2" />
-              Назад
+              <span>Назад</span>
             </label>
           </li>
 
           {user?.isLoggedIn && (
-            <li>
+            <li className='py-3 border-b border-white/10'>
               <UsernameDisplay username={user?.username} avatarUrl={avatarUrl} />
             </li>
           )}
-          <li>
+          <li className='py-3'>
             <Link href="/listings" className="link link-hover text-primary flex items-center hover:bg-base-300 transition-colors duration-200">
               <HomeIcon className="w-5 h-5 mr-2" />
               {t('navbar.requests')}
@@ -215,7 +215,7 @@ const Navbar = ({ handleLogout }) => {
           </li>
           {user?.isLoggedIn && user.role !== 'PUBLISHER' && (
             <>
-              <li>
+              <li className='py-3'>
                 <Link href="/responses" className="link link-hover flex items-center hover:bg-base-300 transition-colors duration-200">
                   <DocumentTextIcon className="w-5 h-5 mr-2" />
                   {t('navbar.my_responses')}
@@ -230,7 +230,7 @@ const Navbar = ({ handleLogout }) => {
             </>
           )}
           {user?.isLoggedIn && user.role === 'PUBLISHER' && (
-            <li>
+            <li className='py-3'>
               <Link href="/publisher" className="link link-hover flex items-center hover:bg-base-300 transition-colors duration-200">
                 <DocumentTextIcon className="w-5 h-5 mr-2" />
                 {t('navbar.my_requests')}
@@ -239,21 +239,16 @@ const Navbar = ({ handleLogout }) => {
           )}
           {user?.isLoggedIn && (
             <>
-              <li>
+              <li className='py-3'>
                 <Link href="/profile/edit-profile" className="link link-hover flex items-center hover:bg-base-300 transition-colors duration-200">
                   <UserIcon className="w-5 h-5 mr-2" />
                   {t('navbar.edit_profile')}
                 </Link>
               </li>
-              <li>
-                <button onClick={handleLogout} className="link link-hover text-red-500 flex items-center hover:bg-base-300 transition-colors duration-200">
-                  <ArrowRightOnRectangleIcon className="w-5 h-5 mr-2" />
-                  {t('navbar.logout')}
-                </button>
-              </li>
+
             </>
           )}
-          <li>
+          <li className='py-3'>
             {user?.isLoggedIn && role?.permissions?.some(permission => permission.id === 1) ? (
               <Link href="/company" className="link link-hover flex items-center hover:bg-base-300 transition-colors duration-200">
                 <BuildingOfficeIcon className="w-5 h-5 mr-2" />
@@ -271,6 +266,15 @@ const Navbar = ({ handleLogout }) => {
               </Link>
             )}
           </li>
+
+          <li className='py-3'>
+            <button onClick={handleLogout} className="link link-hover flex items-center hover:bg-base-300 transition-colors duration-200">
+              <ArrowRightOnRectangleIcon className="w-5 h-5 mr-2" />
+              {t('navbar.logout')}
+            </button>
+          </li>
+
+
         </ul>
       </div>
     </div>
