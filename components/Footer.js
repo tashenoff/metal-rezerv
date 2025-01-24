@@ -9,7 +9,7 @@ const Footer = () => {
                 <span>Настройка темы</span>
                 <ThemeToggle />
             </div>
-            <div className='flex justify-between py-5 items-center'>
+            {/* <div className='flex justify-between py-5 items-center'>
                 <div className=''>2025 INEED. All rights reserved</div>
                 <div className='flex lg:flex-row flex-col justify-end space-x-6 py-5'>
                     <a href='#about' className='text-blue-600 hover:underline'>
@@ -25,7 +25,7 @@ const Footer = () => {
                         Вакансии
                     </a>
                 </div>
-            </div>
+            </div> */}
 
         </div>
     );
