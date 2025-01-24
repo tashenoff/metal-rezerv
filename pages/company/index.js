@@ -113,16 +113,16 @@ const MyCompany = () => {
           <CompanyDetails user={user} company={company} />
 
           <div className="my-5">
-            <div className="grid grid-cols-12 gap-4">
-              <div className="bg-base-100 col-span-12 rounded-lg p-5">
+            <div className="grid lg:grid-cols-12 gap-4">
+              <div className="bg-base-100 lg:col-span-12 rounded-lg p-5">
                 <h3 className="text-lg font-bold">Отклики компании за последние 7 дней</h3>
                 <ApplicationsChart data={companyApplicationsData} /> {/* Используем данные компании */}
               </div>
             </div>
 
             {user?.role === 'RESPONDER' && (
-              <div className="grid grid-cols-12 gap-4 my-10">
-                <div className="flex flex-col col-span-4">
+              <div className="grid lg:grid-cols-12 gap-4 my-10">
+                <div className="flex flex-col lg:col-span-4">
                   <div className="bg-base-100 rounded-lg p-2">
                     <span className="flex items-center space-x-3">
                       <span className="bg-base-200 p-2 rounded-full w-10 h-10 flex items-center justify-center mr-2">
@@ -151,7 +151,7 @@ const MyCompany = () => {
                   </div>
                 </div>
 
-                <div className="bg-base-200 overflow-hidden rounded-lg col-span-8">
+                <div className="bg-base-200 overflow-hidden rounded-lg lg:col-span-8">
                   <div className="w-full p-5 flex items-center justify-between bg-base-100">
                     <h3 className="text-xl font-semibold my-6">История пополнений</h3>
                     <div>
