@@ -174,7 +174,7 @@ const CreateCompany = () => {
           <div className="py-5">
             <h1>Регистрация компании</h1>
           </div>
-          <div className="grid grid-cols-2">
+          <div className="grid lg:grid-cols-2">
             <div className="bg-base-100 p-5 rounded-lg">
               Для регистрации на платформе необходимо предоставить корректную
               информацию. При регистрации компании требуется предоставить

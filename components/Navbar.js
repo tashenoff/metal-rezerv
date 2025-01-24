@@ -100,7 +100,7 @@ const Navbar = ({ handleLogout }) => {
               </Link>
             )}
 
-       
+
           </nav>
         </div>
 
@@ -155,7 +155,7 @@ const Navbar = ({ handleLogout }) => {
                           <Link href={`/company/profile/${user?.companyEmployee?.companyId ?? ''}`} className="link link-hover">
                             {t('navbar.company_profile')}
                           </Link>
-                          
+
                         ) : (
                           <Link href="company/create-company" className="link link-hover">
                             {t('navbar.create_company')}
@@ -231,7 +231,7 @@ const Navbar = ({ handleLogout }) => {
               <>
                 <li>
                   <Link href="/profile/edit-profile" className="link link-hover">
-                 Управление аккаунтом
+                    Управление аккаунтом
                   </Link>
                 </li>
                 <li>
@@ -241,6 +241,25 @@ const Navbar = ({ handleLogout }) => {
                 </li>
               </>
             )}
+
+            <li>
+              {user?.isLoggedIn && role?.permissions?.some(permission => permission.id === 1) ? (
+                <Link href="/company" className="link link-hover">
+                  {t('navbar.admin_panel')}
+                </Link>
+              ) : user?.isLoggedIn && role?.permissions?.some(permission => permission.id === 60001) ? (
+                <Link href={`/company/profile/${user?.companyEmployee?.companyId ?? ''}`} className="link link-hover">
+                  {t('navbar.company_profile')}
+                </Link>
+
+              ) : (
+                <Link href="company/create-company" className="link link-hover">
+                  {t('navbar.create_company')}
+                </Link>
+              )}
+            </li>
+
+
           </ul>
         </div>
       )}
