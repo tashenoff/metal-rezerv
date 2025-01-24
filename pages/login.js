@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { EnvelopeIcon, LockClosedIcon, GlobeAltIcon } from '@heroicons/react/24/solid';
 import TetrisGame from '../components/TetrisGame';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
+import Link from 'next/link';
 
 export default function Login() {
   const { t, i18n } = useTranslation('common');
@@ -186,8 +187,19 @@ export default function Login() {
                 t('login.login_button')
               )}
             </button>
+
+         
           </form>
+
+     
+
         </motion.div>
+
+        <Link href="/register" className="text-sm text-gray-500 py-5 my-5">
+              {t('login.register_link')}
+            </Link>
+
+
       </div>
     </div>
   );

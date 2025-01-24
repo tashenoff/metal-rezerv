@@ -37,6 +37,7 @@ model User {
   reviews          Review[]   // Это связь с моделью Review
   pointTransfers   PointTransfer[]   // Обратная связь с моделью PointTransfer
   
+  
 
 }
 

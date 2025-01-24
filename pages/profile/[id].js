@@ -2,9 +2,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
 import Layout from '../../components/Layout';
+import UsernameDisplay from '../../components/UsernameDisplay';
+import Link from 'next/link';
+import { generateGoogleStyleAvatar } from '../../utils/avatar';
 
 const ProfilePage = () => {
     const { user, loading, logout } = useAuth();  // Получаем данные пользователя из контекста
+
+    // Проверяем наличие username перед генерацией аватара
+    const avatarUrl = user?.username ? generateGoogleStyleAvatar(user.username) : null;
+
     const [profile, setProfile] = useState(null);
     const [deleting, setDeleting] = useState(false);  // Состояние для удаления аккаунта
     const [fetchingProfile, setFetchingProfile] = useState(true);  // Состояние для загрузки профиля
@@ -22,14 +29,12 @@ const ProfilePage = () => {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`,  // Токен из localStorage
                         },
                     });
-                    const data = await res.json();
-                    console.log('Profile data response:', data);  // Логируем ответ от сервера
-
-                    if (res.status === 200) {
-                        setProfile(data);  // Сохраняем профиль пользователя
-                    } else {
-                        console.error(data.message);  // Если ошибка, выводим сообщение
+                    if (!res.ok) {
+                        console.error('Ошибка при запросе профиля:', res.statusText);
+                        return;
                     }
+                    const data = await res.json();
+                    setProfile(data);  // Сохраняем профиль пользователя
                 } catch (error) {
                     console.error('Ошибка при получении профиля:', error);
                 } finally {
@@ -44,6 +49,11 @@ const ProfilePage = () => {
     if (loading) return <div>Загрузка...</div>;
 
     const handleDeleteAccount = async () => {
+        if (!localStorage.getItem('token')) {
+            console.error("Токен не найден в local storage.");
+            return;
+        }
+
         if (window.confirm('Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо.')) {
             setDeleting(true);
 
@@ -76,6 +86,11 @@ const ProfilePage = () => {
         <Layout>
             <div className="max-w-3xl mx-auto mt-8 p-6">
                 <h1 className="text-3xl font-bold text-center text-gray-800">Профиль пользователя</h1>
+                <div className='hidden lg:block'>
+                    {/* Передаем avatarUrl в UsernameDisplay */}
+                    <UsernameDisplay username={user?.username} avatarUrl={avatarUrl} />
+                </div>
+
                 {fetchingProfile ? (
                     <div className="flex justify-center mt-6">
                         <span className="loading loading-bars loading-lg"></span>  {/* Индикатор загрузки */}
@@ -119,7 +134,9 @@ const ProfilePage = () => {
 
                         {/* Кнопка для редактирования профиля */}
                         <div className="mt-6 text-center">
-                            <button className="btn btn-primary">Редактировать профиль</button>
+                            <Link href="/profile/edit-profile" className="block px-4 py-2 hover:bg-base-300">
+                                Редактировать профиль
+                            </Link>
                         </div>
 
                         {/* Кнопка для удаления аккаунта */}

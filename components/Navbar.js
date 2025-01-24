@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import UsernameDisplay from './UsernameDisplay';
+import UsernameDisplay from './UsernameDisplay'; // Импортируем обновленный компонент
 import PointsDisplay from './PointsDisplay';
 import { useAuth } from '../contexts/AuthContext';
-import { getEmployeeRole } from '../services/api'; // Добавьте getCompanyDetails
+import { getEmployeeRole } from '../services/api';
 import { useTranslation } from 'next-i18next';
+import { generateGoogleStyleAvatar } from '../utils/avatar'; // Импортируем функцию для генерации аватара
+
 const Navbar = ({ handleLogout }) => {
-  const { t } = useTranslation('common'); // Подключаем переводы из файла common.json
+  const { t } = useTranslation('common');
   const { user, loading } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [role, setRole] = useState(null);
@@ -14,6 +16,11 @@ const Navbar = ({ handleLogout }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Генерация аватара на основе username
+  const avatarUrl = user?.username ? generateGoogleStyleAvatar(user.username) : null;
+
+
 
   const toggleDropdown = () => setIsDropdownOpen((prev) => !prev);
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
@@ -33,7 +40,6 @@ const Navbar = ({ handleLogout }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMobileMenuOpen]);
-
 
   useEffect(() => {
     if (user?.isLoggedIn) {
@@ -56,7 +62,6 @@ const Navbar = ({ handleLogout }) => {
       checkAccess();
     }
   }, [user]);
-
 
   if (loading) {
     return (
@@ -91,16 +96,11 @@ const Navbar = ({ handleLogout }) => {
             )}
             {user?.isLoggedIn && user.role === 'PUBLISHER' && (
               <Link href="/publisher" className="link link-hover">
-             {t('navbar.my_requests')}
+                {t('navbar.my_requests')}
               </Link>
             )}
 
-            {/* Ссылка на профиль */}
-            {user?.isLoggedIn && (
-              <Link href={`/profile/${user?.id}`} className="link link-hover">
-                {t('navbar.profile')}
-              </Link>
-            )}
+       
           </nav>
         </div>
 
@@ -111,12 +111,13 @@ const Navbar = ({ handleLogout }) => {
               <PointsDisplay points={user.points} role={user.role} />
               {user.role === 'PUBLISHER' && (
                 <Link href="/listings/create-listing" className="btn btn-primary btn-sm">
-               {t('navbar.create_request')}
+                  {t('navbar.create_request')}
                 </Link>
               )}
 
               <div className='hidden lg:block'>
-                <UsernameDisplay username={user?.username} />
+                {/* Передаем avatarUrl в UsernameDisplay */}
+                <UsernameDisplay username={user?.username} avatarUrl={avatarUrl} />
               </div>
 
               {/* Выпадающее меню только для авторизованных пользователей */}
@@ -141,36 +142,32 @@ const Navbar = ({ handleLogout }) => {
                   <div className="absolute right-0 mt-2 w-48 bg-base-100 border border-base-200 rounded-md shadow-lg z-10">
                     <ul className="menu">
                       <li>
-                        <Link href="/profile/edit-profile" className="block px-4 py-2 hover:bg-base-300">
-                        {t('navbar.edit_profile')}
+                        <Link href={`/profile/${user?.id}`} className="block px-4 py-2 hover:bg-base-300">
+                          {t('navbar.edit_profile')}
                         </Link>
                       </li>
                       <li>
                         {user?.isLoggedIn && role?.permissions?.some(permission => permission.id === 1) ? (
                           <Link href="/company" className="link link-hover">
-                               {t('navbar.admin_panel')}
+                            {t('navbar.admin_panel')}
                           </Link>
                         ) : user?.isLoggedIn && role?.permissions?.some(permission => permission.id === 60001) ? (
                           <Link href={`/company/profile/${user?.companyEmployee?.companyId ?? ''}`} className="link link-hover">
                             {t('navbar.company_profile')}
                           </Link>
+                          
                         ) : (
                           <Link href="company/create-company" className="link link-hover">
-                            Создать компанию
                             {t('navbar.create_company')}
                           </Link>
                         )}
-
-
-
-
                       </li>
                       <li>
                         <button
                           onClick={handleLogout}
                           className="block w-full text-left px-4 py-2 hover:bg-base-300"
                         >
-                              {t('navbar.logout')}
+                          {t('navbar.logout')}
                         </button>
                       </li>
                     </ul>
@@ -201,7 +198,7 @@ const Navbar = ({ handleLogout }) => {
           <ul className="menu p-2">
             {user?.isLoggedIn && (
               <li>
-                <UsernameDisplay username={user?.username} />
+                <UsernameDisplay username={user?.username} avatarUrl={avatarUrl} />
               </li>
             )}
             <li>
@@ -234,7 +231,7 @@ const Navbar = ({ handleLogout }) => {
               <>
                 <li>
                   <Link href="/profile/edit-profile" className="link link-hover">
-                    Редактировать профиль
+                 Управление аккаунтом
                   </Link>
                 </li>
                 <li>

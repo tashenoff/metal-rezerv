@@ -35,7 +35,7 @@ const CompanyProfile = () => {
         return (
             <Layout>
                 <div className="flex justify-center items-center min-h-screen">
-                    <div className="loader">Загрузка...</div>
+                    <div className="loading loading-spinner loading-lg"></div>
                 </div>
             </Layout>
         );
@@ -43,24 +43,60 @@ const CompanyProfile = () => {
 
     return (
         <Layout>
-            <div className="container mx-auto p-4">
+            <div className="container mx-auto p-6">
                 {company ? (
                     <>
-                        <h1 className="text-2xl font-bold">{company.name}</h1>
-                        <p><strong>Регион:</strong> {company.region}</p>
-                        <p><strong>Директор:</strong> {company.director}</p>
-                        <p><strong>Рейтинг:</strong> {company.rating ?? 'Не установлен'}</p>
-                        <p><strong>Контакты:</strong> {company.contacts ?? 'Не указаны'}</p>
-                        <p><strong>Веб-сайт:</strong> {company.website ?? 'Не указан'}</p>
-                        <p><strong>Адрес</strong> {company.address ?? 'Не указан'}</p>
-                        <p><strong>Описание</strong> {company.description ?? 'Не указа1н'}</p>
+                        {/* Заголовок и основная информация */}
+                        <div className="bg-base-200 p-6 rounded-lg shadow-md mb-6">
+                            <h1 className="text-3xl font-bold mb-4">{company.name}</h1>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-lg">
+                                        <strong>Регион:</strong> {company.region}
+                                    </p>
+                                    <p className="text-lg">
+                                        <strong>Директор:</strong> {company.director}
+                                    </p>
+                                    <p className="text-lg">
+                                        <strong>Рейтинг:</strong> {company.rating ?? 'Не установлен'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-lg">
+                                        <strong>Контакты:</strong> {company.contacts ?? 'Не указаны'}
+                                    </p>
+                                    <p className="text-lg">
+                                        <strong>Веб-сайт:</strong> {company.website ? (
+                                            <a
+                                                href={company.website}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-primary hover:underline"
+                                            >
+                                                {company.website}
+                                            </a>
+                                        ) : 'Не указан'}
+                                    </p>
+                                    <p className="text-lg">
+                                        <strong>Адрес:</strong> {company.address ?? 'Не указан'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
 
+                        {/* Описание компании */}
+                        <div className="bg-base-200 p-6 rounded-lg shadow-md mb-6">
+                            <h2 className="text-2xl font-bold mb-4">Описание компании</h2>
+                            <p className="text-lg">
+                                {company.description ?? 'Описание отсутствует.'}
+                            </p>
+                        </div>
 
-
-                        <div className="mt-10">
-                        <h3 className="text-xl font-semibold my-6">Реквизиты компании</h3>
-                            <div className="overflow-x-auto bg-base-100 col-span-8">
-                                <table className="table w-full table-compact">
+                        {/* Реквизиты компании */}
+                        <div className="bg-base-200 p-6 rounded-lg shadow-md">
+                            <h2 className="text-2xl font-bold mb-4">Реквизиты компании</h2>
+                            <div className="overflow-x-auto">
+                                <table className="table w-full">
                                     <thead>
                                         <tr>
                                             <th className="text-center">BIN/IIN</th>
@@ -70,7 +106,7 @@ const CompanyProfile = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr className="hover">
+                                        <tr>
                                             <td className="text-center">{company.binOrIin}</td>
                                             <td className="text-center">{company.region}</td>
                                             <td className="text-center">{company.contacts}</td>
@@ -80,11 +116,11 @@ const CompanyProfile = () => {
                                 </table>
                             </div>
                         </div>
-
-
                     </>
                 ) : (
-                    <p className="text-center text-gray-600">Информация о компании недоступна.</p>
+                    <div className="text-center text-gray-600">
+                        <p>Информация о компании недоступна.</p>
+                    </div>
                 )}
             </div>
         </Layout>

@@ -1,13 +1,26 @@
 // components/UsernameDisplay.js
 import React from 'react';
-import { useTranslation } from 'next-i18next';
 
-const UsernameDisplay = ({ username }) => {
-    const { t } = useTranslation('common'); // Подключаем переводы из файла common.json
+
+const UsernameDisplay = ({ username, avatarUrl }) => {
+
     return (
-        <span className="text-sm">
-            {`${t('navbar.greeting')}, ${username}!`}
-        </span>
+        <div className="flex items-center space-x-2">
+            {/* Аватар */}
+            {avatarUrl && (
+                <img
+                    src={avatarUrl}
+                    alt="User Avatar"
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                />
+            )}
+            {/* Имя пользователя */}
+            <span className="text-sm">
+                {username}
+            </span>
+        </div>
     );
 };
 
