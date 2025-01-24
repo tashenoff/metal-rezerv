@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Оффлайн</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Вы сейчас оффлайн</h1>
+    <p>Попробуйте подключиться к интернету, чтобы продолжить.</p>
+    <button onclick="window.location.reload()">Перезагрузить</button>
+
+    <script>
+        // Опционально: можно добавить проверку подключения к интернету
+        function checkOnline() {
+            if (navigator.onLine) {
+                window.location.reload(); // Перезагрузить страницу, если есть интернет
+            }
+        }
+
+        // Проверять подключение каждые 5 секунд
+        setInterval(checkOnline, 5000);
+    </script>
+</body>
+</html>

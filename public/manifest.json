@@ -20,5 +20,8 @@
   "orientation": "portrait",
   "categories": [
     "business"
-  ]
+  ],
+  "launch_handler": {
+    "client_mode": "navigate-new"
+  }
 }
