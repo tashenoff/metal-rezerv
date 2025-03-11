@@ -120,6 +120,12 @@ const CreateCompany = () => {
 
   const handleCompanySubmit = async (e) => {
     e.preventDefault();
+    
+    if (!user) {
+      setMessage('Необходимо войти в систему для создания компании');
+      setMessageType('error');
+      return;
+    }
 
     if (!companyName || !binOrIin || !region || !contacts || !director) {
       setMessage('Все поля должны быть заполнены');
@@ -152,11 +158,17 @@ const CreateCompany = () => {
       if (response.ok) {
         setMessage('Компания успешно создана!');
         setMessageType('success');
+        
+        // Перенаправляем на страницу компании через 2 секунды
+        setTimeout(() => {
+          window.location.href = '/company';
+        }, 2000);
       } else {
-        setMessage('Ошибка при создании компании!');
+        setMessage(responseData.message || 'Ошибка при создании компании!');
         setMessageType('error');
       }
     } catch (error) {
+      console.error('Error creating company:', error);
       setMessage('Произошла ошибка при создании компании!');
       setMessageType('error');
     } finally {

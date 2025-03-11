@@ -148,7 +148,51 @@ export default async function handler(req, res) {
                 data: { points: user.points - responseCost },
             });
 
+            try {
+                // Загружаем данные для отправки уведомления
+                // Получаем информацию о публишере (владельце объявления)
+                const publisher = await prisma.user.findUnique({
+                    where: { id: listing.authorId },
+                    include: {
+                        company: {
+                            select: {
+                                name: true,
+                            },
+                        },
+                    },
+                });
 
+                // Если у публишера есть email - отправляем уведомление
+                if (publisher && publisher.email) {
+                    // Импортируем сервис отправки email
+                    const { sendNewResponseNotification } = require('../../services/emailService');
+                    
+                    // Формируем данные для отправки
+                    const listingInfo = {
+                        id: listing.id,
+                        title: listing.title,
+                    };
+                    
+                    const responderInfo = {
+                        name: user.name,
+                        companyName: company?.name,
+                        email: user.email,
+                    };
+                    
+                    // Отправляем уведомление
+                    await sendNewResponseNotification(
+                        publisher.email, 
+                        listingInfo, 
+                        responderInfo, 
+                        message
+                    );
+                    
+                    console.log('Email notification sent to publisher:', publisher.email);
+                }
+            } catch (emailError) {
+                // Если есть ошибка с отправкой email, мы логируем ее, но не прерываем выполнение запроса
+                console.error('Error sending email notification:', emailError);
+            }
 
             return res.status(201).json(response);
         } else if (req.method === 'GET') {

@@ -60,10 +60,25 @@ const ResponsesList = ({ responses, onAccept, onDecline, listingId }) => {
     const loadResponsesByStatus = (status) => {
         setIsLoading(true);
 
-        const filteredResponses = responses.filter(response => {
-            const responseStatus = response.status === 'processed' ? 'approved' : response.status; // Изменяем статус при фильтрации
-            return responseStatus === status;
-        });
+        let filteredResponses = [];
+        
+        if (status === 'pending') {
+            // Для вкладки "Входящие" показываем отклики, которые не приняты и не отклонены
+            filteredResponses = responses.filter(response => 
+                !response.accepted && !response.declined && 
+                (!response.status || response.status === 'pending')
+            );
+        } else if (status === 'approved') {
+            // Для вкладки "Принятые" показываем принятые отклики (accepted: true)
+            filteredResponses = responses.filter(response => 
+                response.accepted === true || response.status === 'approved'
+            );
+        } else if (status === 'rejected') {
+            // Для вкладки "Отклоненные" показываем отклоненные отклики
+            filteredResponses = responses.filter(response => 
+                response.accepted === false || response.declined === true || response.status === 'rejected'
+            );
+        }
 
         console.log('Отфильтрованные отклики:', filteredResponses);
         setVisibleResponses(filteredResponses.slice(0, 5));
@@ -75,8 +90,26 @@ const ResponsesList = ({ responses, onAccept, onDecline, listingId }) => {
     const loadMoreResponses = () => {
         setIsLoading(true);
         setTimeout(() => {
-            const nextResponses = responses.filter(response => response.status === currentStatus)
+            let filteredResponses = [];
+            
+            if (currentStatus === 'pending') {
+                filteredResponses = responses.filter(response => 
+                    !response.accepted && !response.declined && 
+                    (!response.status || response.status === 'pending')
+                );
+            } else if (currentStatus === 'approved') {
+                filteredResponses = responses.filter(response => 
+                    response.accepted === true || response.status === 'approved'
+                );
+            } else if (currentStatus === 'rejected') {
+                filteredResponses = responses.filter(response => 
+                    response.accepted === false || response.declined === true || response.status === 'rejected'
+                );
+            }
+            
+            const nextResponses = filteredResponses
                 .slice(visibleResponses.length, visibleResponses.length + 5);
+                
             if (nextResponses.length > 0) {
                 setVisibleResponses((prev) => [...prev, ...nextResponses]);
             }
@@ -108,7 +141,13 @@ const ResponsesList = ({ responses, onAccept, onDecline, listingId }) => {
 
     const confirmAcceptance = () => {
         if (responseToAccept) {
+            // Сначала закрываем модальное окно подтверждения
+            closeConfirmation();
+            
+            // Затем вызываем функцию принятия отклика
             onAccept(responseToAccept);
+            
+            // Обновляем локальное состояние и localStorage
             const updatedAcceptedResponses = new Set(acceptedResponses).add(responseToAccept);
             setAcceptedResponses(updatedAcceptedResponses);
             localStorage.setItem('acceptedResponses', JSON.stringify(Array.from(updatedAcceptedResponses)));
@@ -122,7 +161,6 @@ const ResponsesList = ({ responses, onAccept, onDecline, listingId }) => {
                 return updatedResponseData;
             });
         }
-        closeConfirmation();
     };
 
     // Функция для переключения состояния "Показать больше/меньше"

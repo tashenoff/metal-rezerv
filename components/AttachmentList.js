@@ -1,6 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const AttachmentList = ({ attachments, canDelete, onDelete, token }) => {
+  // Состояние для хранения защищенных URL для файлов
+  const [secureUrls, setSecureUrls] = useState({});
+  
+  // Получаем токен из localStorage, если он не был передан через props
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedToken = token || localStorage.getItem('token');
+      
+      if (storedToken && attachments?.length > 0) {
+        // Для каждого вложения получаем защищенный URL
+        const fetchSecureUrls = async () => {
+          const urlMap = {};
+          
+          await Promise.all(attachments.map(async (attachment) => {
+            try {
+              const response = await fetch('/api/attachments/secureUrl', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${storedToken}`
+                },
+                body: JSON.stringify({ attachmentId: attachment.id })
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                urlMap[attachment.id] = data.url;
+              }
+            } catch (error) {
+              console.error(`Error getting secure URL for attachment ${attachment.id}:`, error);
+            }
+          }));
+          
+          setSecureUrls(urlMap);
+        };
+        
+        fetchSecureUrls();
+      }
+    }
+  }, [attachments, token]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -107,10 +147,16 @@ const AttachmentList = ({ attachments, canDelete, onDelete, token }) => {
               <span className="text-2xl mr-2">{getFileIcon(attachment.fileType)}</span>
               <div>
                 <a 
-                  href={attachment.filePath} 
+                  href={secureUrls[attachment.id] || '#'}
+                  onClick={(e) => {
+                    if (!secureUrls[attachment.id]) {
+                      e.preventDefault();
+                      alert('Пожалуйста, подождите. Получение защищенной ссылки...');
+                    }
+                  }}
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline font-medium"
+                  className="text-blue-600 hover:underline font-medium cursor-pointer"
                 >
                   {attachment.fileName}
                 </a>
@@ -138,11 +184,26 @@ const AttachmentList = ({ attachments, canDelete, onDelete, token }) => {
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
         {attachments.filter(att => isImage(att.fileType)).map((attachment) => (
           <div key={`img-${attachment.id}`} className="border rounded overflow-hidden">
-            <a href={attachment.filePath} target="_blank" rel="noopener noreferrer">
+            <a 
+              href={secureUrls[attachment.id] || '#'}
+              onClick={(e) => {
+                if (!secureUrls[attachment.id]) {
+                  e.preventDefault();
+                  alert('Пожалуйста, подождите. Получение защищенной ссылки...');
+                }
+              }}
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
               <img 
-                src={attachment.filePath} 
+                src={secureUrls[attachment.id] || '/img/placeholder-image.png'}
                 alt={attachment.fileName} 
                 className="w-full h-40 object-cover"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = '/img/placeholder-image.png'; // Путь к заместительному изображению
+                  e.target.alt = 'Изображение недоступно';
+                }}
               />
             </a>
           </div>

@@ -29,7 +29,7 @@ const ListingsDisplay = ({ listings, onListingClick }) => {
                                     <DateDisplay label={t('listing.date_delivery')} date={listing.deliveryDate} />
                                 </div>
                             </div>
-                            <Link className='mt-5 lg:w-auto w-full flex' href={`/listing/${listing.id}`}>
+                            <Link className='mt-5 lg:w-auto w-full flex' href={`/listings/${listing.id}`}>
                                 <button className="btn btn-outline btn-primary justify-between lg:w-auto w-full">
                                 {t('listing.more')}
                                     <ArrowRightCircleIcon className='w-5 h-5' /> {/* Добавим высоту для иконки */}

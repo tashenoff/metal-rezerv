@@ -1,5 +1,5 @@
 // components/ListingInfo.js
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import DateDisplay from '../../DateDisplay';
 import Link from 'next/link';
 import AttachmentList from '../../AttachmentList';
@@ -59,10 +59,21 @@ const ListingInfo = ({ listing }) => {
     // Сокращаем содержимое, если оно слишком длинное
     const toggleContent = () => setShowFullContent(!showFullContent);
     const maxLength = 300; // Максимальная длина для сокращенного отображения
-    const contentIsTooLong = listing.content.length > maxLength;
-    const displayContent = !showFullContent && contentIsTooLong 
-        ? `${listing.content.substring(0, maxLength)}...` 
-        : listing.content;
+    
+    // Простая функция для удаления HTML-тегов
+    const stripHtmlTags = (html) => {
+        if (!html) return '';
+        return html.replace(/<\/?[^>]+(>|$)/g, '');
+    };
+    
+    // Удаляем HTML-теги для определения длины и отображения
+    const plainTextContent = stripHtmlTags(listing.content || '');
+    const contentIsTooLong = plainTextContent.length > maxLength;
+    
+    // Создаем обрезанную версию
+    const displayContent = !showFullContent && contentIsTooLong
+        ? plainTextContent.substring(0, maxLength) + '...'
+        : plainTextContent;
 
     return (
         <div className='card rounded-lg bg-base-100 p-5' key={listing.id}>
@@ -76,7 +87,12 @@ const ListingInfo = ({ listing }) => {
 
             <div className='card-body'>
                 <div className="whitespace-pre-wrap">
-                    {displayContent}
+                    {displayContent.split('\n').map((line, index) => (
+                        <React.Fragment key={index}>
+                            {line}
+                            {index < displayContent.split('\n').length - 1 && <br />}
+                        </React.Fragment>
+                    ))}
                 </div>
                 
                 {contentIsTooLong && (
@@ -113,19 +129,31 @@ const ListingInfo = ({ listing }) => {
                 <span className="font-semibold">Тип объявления:</span> {listing.type || 'Не указан'}
             </div>
             
-            {/* Отображаем прикрепленные файлы */}
-            {loading ? (
-                <div className="text-center p-4">
-                    <span className="loading loading-spinner loading-md"></span>
-                    <p className="mt-2">Загрузка файлов...</p>
-                </div>
+            {/* Отображаем прикрепленные файлы только для авторизованных пользователей */}
+            {user ? (
+                loading ? (
+                    <div className="text-center p-4">
+                        <span className="loading loading-spinner loading-md"></span>
+                        <p className="mt-2">Загрузка файлов...</p>
+                    </div>
+                ) : (
+                    <AttachmentList 
+                        attachments={attachments} 
+                        canDelete={isAuthor} 
+                        onDelete={handleAttachmentDelete}
+                        token={localStorage.getItem('token')}
+                    />
+                )
             ) : (
-                <AttachmentList 
-                    attachments={attachments} 
-                    canDelete={isAuthor} 
-                    onDelete={handleAttachmentDelete}
-                    token={localStorage.getItem('token')}
-                />
+                <div className="mt-4 p-3 bg-gray-50 rounded border text-center">
+                    <p className="text-gray-700">Прикрепленные файлы доступны только авторизованным пользователям</p>
+                    <button 
+                        onClick={() => window.location.href = '/login'} 
+                        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"
+                    >
+                        Войти
+                    </button>
+                </div>
             )}
         </div>
     );

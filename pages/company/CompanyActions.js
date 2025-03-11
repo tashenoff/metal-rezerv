@@ -10,7 +10,7 @@ const CompanyActions = () => {
       description:
         'Простой процесс регистрации, полное управление всеми аспектами бизнеса и возможность привлечь талантливых сотрудников. Начните уже сегодня и откройте новые горизонты для вашего успеха.',
       buttonText: 'Создать компанию',
-      buttonAction: () => router.push('/company/create-company'),
+      buttonAction: () => router.push('/company/create-company', undefined, { shallow: false }),
       bgColor: 'bg-blue-200', // Цвет фона
     },
     {

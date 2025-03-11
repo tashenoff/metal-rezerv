@@ -19,47 +19,55 @@ import {
 import { BanknotesIcon } from '@heroicons/react/24/solid';
 
 const MyCompany = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
   const [company, setCompany] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true); // Начинаем с состояния загрузки
+  const [dataInitialized, setDataInitialized] = useState(false); // Флаг, указывающий, что данные инициализированы
   const [listings, setListings] = useState([]);
   const [companyApplicationsData, setCompanyApplicationsData] = useState([]); // Новое состояние
   const companyId = user?.companyId || company?.id;
   const { transfers, loading: transfersLoading, error: transfersError } = useBalanceHistory(companyId);
   const [employees, setEmployees] = useState([]);
 
+  // Проверяем, есть ли у пользователя компания после загрузки данных авторизации
   useEffect(() => {
-    // if (!user) {
-    //   router.push('/login');
-    //   return;
-    // }
-
-    fetchUserCompany(); // Загружаем данные компании
-  }, [user]);
+    if (!authLoading) {
+      if (user) {
+        fetchUserCompany(); // Загружаем данные компании
+      } else {
+        setIsLoading(false); // Если пользователь не авторизован, завершаем загрузку
+        setDataInitialized(true); // Отмечаем, что данные инициализированы
+      }
+    }
+  }, [user, authLoading]);
 
   useEffect(() => {
-    if (companyId) {
+    // Если пользователь авторизован, компания есть и данные инициализированы
+    if (companyId && dataInitialized && user) {
       fetchCompanyListingsData(companyId); // Загружаем объявления компании
       fetchCompanyApplicationsData(companyId); // Загружаем отклики компании
     }
-  }, [companyId]);
+  }, [companyId, dataInitialized, user]);
 
   const fetchUserCompany = async () => {
     setIsLoading(true);
     try {
-      if (!user.companyId) {
+      if (!user || !user.companyId) {
         setCompany(null);
+        setDataInitialized(true); // Данные инициализированы, даже если нет компании
         return;
       }
 
       const data = await getCompanyDetails(user.companyId);
       setCompany(data.company);
+      setDataInitialized(true); // Данные инициализированы
       fetchEmployees(data.company.id); // Загружаем сотрудников
     } catch (error) {
       console.error('Ошибка загрузки данных компании:', error.message);
       setCompany(null);
+      setDataInitialized(true); // Данные инициализированы, даже при ошибке
     } finally {
       setIsLoading(false);
     }
@@ -106,8 +114,13 @@ const MyCompany = () => {
 
   return (
     <Layout>
-      {isLoading ? (
-        <p>Загрузка...</p>
+      {authLoading || isLoading ? (
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="flex flex-col items-center">
+            <span className="loading loading-spinner loading-lg"></span>
+            <p className="mt-4 text-lg">Загрузка данных...</p>
+          </div>
+        </div>
       ) : company ? (
         <>
           <CompanyDetails user={user} company={company} />

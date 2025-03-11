@@ -43,8 +43,8 @@ const ResponseItem = ({
                             <button
                                 onClick={() => {
                                     onAccept(response.id, response.responder); // Принять отклик
-                                    setIsAccepted(true); // Устанавливаем состояние, что отклик принят
-                                    handleShowContacts(); // Открываем модальное окно с контактами
+                                    // При нажатии на кнопку "Принять" только вызываем обработчик,
+                                    // который откроет модальное окно с подтверждением
                                 }}
                                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200"
                             >
@@ -60,7 +60,7 @@ const ResponseItem = ({
                     )}
 
                     {/* Кнопка "Показать контакты" */}
-                    {response.accepted && acceptedResponseData[response.id] && (
+                    {response.accepted && (
                         <button
                             onClick={handleShowContacts} // Открытие модального окна
                             className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200"

@@ -26,6 +26,70 @@ export default async function handler(req, res) {
                 // data: { published: false }, // Устанавливаем статус публикации на false
             // });
 
+            // Отправляем уведомление респонденту о принятии его отклика
+            try {
+                // Получаем данные отклика с информацией о респонденте и объявлении
+                const responseWithDetails = await prisma.response.findUnique({
+                    where: { id: responseId },
+                    include: {
+                        responder: {
+                            include: {
+                                company: {
+                                    select: {
+                                        name: true,
+                                    },
+                                },
+                            },
+                        },
+                        listing: {
+                            include: {
+                                author: {
+                                    include: {
+                                        company: {
+                                            select: {
+                                                name: true,
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+
+                // Если у респондента есть email - отправляем уведомление
+                if (responseWithDetails && responseWithDetails.responder && responseWithDetails.responder.email) {
+                    // Импортируем сервис отправки email
+                    const { sendResponseStatusNotification } = require('../../../services/emailService');
+                    
+                    // Формируем данные для отправки
+                    const listingInfo = {
+                        id: responseWithDetails.listing.id,
+                        title: responseWithDetails.listing.title,
+                    };
+                    
+                    const publisherInfo = {
+                        name: responseWithDetails.listing.author.name,
+                        email: responseWithDetails.listing.author.email,
+                        phoneNumber: responseWithDetails.listing.author.phoneNumber,
+                        company: responseWithDetails.listing.author.company,
+                    };
+                    
+                    // Отправляем уведомление о принятии отклика
+                    await sendResponseStatusNotification(
+                        responseWithDetails.responder.email,
+                        listingInfo,
+                        true, // isAccepted = true
+                        publisherInfo
+                    );
+                    
+                    console.log('Acceptance notification sent to responder:', responseWithDetails.responder.email);
+                }
+            } catch (emailError) {
+                // Если есть ошибка с отправкой email, мы логируем ее, но не прерываем выполнение запроса
+                console.error('Error sending acceptance notification:', emailError);
+            }
+
             return res.status(200).json({ response, message: 'Отклик принят и статус объявления обновлен.' });
         } catch (error) {
             console.error('Ошибка при принятии отклика:', error);

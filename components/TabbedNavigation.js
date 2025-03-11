@@ -4,7 +4,7 @@ const TabbedNavigation = ({ onTabChange, isSorted, responseCounts }) => {
     const [activeTab, setActiveTab] = useState('pending');
     const tabs = [
         { status: 'pending', label: `Входящие (${responseCounts?.pending || 0})` },
-        { status: 'approved', label: `Принятые отклики (${responseCounts?.processed || 0})` },
+        { status: 'approved', label: `Принятые (${responseCounts?.processed || 0})` },
         { status: 'rejected', label: `Отклоненные (${responseCounts?.rejected || 0})` },
     ];
 
