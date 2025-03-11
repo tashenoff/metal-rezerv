@@ -33,6 +33,14 @@ export default async function handler(req, res) {
               },
             },
           },
+          attachments: {
+            where: {
+              isVisible: true, // Только видимые вложения для неавторизованных пользователей
+            },
+            orderBy: {
+              uploadedAt: 'desc',
+            },
+          },
         },
       });
 

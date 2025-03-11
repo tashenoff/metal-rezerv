@@ -2,14 +2,19 @@
   "dependencies": {
     "@hcaptcha/react-hcaptcha": "^1.11.1",
     "@heroicons/react": "^2.1.5",
-    "@prisma/client": "^5.20.0",
+    "@prisma/client": "^5.22.0",
     "@reduxjs/toolkit": "^2.3.0",
     "bcryptjs": "^2.4.3",
     "chart.js": "^4.4.6",
     "daisyui": "^4.12.13",
+    "formidable": "^3.5.2",
     "framer-motion": "^11.15.0",
+    "fs-extra": "^11.3.0",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
+    "multer": "^1.4.5-lts.1",
     "next": "^14.2.15",
+    "next-connect": "^1.0.0",
     "next-i18next": "^15.4.1",
     "prisma": "^5.20.0",
     "quill": "^2.0.2",
@@ -20,7 +25,8 @@
     "react-quill": "^2.0.0",
     "react-redux": "^9.1.2",
     "redux-thunk": "^3.1.0",
-    "three": "^0.171.0"
+    "three": "^0.171.0",
+    "uuid": "^11.1.0"
   },
   "scripts": {
     "seed": "node prisma/seed.js",

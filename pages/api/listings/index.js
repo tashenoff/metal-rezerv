@@ -59,7 +59,7 @@ export default async function handler(req, res) {
           },
         },
       });
-      res.status(201).json(listing);
+      res.status(201).json({ ...listing, success: true });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

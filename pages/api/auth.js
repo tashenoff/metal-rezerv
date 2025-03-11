@@ -43,9 +43,9 @@ export default async function handler(req, res) {
       }
     }
 
-    // Генерация токена
+    // Генерация токена с более длительным сроком действия
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
-      expiresIn: '1h',
+      expiresIn: '7d', // Увеличиваем до 7 дней
     });
 
     res.status(200).json({ token, role: user.role });

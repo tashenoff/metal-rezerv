@@ -230,6 +230,7 @@ model Listing {
   purchaseMethod   String?   // Метод закупки, например, "понижение цены", "запрос ценового предложения"
   paymentTerms     String?   // Условия оплаты (новое поле)
   type          String   // Новый тип объявления: товар или услуга
+  attachments   Attachment[] // Связь с прикрепленными файлами
 }
 
 model Response {
@@ -255,5 +256,17 @@ model RelatedModel {
   id        Int    @id @default(autoincrement())
   ownerId   Int?
   owner     User?  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+model Attachment {
+  id          Int       @id @default(autoincrement())
+  fileName    String    // Оригинальное имя файла
+  filePath    String    // Путь к файлу на сервере
+  fileType    String    // MIME-тип файла
+  fileSize    Int       // Размер файла в байтах
+  uploadedAt  DateTime  @default(now())
+  listing     Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId   Int
+  isVisible   Boolean   @default(true) // Флаг, показывающий, должен ли файл быть виден всем
 }
 
