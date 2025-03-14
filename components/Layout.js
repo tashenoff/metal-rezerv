@@ -3,6 +3,7 @@ import React from 'react';
 import Head from 'next/head';
 import Header from './Header'; // Вы можете создать свой Header компонент
 import Footer from './Footer'; // В
+import DailyRewardChecker from './DailyRewardChecker';
 
 const Layout = ({ children, title = "My Next.js App" }) => {
   return (
@@ -21,6 +22,9 @@ const Layout = ({ children, title = "My Next.js App" }) => {
       </main>
 
       <Footer />
+      
+      {/* Компонент для проверки и отображения ежедневной награды */}
+      <DailyRewardChecker />
     </div>
   );
 };

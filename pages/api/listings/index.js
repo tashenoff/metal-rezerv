@@ -1,21 +1,28 @@
 import prisma from '../../../prisma/client';
-import jwt from 'jsonwebtoken'; // Импортируем jsonwebtoken для работы с токенами
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../api/auth/[...nextauth]';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
     const { title, content, deliveryDate, purchaseDate, expirationDate, categoryId, purchaseMethod, paymentTerms, type } = req.body; // Добавляем новые поля
-    const token = req.headers.authorization?.split(' ')[1]; // Получаем токен
-
-    if (!token) {
+    
+    // Получаем сессию NextAuth
+    const session = await getServerSession(req, res, authOptions);
+    
+    if (!session || !session.user) {
       return res.status(401).json({ error: 'Необходима авторизация.' });
     }
 
     try {
-      // Декодируем токен и получаем пользователя
-      const decoded = jwt.verify(token, 'your_jwt_secret'); // Замените на ваш секрет
+      console.log('Session data:', JSON.stringify(session, null, 2));
+      console.log('User ID from session:', session.user?.id);
+      
+      // Получаем пользователя из сессии NextAuth
       const user = await prisma.user.findUnique({
-        where: { id: decoded.id },
+        where: { id: session.user.id },
       });
+      
+      console.log('User from database:', user ? 'Found' : 'Not found');
 
       // Проверяем, является ли пользователь PUBLISHER
       if (user.role !== 'PUBLISHER') {

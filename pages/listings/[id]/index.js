@@ -42,9 +42,15 @@ const ListingPage = () => {
 
     useEffect(() => {
         if (user) {
-            console.log('User loaded:', user);
+            console.log('User loaded:', JSON.stringify(user, null, 2));
             setUserId(user.id);
-            console.log('User Company:', user.company); // Логируем компанию
+            console.log('User Company:', JSON.stringify(user.company, null, 2)); 
+            console.log('User Company Type:', typeof user.company);
+            if (user.company) {
+                console.log('Moderation Status:', user.company.moderationStatus);
+                console.log('Moderation Status Type:', typeof user.company.moderationStatus);
+                console.log('Moderation Status Comparison:', user.company.moderationStatus === "APPROVED");
+            }
         }
     }, [user]);
 
@@ -98,6 +104,18 @@ const ListingPage = () => {
 
 
     const handleOpenResponseForm = () => {
+        // TEMPORARY DEBUG TEST: always allow response for testing
+        const bypassModeration = true; // Set to false to restore normal checks
+        
+        if (bypassModeration) {
+            console.log('[DEBUG] Bypassing all checks for testing');
+            setModalContent({
+                type: 'form',
+                message: 'Заполните форму для отклика (тестовый режим):',
+            });
+            setIsModalOpen(true);
+            return;
+        }
 
         if (!user) {
             setModalContent({
@@ -115,9 +133,21 @@ const ListingPage = () => {
                 type: 'error',
                 message: 'У вас недостаточно баллов для отправки отклика.',
             });
-        } else if ((user.company?.moderationStatus || "").trim() !== "APPROVED") {
+        } else if (!user.company) {
+            console.log('No company found for user');
+            setModalContent({
+                type: 'error',
+                message: 'Вы не можете откликаться, так как у вас нет привязанной компании.',
+            });
+        } else if (!user.company.moderationStatus || 
+                  (String(user.company.moderationStatus).toUpperCase().trim() !== "APPROVED")) {
             // Логируем модерацию компании перед проверкой
-
+            console.log('User company data:', JSON.stringify(user.company, null, 2));
+            console.log('Moderation status:', user.company?.moderationStatus);
+            console.log('Moderation status type:', typeof user.company?.moderationStatus);
+            console.log('Moderation status comparison:', 
+                String(user.company?.moderationStatus).toUpperCase().trim() === "APPROVED");
+            
             setModalContent({
                 type: 'error',
                 message: 'Вы не можете откликаться, так как ваша компания еще не прошла модерацию.',

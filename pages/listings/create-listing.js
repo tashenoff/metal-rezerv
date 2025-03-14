@@ -9,9 +9,11 @@ import Textarea from '../../components/ui/Textarea';
 import FileUploader from '../../components/FileUploader';
 import AttachmentList from '../../components/AttachmentList';
 import { fetchCategories, createListing } from '../../services/api'; // Импортируем API функции
+import { useSession } from 'next-auth/react';
 
 const CreateListing = () => {
   const { user, loading } = useAuth(); // Получаем информацию о пользователе
+  const { data: session } = useSession(); // Получаем сессию NextAuth
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
@@ -45,11 +47,11 @@ const CreateListing = () => {
       return;
     }
 
-    // Получаем категории, если пользователь аутентифицирован
-    if (user) {
+    // Получаем категории, если пользователь аутентифицирован и есть сессия NextAuth
+    if (user && session) {
       fetchCategoriesData();
     }
-  }, [user, loading]);
+  }, [user, loading, session]);
 
   const fetchCategoriesData = async () => {
     try {
@@ -77,18 +79,16 @@ const CreateListing = () => {
     setIsUploading(true);
     setUploadError('');
     
-    const token = localStorage.getItem('token');
+    // Больше не используем token из localStorage
     const uploadPromises = selectedFiles.map(async (file) => {
       try {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('listingId', String(listingId));
         
+        // Авторизация будет автоматически добавлена через куки сессии NextAuth
         const response = await fetch('/api/upload/simple', {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           body: formData,
         });
         
@@ -119,7 +119,7 @@ const CreateListing = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    // Больше не используем token из localStorage
     const expirationDate = calculateExpirationDate(publicationPeriod);
 
     const listingData = {
@@ -138,7 +138,8 @@ const CreateListing = () => {
       setMessage('');
       setMessageType('');
       
-      const result = await createListing(listingData, token);
+      // Больше не передаем token в функцию createListing
+      const result = await createListing(listingData);
       
       if (result && result.id) {
         setCreatedListingId(result.id);
@@ -406,5 +407,31 @@ const CreateListing = () => {
     </Layout>
   );
 };
+
+// Проверка авторизации на сервере
+export async function getServerSideProps(context) {
+  const { getServerSession } = await import('next-auth/next');
+  const { authOptions } = await import('../../pages/api/auth/[...nextauth]');
+  
+  const session = await getServerSession(context.req, context.res, authOptions);
+  
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+  
+  // Sanitize the session to ensure all undefined values are replaced with null
+  const sanitizedSession = JSON.parse(JSON.stringify(session || {}));
+  
+  return {
+    props: {
+      session: sanitizedSession,
+    },
+  };
+}
 
 export default CreateListing;

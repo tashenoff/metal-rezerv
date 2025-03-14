@@ -5,9 +5,13 @@ import Layout from '../../components/Layout';
 import UsernameDisplay from '../../components/UsernameDisplay';
 import Link from 'next/link';
 import { generateGoogleStyleAvatar } from '../../utils/avatar';
+import { useSession } from 'next-auth/react';
 
 const ProfilePage = () => {
     const { user, loading, logout } = useAuth();  // Получаем данные пользователя из контекста
+    const { data: session } = useSession();  // Получаем сессию NextAuth
+    
+    // NextAuth теперь всегда используется
 
     // Проверяем наличие username перед генерацией аватара
     const avatarUrl = user?.username ? generateGoogleStyleAvatar(user.username) : null;
@@ -19,21 +23,24 @@ const ProfilePage = () => {
     const { id } = router.query; // Получаем id из URL
 
     useEffect(() => {
-        if (!loading && user?.isLoggedIn && id) {
+        if (!loading && user?.isLoggedIn && id && session) {
             const fetchProfile = async () => {
                 setFetchingProfile(true);  // Начинаем загрузку профиля
                 try {
                     console.log('Fetching profile for ID:', id);  // Логируем, какой ID запрашиваем
-                    const res = await fetch(`/api/profile/${id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`,  // Токен из localStorage
-                        },
-                    });
+                    console.log('Session available:', !!session);  // Проверяем наличие сессии
+                    
+                    const res = await fetch(`/api/profile/${id}`);
+                    
                     if (!res.ok) {
-                        console.error('Ошибка при запросе профиля:', res.statusText);
+                        console.error('Ошибка при запросе профиля:', res.status, res.statusText);
+                        const errorText = await res.text();
+                        console.error('Текст ошибки:', errorText);
                         return;
                     }
+                    
                     const data = await res.json();
+                    console.log('Получены данные профиля:', data);
                     setProfile(data);  // Сохраняем профиль пользователя
                 } catch (error) {
                     console.error('Ошибка при получении профиля:', error);
@@ -44,15 +51,12 @@ const ProfilePage = () => {
 
             fetchProfile();  // Загружаем профиль при рендере
         }
-    }, [user, id, loading]);
+    }, [user, id, loading, session]);
 
     if (loading) return <div>Загрузка...</div>;
 
     const handleDeleteAccount = async () => {
-        if (!localStorage.getItem('token')) {
-            console.error("Токен не найден в local storage.");
-            return;
-        }
+        // Токен будет получен из сессии NextAuth автоматически
 
         if (window.confirm('Вы уверены, что хотите удалить свой аккаунт? Это действие необратимо.')) {
             setDeleting(true);
@@ -60,9 +64,6 @@ const ProfilePage = () => {
             try {
                 const res = await fetch(`/api/profile/deleteProfile`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    },
                 });
 
                 if (res.status === 200) {
@@ -157,5 +158,31 @@ const ProfilePage = () => {
         </Layout>
     );
 };
+
+// Проверка авторизации на сервере
+export async function getServerSideProps(context) {
+    const { getServerSession } = await import('next-auth/next');
+    const { authOptions } = await import('../../pages/api/auth/[...nextauth]');
+    
+    const session = await getServerSession(context.req, context.res, authOptions);
+    
+    if (!session) {
+        return {
+            redirect: {
+                destination: '/login',
+                permanent: false,
+            },
+        };
+    }
+    
+    // Sanitize the session to ensure all undefined values are replaced with null
+    const sanitizedSession = JSON.parse(JSON.stringify(session || {}));
+    
+    return {
+        props: {
+            session: sanitizedSession,
+        },
+    };
+}
 
 export default ProfilePage;

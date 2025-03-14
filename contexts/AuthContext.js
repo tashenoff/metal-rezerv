@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useDispatch } from 'react-redux';
-import { setUser, clearUser } from '../store/userSlice';
-import jwtDecode from 'jwt-decode';
+import { setUser, clearUser, updateUserPoints } from '../store/userSlice';
+import { useSession, signIn, signOut } from "next-auth/react";
 
 const AuthContext = createContext();
 
@@ -11,135 +11,152 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const dispatch = useDispatch();
     const router = useRouter();
-
-    // Функция проверки срока действия токена
-    const isTokenExpired = (token) => {
-        try {
-            const decoded = jwtDecode(token);
-            const currentTime = Date.now() / 1000;
-            // Если время истечения токена меньше текущего времени, то токен истек
-            return decoded.exp < currentTime;
-        } catch (error) {
-            return true; // В случае ошибки считаем, что токен истек
-        }
-    };
-
-    // Функция для обновления токена
-    const refreshToken = async (oldToken) => {
-        try {
-            const response = await fetch('/api/auth/refresh-token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${oldToken}`,
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('token', data.token);
-                return data.token;
-            }
-            return null;
-        } catch (error) {
-            console.error('Error refreshing token:', error);
-            return null;
-        }
-    };
     
-    // Функция для получения действительного токена
-    const getValidToken = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) return null;
-        
-        // Если токен действителен, возвращаем его
-        if (!isTokenExpired(token)) return token;
-        
-        // Если токен истек, пытаемся обновить его
-        const newToken = await refreshToken(token);
-        return newToken;
+    // Получаем сессию NextAuth
+    const { data: session, status } = useSession();
+    const nextAuthLoading = status === "loading";
+
+    // Авторизация пользователя
+    const login = async (email, password) => {
+        try {
+            // Используем NextAuth для авторизации
+            const result = await signIn('credentials', {
+                email,
+                password,
+                redirect: false
+            });
+            
+            if (!result.error) {
+                // Сразу обновим состояние пользователя, не дожидаясь эффекта
+                await fetchUserData();
+            }
+            
+            return { success: !result.error, error: result.error };
+        } catch (error) {
+            console.error('Ошибка при авторизации:', error);
+            return { success: false, error: 'Произошла ошибка при авторизации' };
+        }
     };
 
-    useEffect(() => {
-        const fetchUserData = async () => {
-            setLoading(true);
+    // Выход из системы
+    const logout = async () => {
+        try {
+            // Используем NextAuth для выхода
+            await signOut({ redirect: false });
             
-            // Получаем действительный токен
-            const token = await getValidToken();
+            // Очищаем состояние пользователя
+            setUserState(null);
+            dispatch(clearUser());
             
-            if (token) {
-                try {
-                    const response = await fetch('/api/user', {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
-                    if (response.ok) {
-                        const userData = await response.json();
-                        setUserState({
-                            isLoggedIn: true,
-                            role: userData.role,
-                            points: userData.points,
-                            username: userData.name,
-                            id: userData.id,
-                            responderId: userData.responderId,
-                            companyId: userData.companyId,
-                            company: userData.company,
-                        });
-                        dispatch(setUser(userData));
+            // Перенаправляем на главную
+            router.push('/');
+            
+            return { success: true };
+        } catch (error) {
+            console.error('Ошибка при выходе:', error);
+            return { success: false, error: 'Произошла ошибка при выходе из системы' };
+        }
+    };
 
-                        // Перенаправляем пользователя только после логина
-                        if (!user) {
-                            router.push(router.asPath); // Обновление страницы
-                        }
-                    } else {
-                        // Если не удалось получить данные пользователя, очищаем состояние
-                        localStorage.removeItem('token');
-                        setUserState(null);
-                        dispatch(clearUser());
-                    }
-                } catch (error) {
-                    console.error('Error fetching user data:', error);
-                    setUserState(null);
-                    dispatch(clearUser());
-                } finally {
-                    setLoading(false);
-                }
-            } else {
-                // Если нет токена или не удалось обновить его
-                localStorage.removeItem('token');
+    // Функция загрузки данных пользователя из NextAuth сессии
+    const fetchUserData = async () => {
+        setLoading(true);
+        
+        try {
+            // Если сессия уже загружена и пользователь авторизован
+            if (status === "authenticated" && session?.user) {
+                console.log('Используем данные пользователя из NextAuth:', session.user);
+                
+                // Проверяем, включена ли поддержка поинтов в NextAuth
+                const pointsEnabled = true;
+                
+                // Формируем данные пользователя
+                const userData = {
+                    isLoggedIn: true,
+                    role: session.user.role,
+                    points: pointsEnabled ? (session.user.points || 0) : 0,
+                    username: session.user.name,
+                    id: session.user.id,
+                    responderId: session.user.responderId,
+                    companyId: session.user.companyId,
+                    company: session.user.company
+                };
+                
+                console.log('User data loaded:', userData);
+                
+                // Обновляем состояние
+                setUserState(userData);
+                dispatch(setUser(userData));
+                setLoading(false);
+                return true;
+            } else if (status === "unauthenticated") {
+                // Если не авторизован
+                console.log('User not authenticated');
                 setUserState(null);
                 dispatch(clearUser());
                 setLoading(false);
+                return false;
+            } else {
+                // Если еще загружается
+                console.log('Auth status is still loading');
+                return null;
             }
-        };
-        
-        fetchUserData();
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            setLoading(false);
+            return false;
+        }
+    };
 
-        // Установим интервал для периодической проверки токена
-        const tokenCheckInterval = setInterval(async () => {
-            const token = localStorage.getItem('token');
-            if (token && isTokenExpired(token)) {
-                console.log("Token is expired, refreshing...");
-                const newToken = await refreshToken(token);
-                if (!newToken) {
-                    // Если не удалось обновить токен, выполняем выход
-                    console.log("Could not refresh token, logging out");
-                    localStorage.removeItem('token');
-                    setUserState(null);
-                    dispatch(clearUser());
-                } else {
-                    console.log("Token refreshed successfully");
-                }
-            }
-        }, 5 * 60 * 1000); // Проверяем каждые 5 минут
-        
-        // Очистка интервала при размонтировании компонента
-        return () => clearInterval(tokenCheckInterval);
-    }, [dispatch, router]); // Убрали user из зависимостей
+    // Проверка аутентификации при запуске и обновлении данных
+    useEffect(() => {
+        console.log('Auth status changed:', status);
+        // Если сессия готова, загружаем данные пользователя
+        if (status !== "loading") {
+            fetchUserData();
+        }
+    }, [status]);
+    
+    // Обновляем состояние пользователя при изменении сессии NextAuth
+    useEffect(() => {
+        if (session?.user && status === "authenticated") {
+            console.log('Session updated:', session);
+            
+            // Формируем данные пользователя
+            const userData = {
+                isLoggedIn: true,
+                role: session.user.role,
+                points: session.user.points || 0,
+                username: session.user.name,
+                id: session.user.id,
+                responderId: session.user.responderId,
+                companyId: session.user.companyId,
+                company: session.user.company
+            };
+            
+            console.log('User data updated from session:', userData);
+            
+            // Обновляем состояние
+            setUserState(userData);
+            dispatch(setUser(userData));
+            setLoading(false);
+        }
+    }, [session, status, dispatch]);
+
+    // Добавляем функцию для перезагрузки данных пользователя
+    const refreshUserData = async () => {
+        return await fetchUserData();
+    };
 
     return (
-        <AuthContext.Provider value={{ user, loading, setUserState }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            loading: loading || nextAuthLoading, 
+            setUserState,
+            login,
+            logout,
+            refreshUserData // Добавляем новую функцию в контекст
+        }}>
             {children}
         </AuthContext.Provider>
     );

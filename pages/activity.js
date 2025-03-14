@@ -6,6 +6,7 @@ import ResponseSummary from '../components/ResponseSummary';
 import EffectivenessDisplay from '../components/EffectivenessDisplay';
 import { useAuth } from '../contexts/AuthContext';
 import { getTranslations } from '../utils/getTranslations';
+import { getSession } from 'next-auth/react';
 
 const UserActivityTimeline = () => {
     const [responses, setResponses] = useState([]);
@@ -14,23 +15,29 @@ const UserActivityTimeline = () => {
     const { user, loading } = useAuth();
     const router = useRouter();
 
+    // Получаем состояние NextAuth
+    const nextAuthEnabled = process.env.NEXT_PUBLIC_NEXTAUTH_ENABLED === 'true';
+
     useEffect(() => {
+        // Если данные загружаются, ждем
         if (loading) {
             console.log('Данные загружаются...');
-            return; // Ждем завершения загрузки
+            return;
         }
 
+        // Если пользователь не найден, показываем сообщение об ошибке
         if (!user) {
             console.log('Пользователь не найден после загрузки');
             setFeedback('Вы должны быть авторизованы для доступа к активности.');
             return;
         }
 
+        // Когда пользователь загружен, запрашиваем его данные
         if (user && user.id) {
             console.log('Пользователь найден:', user);
             fetchResponses(user.id);
         }
-    }, [user, loading, router]);
+    }, [user, loading]);
 
     const fetchResponses = async (responderId) => {
         try {
@@ -86,11 +93,37 @@ const UserActivityTimeline = () => {
     );
 };
 
-export async function getServerSideProps({ locale }) {
+export async function getServerSideProps(context) {
+    const { locale } = context;
+    const nextAuthEnabled = process.env.NEXT_PUBLIC_NEXTAUTH_ENABLED === 'true';
+    
+    // Если включен NextAuth, проверяем сессию на сервере
+    if (nextAuthEnabled) {
+        const session = await getSession(context);
+        
+        // Если нет сессии, перенаправляем на страницу входа
+        if (!session) {
+            return {
+                redirect: {
+                    destination: '/login',
+                    permanent: false,
+                },
+            };
+        }
+        
+        // Иначе передаем сессию в props
+        return {
+            props: {
+                ...(await getTranslations(locale, ['common', 'activity'])),
+                session,
+            },
+        };
+    }
+    
+    // Если NextAuth не включен, используем стандартную логику
     return {
         props: {
-            ...(await getTranslations(locale, ['common', 'activity'])), // Используем функцию
-            // ... другие props, если есть
+            ...(await getTranslations(locale, ['common', 'activity'])),
         },
     };
 }

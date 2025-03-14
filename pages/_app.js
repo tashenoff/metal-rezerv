@@ -6,6 +6,7 @@ import '../utils/i18n'; // Инициализация i18next
 import { appWithTranslation } from 'next-i18next';
 import Head from 'next/head';
 import { useEffect, useState } from 'react'; // Добавлены хуки
+import { SessionProvider } from "next-auth/react";
 
 // Компонент для отображения уведомления об отсутствии интернета
 const OfflineNotification = () => {
@@ -59,19 +60,23 @@ function MyApp({ Component, pageProps }) {
     };
   }, []);
 
+  // NextAuth теперь всегда включен
+
   return (
     <>
       <Head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
       </Head>
-      <Provider store={store}>
-        <AuthProvider>
-          <Component {...pageProps} data-theme="light" />
-          {/* Отображаем уведомление, если интернета нет */}
-          {!isOnline && <OfflineNotification />}
-        </AuthProvider>
-      </Provider>
+      <SessionProvider session={pageProps.session}>
+        <Provider store={store}>
+          <AuthProvider>
+            <Component {...pageProps} data-theme="light" />
+            {/* Отображаем уведомление, если интернета нет */}
+            {!isOnline && <OfflineNotification />}
+          </AuthProvider>
+        </Provider>
+      </SessionProvider>
     </>
   );
 }

@@ -33,9 +33,12 @@ const userSlice = createSlice({
             state.companyName = ''; // Очистите поле companyName
             // Очистите другие поля, если нужно
         },
+        updateUserPoints: (state, action) => {
+            state.points = action.payload;
+        },
     },
 });
 
 
-export const { setUser, clearUser } = userSlice.actions;
+export const { setUser, clearUser, updateUserPoints } = userSlice.actions;
 export default userSlice.reducer;

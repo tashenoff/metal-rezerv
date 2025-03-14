@@ -1,25 +1,36 @@
 import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
 
 const prisma = new PrismaClient();
-const JWT_SECRET = 'your_jwt_secret'; // Замените на ваш секретный ключ
+const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'your_jwt_secret';
 
 export default async function handler(req, res) {
   const { id } = req.query;
 
   if (req.method === 'GET' || req.method === 'PUT') {
-    // Проверяем наличие токена в заголовке Authorization
-    const { authorization } = req.headers;
-    if (!authorization) {
-      return res.status(401).json({ message: 'Требуется аутентификация' });
-    }
-
+    let userId;
+    
     try {
-      // Извлекаем токен из заголовка
-      const token = authorization.split(' ')[1];
-      // Декодируем токен
-      const decoded = jwt.verify(token, JWT_SECRET);
-      const userId = decoded.id;
+      // Получаем сессию NextAuth
+      const session = await getServerSession(req, res, authOptions);
+      
+      console.log('Session in profile API:', JSON.stringify(session, null, 2));
+      
+      // Если нет сессии, возвращаем ошибку авторизации
+      if (!session || !session.user) {
+        return res.status(401).json({ message: 'Требуется авторизация' });
+      }
+      
+      // Получаем ID пользователя из сессии
+      userId = session.user.id;
+      console.log('Используем ID из NextAuth сессии:', userId);
+      
+      // Проверяем, что userId получен
+      if (!userId) {
+        return res.status(401).json({ message: 'Не удалось получить ID пользователя' });
+      }
 
       // Если запрос на получение данных пользователя, проверяем, совпадает ли id с id в токене
       if (req.method === 'GET') {

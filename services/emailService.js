@@ -22,7 +22,7 @@ const sendNewResponseNotification = async (publisherEmail, listingInfo, responde
   try {
     // Сообщение для отправки
     const mailOptions = {
-      from: `"ROFL Marketplace" <${process.env.EMAIL_USER}>`,
+      from: `"INEED.KZ" <${process.env.EMAIL_USER}>`,
       to: publisherEmail,
       subject: `Новый отклик на объявление "${listingInfo.title}"`,
       html: `
@@ -115,7 +115,7 @@ const sendResponseStatusNotification = async (responderEmail, listingInfo, isAcc
     
     // Сообщение для отправки
     const mailOptions = {
-      from: `"ROFL Marketplace" <${process.env.EMAIL_USER}>`,
+      from: `"INEED.KZ" <${process.env.EMAIL_USER}>`,
       to: responderEmail,
       subject: subject,
       html: `

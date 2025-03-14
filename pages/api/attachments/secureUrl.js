@@ -1,9 +1,10 @@
 // pages/api/attachments/secureUrl.js
-import jwt from 'jsonwebtoken';
 import { createHash } from 'crypto';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
 
 // Константы
-const JWT_SECRET = 'your_jwt_secret';
+const JWT_SECRET = process.env.NEXTAUTH_SECRET || process.env.JWT_SECRET || 'your_jwt_secret';
 const URL_EXPIRATION = 5 * 60; // URL действителен 5 минут
 
 export default async function handler(req, res) {
@@ -13,18 +14,16 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: `Метод ${req.method} не разрешен` });
   }
   
-  // Получаем токен авторизации
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Требуется авторизация' });
+  // Получаем сессию NextAuth
+  const session = await getServerSession(req, res, authOptions);
+  
+  if (!session || !session.user) {
+    return res.status(401).json({ error: 'Требуется авторизация в NextAuth' });
   }
   
-  const token = authHeader.split(' ')[1];
-  
   try {
-    // Проверяем токен
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const userId = decoded.id;
+    // Используем ID пользователя из сессии NextAuth
+    const userId = session.user.id;
     
     // Получаем ID файла из запроса
     const { attachmentId } = req.body;

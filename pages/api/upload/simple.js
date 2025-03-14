@@ -4,7 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 import fs from 'fs-extra';
 import prisma from '../../../prisma/client';
-import jwt from 'jsonwebtoken';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
 import { createRouter } from 'next-connect';
 
 // Настройка multer для сохранения файлов
@@ -34,18 +35,26 @@ export const config = {
 
 const apiRoute = createRouter();
 
-// Middleware для аутентификации
+// Middleware для аутентификации с использованием NextAuth
 apiRoute.use(async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
+    // Получаем сессию NextAuth
+    const session = await getServerSession(req, res, authOptions);
+    
+    console.log('Session in upload API:', JSON.stringify(session, null, 2));
+    
+    if (!session || !session.user) {
       return res.status(401).json({ error: 'Необходима авторизация' });
     }
-
-    const decoded = jwt.verify(token, 'your_jwt_secret');
+    
+    console.log('User ID from session:', session.user.id);
+    
+    // Получаем пользователя из базы данных
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id },
+      where: { id: session.user.id },
     });
+    
+    console.log('User found in database:', !!user);
 
     if (!user) {
       return res.status(401).json({ error: 'Пользователь не найден' });
@@ -58,7 +67,8 @@ apiRoute.use(async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    return res.status(401).json({ error: 'Недействительный токен' });
+    console.error('Ошибка авторизации:', error);
+    return res.status(401).json({ error: 'Ошибка авторизации' });
   }
 });
 

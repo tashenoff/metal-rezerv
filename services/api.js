@@ -165,27 +165,10 @@ export const fetchCategories = async () => {
 };
 
 
-export const createListing = async (listingData, token) => {
+export const createListing = async (listingData) => {
+    // Используем apiRequest для автоматической обработки авторизации через NextAuth
     try {
-        const response = await fetch('/api/listings', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(listingData),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Ошибка при добавлении объявления.');
-        }
-
-        // Логируем успешный ответ
-        const responseData = await response.json();
-        console.log("Listing created:", responseData);
-
-        return responseData;
+        return await apiRequest('POST', '/api/listings', listingData);
     } catch (error) {
         console.error("Error in createListing:", error);
         throw error;

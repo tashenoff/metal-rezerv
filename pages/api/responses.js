@@ -1,5 +1,6 @@
 import prisma from '../../prisma/client';
-import jwt from 'jsonwebtoken';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from './auth/[...nextauth]';
 
 export default async function handler(req, res) {
     try {
@@ -14,28 +15,16 @@ export default async function handler(req, res) {
 
             console.log('Received body:', { listingId, message });
 
-            // Извлекаем токен из заголовка Authorization
-            const authHeader = req.headers.authorization;
-            console.log('Authorization header:', authHeader);
+            // Получаем сессию NextAuth
+            const session = await getServerSession(req, res, authOptions);
+            console.log('NextAuth session:', session);
 
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return res.status(401).json({ message: 'Необходим токен для авторизации.' });
+            if (!session || !session.user) {
+                return res.status(401).json({ message: 'Не авторизован. Необходима сессия NextAuth.' });
             }
 
-            const token = authHeader.split(' ')[1];
-            console.log('Extracted token:', token);
-
-            // Декодируем JWT-токен для получения userId
-            let decodedToken;
-            try {
-                decodedToken = jwt.verify(token, 'your_jwt_secret');
-                console.log('Decoded token:', decodedToken);
-            } catch (error) {
-                return res.status(401).json({ message: 'Неверный токен.' });
-            }
-
-            const userId = decodedToken.id;
-            console.log('User ID from token:', userId);
+            const userId = session.user.id;
+            console.log('User ID from session:', userId);
 
             if (!userId) {
                 return res.status(400).json({ message: 'Неверный токен.' });

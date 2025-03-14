@@ -24,17 +24,14 @@ const ListingInfo = ({ listing }) => {
     const fetchAttachments = async (listingId) => {
         setLoading(true);
         try {
-            // Получаем авторизационный токен
-            const token = localStorage.getItem('token');
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-            const response = await fetch(`/api/attachments/listing/${listingId}`, {
-                headers
-            });
+            // С NextAuth авторизация передается автоматически через cookies
+            const response = await fetch(`/api/attachments/listing/${listingId}`);
             
             if (response.ok) {
                 const data = await response.json();
                 setAttachments(data);
+            } else {
+                console.error('Failed to fetch attachments:', response.status, response.statusText);
             }
         } catch (error) {
             console.error('Error fetching attachments:', error);
@@ -141,7 +138,6 @@ const ListingInfo = ({ listing }) => {
                         attachments={attachments} 
                         canDelete={isAuthor} 
                         onDelete={handleAttachmentDelete}
-                        token={localStorage.getItem('token')}
                     />
                 )
             ) : (

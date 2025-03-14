@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { useAuth } from '../../contexts/AuthContext';
 import Layout from '../../components/Layout';
 import Notification from '../../components/ui/Notification';
@@ -8,7 +9,8 @@ import Textarea from '../../components/ui/Textarea';
 import Button from '../../components/ui/Button';
 
 const CreateCompany = () => {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const [companyName, setCompanyName] = useState('');
   const [binOrIin, setBinOrIin] = useState('');
   const [region, setRegion] = useState('');
@@ -22,6 +24,21 @@ const CreateCompany = () => {
   const [messageType, setMessageType] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+
+  // Проверка авторизации при загрузке страницы
+  useEffect(() => {
+    console.log('Auth state:', { user, loading });
+    
+    // Проверяем только после завершения загрузки состояния авторизации
+    if (!loading) {
+      if (!user) {
+        console.log('User not authenticated, redirecting to login');
+        router.push('/login'); // Перенаправляем на страницу входа
+      } else {
+        console.log('User authenticated:', user);
+      }
+    }
+  }, [user, loading, router]);
 
   const steps = [
     {
@@ -161,7 +178,7 @@ const CreateCompany = () => {
         
         // Перенаправляем на страницу компании через 2 секунды
         setTimeout(() => {
-          window.location.href = '/company';
+          router.push('/company');
         }, 2000);
       } else {
         setMessage(responseData.message || 'Ошибка при создании компании!');
@@ -175,6 +192,28 @@ const CreateCompany = () => {
       setIsLoading(false);
     }
   };
+
+  // Если все еще загружается состояние авторизации, показываем спиннер
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center min-h-screen">
+          <p className="text-center text-lg">Загрузка...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Если пользователь не авторизован, показываем сообщение (хотя мы уже перенаправили, но на всякий случай)
+  if (!user) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center min-h-screen">
+          <Notification message="Необходимо войти в систему для создания компании" type="error" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

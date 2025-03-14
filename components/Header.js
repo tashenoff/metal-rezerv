@@ -4,16 +4,24 @@ import { useRouter } from 'next/router';
 import { useDispatch } from 'react-redux';
 import { clearUser } from '../store/userSlice';
 import { useAuth } from '../contexts/AuthContext';
+import { signOut } from 'next-auth/react';
 
 const Header = () => {
     const { setUserState } = useAuth();
     const dispatch = useDispatch();
     const router = useRouter();
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
+    const handleLogout = async () => {
+        // Используем NextAuth для выхода
+        await signOut({ redirect: false });
+        
+        // Очищаем состояние пользователя
         dispatch(clearUser());
-        setUserState(null);
+        if (setUserState) {
+            setUserState(null);
+        }
+        
+        // Перенаправляем на страницу логина
         router.push('/login');
     };
 

@@ -1,6 +1,7 @@
 // pages/api/attachments/listing/[id].js
 import prisma from '../../../../prisma/client';
-import jwt from 'jsonwebtoken';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../auth/[...nextauth]';
 
 export default async function handler(req, res) {
   const { id } = req.query;
@@ -36,22 +37,18 @@ export default async function handler(req, res) {
         },
       };
 
-      // Проверка авторизации для доступа к непубличным вложениям
-      const token = req.headers.authorization?.split(' ')[1];
+      // Получаем сессию NextAuth
+      const session = await getServerSession(req, res, authOptions);
+      
       let isAuthorized = false;
       let userId = null;
       let userRole = null;
 
-      if (token) {
-        try {
-          const decoded = jwt.verify(token, 'your_jwt_secret');
-          isAuthorized = true;
-          userId = decoded.id;
-          userRole = decoded.role;
-        } catch (error) {
-          // Если токен недействителен, пользователь не авторизован
-          isAuthorized = false;
-        }
+      if (session && session.user) {
+        isAuthorized = true;
+        userId = session.user.id;
+        userRole = session.user.role;
+        console.log('NextAuth session found:', { userId, userRole });
       }
 
       // Если пользователь не авторизован или не является автором или админом,

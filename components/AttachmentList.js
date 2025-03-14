@@ -4,43 +4,40 @@ const AttachmentList = ({ attachments, canDelete, onDelete, token }) => {
   // Состояние для хранения защищенных URL для файлов
   const [secureUrls, setSecureUrls] = useState({});
   
-  // Получаем токен из localStorage, если он не был передан через props
+  // Получаем защищенные URL для вложений с использованием NextAuth
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedToken = token || localStorage.getItem('token');
-      
-      if (storedToken && attachments?.length > 0) {
-        // Для каждого вложения получаем защищенный URL
-        const fetchSecureUrls = async () => {
-          const urlMap = {};
-          
-          await Promise.all(attachments.map(async (attachment) => {
-            try {
-              const response = await fetch('/api/attachments/secureUrl', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${storedToken}`
-                },
-                body: JSON.stringify({ attachmentId: attachment.id })
-              });
-              
-              if (response.ok) {
-                const data = await response.json();
-                urlMap[attachment.id] = data.url;
-              }
-            } catch (error) {
-              console.error(`Error getting secure URL for attachment ${attachment.id}:`, error);
-            }
-          }));
-          
-          setSecureUrls(urlMap);
-        };
+    if (typeof window !== 'undefined' && attachments?.length > 0) {
+      // Для каждого вложения получаем защищенный URL
+      const fetchSecureUrls = async () => {
+        const urlMap = {};
         
-        fetchSecureUrls();
-      }
+        await Promise.all(attachments.map(async (attachment) => {
+          try {
+            const response = await fetch('/api/attachments/secureUrl', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ attachmentId: attachment.id })
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              urlMap[attachment.id] = data.url;
+            } else {
+              console.error(`Failed to get secure URL for attachment ${attachment.id}:`, response.status);
+            }
+          } catch (error) {
+            console.error(`Error getting secure URL for attachment ${attachment.id}:`, error);
+          }
+        }));
+        
+        setSecureUrls(urlMap);
+      };
+      
+      fetchSecureUrls();
     }
-  }, [attachments, token]);
+  }, [attachments]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -74,7 +71,7 @@ const AttachmentList = ({ attachments, canDelete, onDelete, token }) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
 
-  // Обработчик удаления файла
+  // Обработчик удаления файла с использованием NextAuth
   const handleDeleteFile = async (attachmentId) => {
     if (!canDelete) return;
     
@@ -83,13 +80,20 @@ const AttachmentList = ({ attachments, canDelete, onDelete, token }) => {
     
     try {
       const response = await fetch(`/api/attachments/${attachmentId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        method: 'DELETE'
       });
       
-      const data = await response.json();
+      // Обработка ответа
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        if (response.ok) {
+          data = { success: true };
+        } else {
+          throw new Error('Ошибка при удалении файла');
+        }
+      }
       
       if (!response.ok) {
         console.error('Delete error response:', data);

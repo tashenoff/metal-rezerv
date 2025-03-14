@@ -7,6 +7,7 @@ import { EnvelopeIcon, LockClosedIcon, GlobeAltIcon } from '@heroicons/react/24/
 import TetrisGame from '../components/TetrisGame';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import Link from 'next/link';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const { t, i18n } = useTranslation('common');
@@ -18,7 +19,11 @@ export default function Login() {
   const [hCaptchaToken, setHCaptchaToken] = useState(null); // Состояние для токена hCaptcha
   const [failedAttempts, setFailedAttempts] = useState(0); // Счетчик неудачных попыток
   const [showCaptcha, setShowCaptcha] = useState(false); // Показывать ли капчу
+  const [error, setError] = useState(''); // Ошибка авторизации
   const router = useRouter();
+  const { login } = useAuth();
+  
+  // NextAuth теперь всегда включен
 
   // При загрузке страницы проверяем localStorage на наличие неудачных попыток
   useEffect(() => {
@@ -38,6 +43,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setError('');
 
     // Если капча не показана, но есть неудачные попытки, показываем капчу
     if (!showCaptcha && failedAttempts >= 2) {
@@ -48,38 +54,50 @@ export default function Login() {
 
     // Если капча показана, но токен не заполнен
     if (showCaptcha && !hCaptchaToken) {
-      alert('Please complete the hCaptcha challenge');
+      setError(t('login.complete_captcha'));
       setIsLoading(false);
       return;
     }
 
-    const res = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, hCaptchaToken }),
-    });
-
-    if (res.ok) {
-      const { token, role } = await res.json();
-      localStorage.setItem('token', token);
-      localStorage.removeItem('failedAttempts'); // Сбрасываем счетчик неудачных попыток
-      setFailedAttempts(0); // Сбрасываем счетчик
-      setShowCaptcha(false); // Скрываем капчу
-      if (role === 'RESPONDER') router.push('/activity');
-      else router.push('/listings');
-    } else {
-      const { message } = await res.json();
-      alert(message);
+    try {
+      // Используем NextAuth для авторизации
+      const result = await login(email, password);
+      
+      if (result.success) {
+        localStorage.removeItem('failedAttempts');
+        setFailedAttempts(0);
+        setShowCaptcha(false);
+        
+        // Получаем сессию пользователя
+        const session = await fetch('/api/auth/session');
+        const sessionData = await session.json();
+        
+        // Перенаправляем на нужную страницу в зависимости от роли пользователя
+        if (sessionData?.user?.role === 'RESPONDER') {
+          router.push('/activity');
+        } else {
+          router.push('/listings');
+        }
+      } else {
+        setError(result.error || t('login.invalid_credentials'));
+        const newAttempts = failedAttempts + 1;
+        setFailedAttempts(newAttempts);
+        localStorage.setItem('failedAttempts', newAttempts);
+        if (newAttempts >= 2) {
+          setShowCaptcha(true);
+        }
+      }
+    } catch (error) {
+      console.error('Ошибка при авторизации:', error);
+      setError(t('login.auth_error'));
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
-      localStorage.setItem('failedAttempts', newAttempts); // Сохраняем счетчик в localStorage
-      if (newAttempts >= 2) {
-        setShowCaptcha(true); // Показываем капчу после 2 неудачных попыток
-      }
+      localStorage.setItem('failedAttempts', newAttempts);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
+  
 
   return (
     <div className="h-screen grid bg-white grid-cols-1 md:grid-cols-2">
@@ -180,19 +198,22 @@ export default function Login() {
               </div>
             )}
 
-            <button type="submit" className="btn btn-primary w-full" disabled={isLoading}>
+            {/* Сообщение об ошибке */}
+            {error && (
+              <div className="alert alert-error mb-4">
+                <span>{error}</span>
+              </div>
+            )}
+
+            <button type="submit" className="btn btn-primary w-full mb-4" disabled={isLoading}>
               {isLoading ? (
                 <span className="loading loading-bars loading-lg"></span>
               ) : (
                 t('login.login_button')
               )}
             </button>
-
-         
+            
           </form>
-
-     
-
         </motion.div>
 
         <Link href="/register" className="text-sm text-gray-500 py-5 my-5">
