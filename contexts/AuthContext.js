@@ -27,11 +27,19 @@ export const AuthProvider = ({ children }) => {
             });
             
             if (!result.error) {
-                // Сразу обновим состояние пользователя, не дожидаясь эффекта
-                await fetchUserData();
+                // Добавляем задержку для синхронизации с NextAuth
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Затем обновляем данные пользователя
+                const userLoaded = await fetchUserData();
+                return { 
+                    success: userLoaded, 
+                    error: userLoaded ? null : 'Не удалось загрузить данные пользователя',
+                    userData: user
+                };
             }
             
-            return { success: !result.error, error: result.error };
+            return { success: false, error: result.error };
         } catch (error) {
             console.error('Ошибка при авторизации:', error);
             return { success: false, error: 'Произошла ошибка при авторизации' };
@@ -63,9 +71,18 @@ export const AuthProvider = ({ children }) => {
         setLoading(true);
         
         try {
-            // Если сессия уже загружена и пользователь авторизован
-            if (status === "authenticated" && session?.user) {
-                console.log('Используем данные пользователя из NextAuth:', session.user);
+            // Если сессия еще не загружена, ждем немного
+            if (status === "loading") {
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            
+            // Запрашиваем актуальную сессию напрямую
+            const sessionResponse = await fetch('/api/auth/session');
+            const sessionData = await sessionResponse.json();
+            
+            // Если пользователь авторизован
+            if (sessionData?.user) {
+                console.log('Используем данные пользователя из API:', sessionData.user);
                 
                 // Проверяем, включена ли поддержка поинтов в NextAuth
                 const pointsEnabled = true;
@@ -73,13 +90,13 @@ export const AuthProvider = ({ children }) => {
                 // Формируем данные пользователя
                 const userData = {
                     isLoggedIn: true,
-                    role: session.user.role,
-                    points: pointsEnabled ? (session.user.points || 0) : 0,
-                    username: session.user.name,
-                    id: session.user.id,
-                    responderId: session.user.responderId,
-                    companyId: session.user.companyId,
-                    company: session.user.company
+                    role: sessionData.user.role,
+                    points: pointsEnabled ? (sessionData.user.points || 0) : 0,
+                    username: sessionData.user.name,
+                    id: sessionData.user.id,
+                    responderId: sessionData.user.responderId,
+                    companyId: sessionData.user.companyId,
+                    company: sessionData.user.company
                 };
                 
                 console.log('User data loaded:', userData);
@@ -89,7 +106,30 @@ export const AuthProvider = ({ children }) => {
                 dispatch(setUser(userData));
                 setLoading(false);
                 return true;
-            } else if (status === "unauthenticated") {
+            } else if (status === "authenticated" && session?.user) {
+                // Используем данные из хука useSession как запасной вариант
+                console.log('Используем данные пользователя из NextAuth:', session.user);
+                
+                // Формируем данные пользователя
+                const userData = {
+                    isLoggedIn: true,
+                    role: session.user.role,
+                    points: session.user.points || 0,
+                    username: session.user.name,
+                    id: session.user.id,
+                    responderId: session.user.responderId,
+                    companyId: session.user.companyId,
+                    company: session.user.company
+                };
+                
+                console.log('User data loaded from session:', userData);
+                
+                // Обновляем состояние
+                setUserState(userData);
+                dispatch(setUser(userData));
+                setLoading(false);
+                return true;
+            } else if (status === "unauthenticated" || sessionData?.user === undefined) {
                 // Если не авторизован
                 console.log('User not authenticated');
                 setUserState(null);
@@ -99,6 +139,7 @@ export const AuthProvider = ({ children }) => {
             } else {
                 // Если еще загружается
                 console.log('Auth status is still loading');
+                setLoading(false);
                 return null;
             }
         } catch (error) {
@@ -108,44 +149,28 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // Проверка аутентификации при запуске и обновлении данных
+    // Объединяем логику обработки изменений сессии и статуса в один эффект
+    // чтобы избежать race condition
     useEffect(() => {
-        console.log('Auth status changed:', status);
-        // Если сессия готова, загружаем данные пользователя
+        console.log('Auth status or session changed:', status);
+        
+        // Если статус загрузки не "loading", обрабатываем текущее состояние
         if (status !== "loading") {
             fetchUserData();
         }
-    }, [status]);
-    
-    // Обновляем состояние пользователя при изменении сессии NextAuth
-    useEffect(() => {
-        if (session?.user && status === "authenticated") {
-            console.log('Session updated:', session);
-            
-            // Формируем данные пользователя
-            const userData = {
-                isLoggedIn: true,
-                role: session.user.role,
-                points: session.user.points || 0,
-                username: session.user.name,
-                id: session.user.id,
-                responderId: session.user.responderId,
-                companyId: session.user.companyId,
-                company: session.user.company
-            };
-            
-            console.log('User data updated from session:', userData);
-            
-            // Обновляем состояние
-            setUserState(userData);
-            dispatch(setUser(userData));
-            setLoading(false);
-        }
-    }, [session, status, dispatch]);
+    }, [status, session]);
 
     // Добавляем функцию для перезагрузки данных пользователя
     const refreshUserData = async () => {
         return await fetchUserData();
+    };
+
+    // Функция для получения роли пользователя
+    const getUserRole = () => {
+        if (user) {
+            return user.role;
+        }
+        return null;
     };
 
     return (
@@ -155,7 +180,8 @@ export const AuthProvider = ({ children }) => {
             setUserState,
             login,
             logout,
-            refreshUserData // Добавляем новую функцию в контекст
+            refreshUserData,
+            getUserRole
         }}>
             {children}
         </AuthContext.Provider>

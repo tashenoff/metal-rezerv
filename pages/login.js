@@ -16,25 +16,39 @@ export default function Login() {
   const [emailFocus, setEmailFocus] = useState(false);
   const [passwordFocus, setPasswordFocus] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [hCaptchaToken, setHCaptchaToken] = useState(null); // Состояние для токена hCaptcha
-  const [failedAttempts, setFailedAttempts] = useState(0); // Счетчик неудачных попыток
-  const [showCaptcha, setShowCaptcha] = useState(false); // Показывать ли капчу
-  const [error, setError] = useState(''); // Ошибка авторизации
+  const [hCaptchaToken, setHCaptchaToken] = useState(null);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [showCaptcha, setShowCaptcha] = useState(false);
+  const [error, setError] = useState('');
+  const [loginAttempted, setLoginAttempted] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
-  
-  // NextAuth теперь всегда включен
+  const { login, user, loading } = useAuth();
 
   // При загрузке страницы проверяем localStorage на наличие неудачных попыток
   useEffect(() => {
     const attempts = localStorage.getItem('failedAttempts');
     if (attempts) {
-      setFailedAttempts(Number(attempts));
-      if (Number(attempts) >= 2) {
+      const numAttempts = Number(attempts);
+      setFailedAttempts(numAttempts);
+      if (numAttempts >= 2) {
         setShowCaptcha(true);
       }
     }
   }, []);
+
+  // Мониторим состояние авторизации после попытки входа
+  useEffect(() => {
+    // Если попытка входа была сделана и данные пользователя загружены
+    if (loginAttempted && !loading && user) {
+      console.log('Login completed successfully, redirecting user based on role:', user.role);
+      if (user?.role === 'RESPONDER') {
+        router.push('/activity');
+      } else {
+        router.push('/listings');
+      }
+      setLoginAttempted(false);
+    }
+  }, [loginAttempted, loading, user, router]);
 
   const changeLanguage = (lng) => {
     router.push(router.pathname, router.asPath, { locale: lng });
@@ -45,14 +59,14 @@ export default function Login() {
     setIsLoading(true);
     setError('');
 
-    // Если капча не показана, но есть неудачные попытки, показываем капчу
+    // Проверяем необходимость капчи
     if (!showCaptcha && failedAttempts >= 2) {
       setShowCaptcha(true);
       setIsLoading(false);
       return;
     }
 
-    // Если капча показана, но токен не заполнен
+    // Проверяем наличие токена капчи
     if (showCaptcha && !hCaptchaToken) {
       setError(t('login.complete_captcha'));
       setIsLoading(false);
@@ -60,25 +74,20 @@ export default function Login() {
     }
 
     try {
-      // Используем NextAuth для авторизации
+      // Выполняем авторизацию
       const result = await login(email, password);
-      
+
       if (result.success) {
+        // Сбрасываем счетчик попыток
         localStorage.removeItem('failedAttempts');
         setFailedAttempts(0);
         setShowCaptcha(false);
-        
-        // Получаем сессию пользователя
-        const session = await fetch('/api/auth/session');
-        const sessionData = await session.json();
-        
-        // Перенаправляем на нужную страницу в зависимости от роли пользователя
-        if (sessionData?.user?.role === 'RESPONDER') {
-          router.push('/activity');
-        } else {
-          router.push('/listings');
-        }
+        setLoginAttempted(true);
+
+        // Не делаем редирект здесь, а ждем, пока данные пользователя загрузятся в useEffect
+        console.log('Login successful, waiting for user data');
       } else {
+        // Обработка ошибки
         setError(result.error || t('login.invalid_credentials'));
         const newAttempts = failedAttempts + 1;
         setFailedAttempts(newAttempts);
@@ -86,6 +95,7 @@ export default function Login() {
         if (newAttempts >= 2) {
           setShowCaptcha(true);
         }
+        setIsLoading(false);
       }
     } catch (error) {
       console.error('Ошибка при авторизации:', error);
@@ -93,11 +103,9 @@ export default function Login() {
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
       localStorage.setItem('failedAttempts', newAttempts);
-    } finally {
       setIsLoading(false);
     }
   };
-  
 
   return (
     <div className="h-screen grid bg-white grid-cols-1 md:grid-cols-2">
@@ -212,13 +220,13 @@ export default function Login() {
                 t('login.login_button')
               )}
             </button>
-            
+
           </form>
         </motion.div>
 
         <Link href="/register" className="text-sm text-gray-500 py-5 my-5">
-              {t('login.register_link')}
-            </Link>
+          {t('login.register_link')}
+        </Link>
 
 
       </div>
